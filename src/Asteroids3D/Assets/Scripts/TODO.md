@@ -1,0 +1,1 @@
+make hasValidCommand more than a stub, support partial commands (guns only, etc)

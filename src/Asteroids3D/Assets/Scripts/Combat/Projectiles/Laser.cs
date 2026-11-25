@@ -1,0 +1,24 @@
+using Balance;
+using Damage;
+using UnityEngine;
+
+namespace Combat.Projectiles
+{
+    public class Laser : Projectile<Laser>
+    {
+        [Header("Laser Properties")]
+        [Stat, SerializeField] private float laserSpeed = 20f;
+
+        protected override DamageKind Kind => DamageKind.Laser;
+
+        public float LaserSpeed => laserSpeed;
+
+        public override void Launch(Vector3 direction, Vector3 targetPoint)
+        {
+            var shooterVelocity = Shooter?.Velocity ?? Vector3.zero;
+            var inheritAlong = Vector3.Project(shooterVelocity, direction);
+            rb.linearVelocity = direction * laserSpeed + inheritAlong;
+            base.Launch(direction, targetPoint);
+        }
+    }
+}

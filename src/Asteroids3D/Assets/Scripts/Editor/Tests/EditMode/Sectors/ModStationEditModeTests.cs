@@ -1,0 +1,65 @@
+using System.Linq;
+using NUnit.Framework;
+using Substrate.Sectors;
+using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Stations;
+using Substrate.Sessions;
+using UnityEditor;
+using UnityEngine;
+
+namespace Tests.EditMode.Sectors
+{
+    /// <summary>Each trial sector carries one mod station module, placed 120 to 180 u from the start, reading the sector's own hunt and its repair stations, set up after those stations, with its zone on the body, its own find icon, and a find-layer minimap marker among the parts that go dark.</summary>
+    [TestFixture]
+    [Category("Sectors")]
+    [Category("RequiresLfsPng")]
+    public class ModStationEditModeTests
+    {
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+
+        [TestCase("TrialSector")]
+        public void TrialSector_CarriesOneModStation_AfterItsRepairStations(string sector)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
+            var mods = prefab.Modules.OfType<ModStation>().Single();
+            var repairs = prefab.Modules.OfType<RepairStation>().Single();
+            var modules = prefab.Modules.ToList();
+            Assert.Greater(modules.IndexOf(mods), modules.IndexOf(repairs),
+                "The mod stations set up after the repair stations, so they never read a previous sector's.");
+
+            using var serialized = new SerializedObject(mods);
+            Assert.AreEqual(120f, serialized.FindProperty("distanceMin").floatValue);
+            Assert.AreEqual(180f, serialized.FindProperty("distanceMax").floatValue);
+            Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
+                "The mod stations read the sector's own hunt for its alarm.");
+            var spacedFrom = serialized.FindProperty("spacedFrom");
+            Assert.AreEqual(1, spacedFrom.arraySize);
+            Assert.AreSame(repairs, spacedFrom.GetArrayElementAtIndex(0).objectReferenceValue,
+                "The mod stations keep their spacing from the sector's own repair stations.");
+
+            var body = (FindStationBody)serialized.FindProperty("body").objectReferenceValue;
+            var lit = body.Lit;
+            var zone = body.Zone;
+            Assert.AreSame(body.gameObject, zone.gameObject, "The zone hides and shows with the body.");
+            Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
+            Assert.IsTrue(lit.transform.IsChildOf(body.transform));
+            Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the station.");
+
+            var icon = serialized.FindProperty("icon").objectReferenceValue as Sprite;
+            Assert.IsTrue(icon, "The mod station carries its find icon.");
+            using var repairSerialized = new SerializedObject(repairs);
+            Assert.AreNotSame(repairSerialized.FindProperty("icon").objectReferenceValue, icon,
+                "The mod station's icon is its own, not the repair station's.");
+        }
+
+        [Test]
+        public void TheTrialRun_SearchesThirtySecondsWithOneRepair_InSectorOne_AndPlacesTwoModStationsInEach()
+        {
+            var rows = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath).Sectors;
+            CollectionAssert.AreEqual(new[] { 30f, 45f, 45f }, rows.Select(row => row.searchSeconds).ToArray());
+            CollectionAssert.AreEqual(new[] { 2, 2, 2 }, rows.Select(row => row.modStations).ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 2, 2 }, rows.Select(row => row.repairStations).ToArray());
+        }
+    }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{fe011961-bf91-46e1-862c-f1566d72c564}">
+		<property name="assetPath">
+			<value>Sfx/Weapon Sounds/missile_detonate.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.87528344671201819</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{f3f5788a-2024-4cc1-9c4a-b275a56be015}</destination>
+		</relationship>
+	</object>
+</objects>

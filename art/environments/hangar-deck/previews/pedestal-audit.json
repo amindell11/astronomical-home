@@ -1,0 +1,420 @@
+{
+  "checks": {
+    "protected_objects_exact": false,
+    "object_names_exact": true,
+    "existing_materials_exact": true,
+    "linesets_exact": true,
+    "glass_shader_exact": true,
+    "body_surface_outside_pedestal_preserved": true,
+    "lens_role_exact": true,
+    "lens_transform_exact": true,
+    "lens_centre_within_002": true,
+    "lens_single_closed_solid": true,
+    "lamp_names_exact": true,
+    "eight_mirrored_edge_strips": true,
+    "edge_emission_white_cyan": true,
+    "edge_emission_restrained": true,
+    "edge_strips_thin": true
+  },
+  "preserved_objects": {
+    "Preview | header strip pool 1": true,
+    "Preview | header strip pool 2": true,
+    "25 | Viewport glass": true,
+    "19 | Vanguard preview swept wing envelope": true,
+    "19 | Vanguard preview wing perimeter": true,
+    "19 | Vanguard preview raised fuselage": true,
+    "19 | Vanguard preview fuselage ridge": true,
+    "19 | Vanguard preview fuselage ridge.001": true,
+    "19 | Vanguard preview tail fin": true,
+    "19 | Vanguard preview fin edges": true,
+    "19 | Vanguard preview tail fin.001": true,
+    "19 | Vanguard preview fin edges.001": true,
+    "11 | Neutral projector frustum": true,
+    "19 | Distant space": true,
+    "07 Camera - perspective": true,
+    "D10 | three quarter": true,
+    "D10 | TOP orthographic": true,
+    "D10 | SIDE orthographic": true,
+    "D10 | FRONT orthographic from viewer": true,
+    "Key | centred in front of all screens": true,
+    "07 | Main rectangular display": true,
+    "07 | Detail rectangular display": true,
+    "30 | Primary blank glass": true,
+    "30 | Ordnance blank glass": true,
+    "08 | Previous chunky keycap": true,
+    "08 | Previous inlaid chevron": true,
+    "08 | Next chunky keycap": true,
+    "08 | Next inlaid chevron": true,
+    "08 | Selector faceted grip": true,
+    "08 | Launch broad beveled button": true,
+    "19 | Launch legend": true,
+    "30 | Primary Previous key": true,
+    "30 | Primary Previous ivory inlay": true,
+    "30 | Primary Next key": true,
+    "30 | Primary Next ivory inlay": true,
+    "30 | Ordnance Previous key": true,
+    "30 | Ordnance Previous ivory inlay": true,
+    "30 | Ordnance Next key": true,
+    "30 | Ordnance Next ivory inlay": true,
+    "Deck | Left status 1 green lens": true,
+    "Deck | Left status 2 green lens": true,
+    "Deck | Left status 3 amber lens": true,
+    "Deck | Right status 1 green lens": true,
+    "Deck | Right status 2 green lens": true,
+    "Deck | Right status 3 amber lens": true,
+    "Deck | Left Launch armed red lens": false,
+    "Deck | Right Launch armed red lens": false,
+    "Deck | Header downlight 01 cold white lens": true,
+    "Deck | Header downlight 02 cold white lens": true
+  },
+  "preserved_materials": {
+    "Deck | armed red emission": true,
+    "Deck | blue grey front": true,
+    "Deck | charcoal wells and bezels": true,
+    "Deck | cold blue-white structural accents": true,
+    "Deck | cool grey controls": true,
+    "Deck | cool upper planes": true,
+    "Deck | darker service plate": true,
+    "Deck | deep ink blue": true,
+    "Deck | emissive cyan accents": true,
+    "Deck | ivory inlaid legends": true,
+    "Deck | lightly rubbed paint": true,
+    "Deck | muted service stencils": true,
+    "Deck | orange launch resin": true,
+    "Deck | placeholder emissive blue": true,
+    "Deck | secondary satin blue plate": true,
+    "Deck | slate chamfers": true,
+    "Deck | status amber emission": true,
+    "Deck | status green emission": true,
+    "Deck | warm white downlight emission": true
+  },
+  "unchanged_body_components": 344,
+  "protected_body_face_count": 18384,
+  "protected_body_faces_exact": false,
+  "protected_body_surface_max_distance": 5.825420247493084e-06,
+  "removed_body_components": [
+    {
+      "hash": "6ef966080ed92e371512994f0b45897ad5460987b62d8a04ae16d29883e026a1",
+      "faces": 6292,
+      "volume": 4119.583889451221,
+      "bounds": [
+        [
+          -27.0,
+          27.0
+        ],
+        [
+          -5.5,
+          7.650000095367432
+        ],
+        [
+          -5.0,
+          15.0
+        ]
+      ]
+    }
+  ],
+  "added_body_components": [
+    {
+      "hash": "3b84d4a5f7adcc87781770becf387738d85f8cd44f5a798de795f14e759ee4f5",
+      "faces": 28,
+      "volume": 0.00011533421396355474,
+      "bounds": [
+        [
+          -0.9765300750732422,
+          -0.7508044838905334
+        ],
+        [
+          -0.7965301275253296,
+          -0.5708045363426208
+        ],
+        [
+          1.6421748399734497,
+          1.6788626909255981
+        ]
+      ]
+    },
+    {
+      "hash": "ca1fbb2cb24b53e0682ef00b362825c47ce79b21dee8e70603e1f880167ef63d",
+      "faces": 28,
+      "volume": 8.534280398938181e-05,
+      "bounds": [
+        [
+          -0.7614407539367676,
+          -0.5914517641067505
+        ],
+        [
+          -0.591440737247467,
+          -0.42145171761512756
+        ],
+        [
+          2.0320284366607666,
+          2.0686912536621094
+        ]
+      ]
+    },
+    {
+      "hash": "2df46ece7725a74174588817aba049eec94519681301e35ea864ab42502689e1",
+      "faces": 7377,
+      "volume": 4119.570874773894,
+      "bounds": [
+        [
+          -27.0,
+          27.0
+        ],
+        [
+          -5.5,
+          7.650000095367432
+        ],
+        [
+          -5.0,
+          15.0
+        ]
+      ]
+    },
+    {
+      "hash": "63260b9bc27213af10f1a257861256ce86475445bbfc5063648d2fe3d00a8fc7",
+      "faces": 28,
+      "volume": 0.00024212338272870272,
+      "bounds": [
+        [
+          0.06499999761581421,
+          0.6949999928474426
+        ],
+        [
+          -0.8233766555786133,
+          -0.8035240769386292
+        ],
+        [
+          1.642027735710144,
+          1.6786900758743286
+        ]
+      ]
+    },
+    {
+      "hash": "d667c6084dcb7fe6c772460d2ebef229a6bf849c442f1155b1c03cfa45d6164d",
+      "faces": 28,
+      "volume": 6.679492071270939e-05,
+      "bounds": [
+        [
+          -0.5553076267242432,
+          -0.4193616807460785
+        ],
+        [
+          -0.46530765295028687,
+          -0.3293617069721222
+        ],
+        [
+          2.3720407485961914,
+          2.4087090492248535
+        ]
+      ]
+    },
+    {
+      "hash": "1001987365bc135806c53fb89237fb39a95295062a9c32ff50632d622cbc7051",
+      "faces": 28,
+      "volume": 0.00011536094583182895,
+      "bounds": [
+        [
+          0.7508044838905334,
+          0.9765300750732422
+        ],
+        [
+          -0.7965301275253296,
+          -0.5708045363426208
+        ],
+        [
+          1.6421748399734497,
+          1.6788626909255981
+        ]
+      ]
+    },
+    {
+      "hash": "91a8511ac9fc2cfdd1493a2d9b71012c695b01e8810c6d38a823071da125d48e",
+      "faces": 28,
+      "volume": 6.683524406980745e-05,
+      "bounds": [
+        [
+          0.4193616807460785,
+          0.5553076267242432
+        ],
+        [
+          -0.46530765295028687,
+          -0.3293617069721222
+        ],
+        [
+          2.3720407485961914,
+          2.4087090492248535
+        ]
+      ]
+    },
+    {
+      "hash": "8f7bd251cefec80374c9b21ad69a8fb3d8ce8739ad841c78a0e186c5c70f5f0d",
+      "faces": 28,
+      "volume": 8.53859140382457e-05,
+      "bounds": [
+        [
+          0.5914517641067505,
+          0.7614407539367676
+        ],
+        [
+          -0.591440737247467,
+          -0.42145171761512756
+        ],
+        [
+          2.0320284366607666,
+          2.0686912536621094
+        ]
+      ]
+    },
+    {
+      "hash": "8def711a4b01013dfe66fd86acb6b8672f103d7c5f4b0f904fc7eded74cd3549",
+      "faces": 28,
+      "volume": 0.00024212235196804008,
+      "bounds": [
+        [
+          -0.6949999928474426,
+          -0.06499999761581421
+        ],
+        [
+          -0.8233766555786133,
+          -0.8035240769386292
+        ],
+        [
+          1.642027735710144,
+          1.6786900758743286
+        ]
+      ]
+    }
+  ],
+  "lens_centre_before": [
+    7.450580596923828e-09,
+    0.0,
+    2.4800000190734863
+  ],
+  "lens_centre_after": [
+    7.450580596923828e-09,
+    0.0,
+    2.4800000190734863
+  ],
+  "lens_signed_volume": 0.013892140591462186,
+  "edge_strip_bounds": [
+    [
+      [
+        -0.9765300750732422,
+        -0.7508044838905334
+      ],
+      [
+        -0.7965301275253296,
+        -0.5708045363426208
+      ],
+      [
+        1.6421748399734497,
+        1.6788626909255981
+      ]
+    ],
+    [
+      [
+        0.7508044838905334,
+        0.9765300750732422
+      ],
+      [
+        -0.7965301275253296,
+        -0.5708045363426208
+      ],
+      [
+        1.6421748399734497,
+        1.6788626909255981
+      ]
+    ],
+    [
+      [
+        -0.6949999928474426,
+        -0.06499999761581421
+      ],
+      [
+        -0.8233766555786133,
+        -0.8035240769386292
+      ],
+      [
+        1.642027735710144,
+        1.6786900758743286
+      ]
+    ],
+    [
+      [
+        0.06499999761581421,
+        0.6949999928474426
+      ],
+      [
+        -0.8233766555786133,
+        -0.8035240769386292
+      ],
+      [
+        1.642027735710144,
+        1.6786900758743286
+      ]
+    ],
+    [
+      [
+        -0.7614407539367676,
+        -0.5914517641067505
+      ],
+      [
+        -0.591440737247467,
+        -0.42145171761512756
+      ],
+      [
+        2.0320284366607666,
+        2.0686912536621094
+      ]
+    ],
+    [
+      [
+        0.5914517641067505,
+        0.7614407539367676
+      ],
+      [
+        -0.591440737247467,
+        -0.42145171761512756
+      ],
+      [
+        2.0320284366607666,
+        2.0686912536621094
+      ]
+    ],
+    [
+      [
+        -0.5553076267242432,
+        -0.4193616807460785
+      ],
+      [
+        -0.46530765295028687,
+        -0.3293617069721222
+      ],
+      [
+        2.3720407485961914,
+        2.4087090492248535
+      ]
+    ],
+    [
+      [
+        0.4193616807460785,
+        0.5553076267242432
+      ],
+      [
+        -0.46530765295028687,
+        -0.3293617069721222
+      ],
+      [
+        2.3720407485961914,
+        2.4087090492248535
+      ]
+    ]
+  ],
+  "edge_emission_linear": [
+    0.550000011920929,
+    0.8500000238418579,
+    1.0
+  ],
+  "edge_emission_strength": 0.800000011920929
+}

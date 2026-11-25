@@ -1,0 +1,73 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-06T23:48:51.510160+00:00",
+  "status": "approved",
+  "approval": "Owner approved concept 05 for a texture pass: \"Approve a texture pass\".",
+  "prompt": "Use case: precise-object-edit\nAsset type: Nightshade concept 05, restrained final vibrancy adjustment.\nImage 1: EDIT TARGET, Nightshade concept 04 before the vibrancy change. This is the baseline to preserve.\nImage 2: REJECTED OVERSTRONG COLOUR EXAMPLE, the previous attempt, whose purple panels became too bright and saturated. Use only to understand what is too much; do not match that strength.\n\nThe user asks for the colours to be a TINY bit more vibrant. Starting from image 1, produce a palette that looks almost identical to image 1, only about one quarter of the way from image 1 toward image 2. Dark smoky violet panels should stay dark and smoky. Add only a small amount of purer violet to them and slightly enrich their existing coloured edge reflections. Preserve the original panel brightness. Do not brighten the big broad panel faces as in image 2. Keep roughly 75\u00e2\u20ac\u201c80 percent of the original image 1 colour appearance and only 20\u00e2\u20ac\u201c25 percent of the image 2 intensity.\nKeep the blue-black hull, dark gunmetal centre, blue-violet canopy and muted purple tips essentially identical to image 1. Existing green side lamps and the tiny matched inner shoulder pair remain EXACTLY the same size, brightness, hue and placement. No green in the centre.\n\nKeep every other feature absolutely unchanged from image 1: geometry, silhouette, proportions, mechanical panels, fins, forked tail, cockpit, markings, all four views, lighting, gray background, square layout, scale and spacing. This is a very slight paint vibrancy change only. Do not use overall saturation or exposure changes that affect the background.\nNo gold, bronze, brass, warm metal, new colours, extra lights, neon edging, new details, text, swatches or labels. The final should remain a dark Nightshade, with a slight additional richness visible side by side with image 1.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "edit target: concept 04",
+      "path": "art/ships/nightshade/paint/concept-04.png",
+      "sha256": "47649c1ebd3b7d6ce087556b051b78a24de0edd968416d70bcbc26a252562528"
+    },
+    {
+      "role": "reference showing excessive vibrancy to avoid",
+      "path": "C:\\Users\\amind\\.codex\\generated_images\\01a112c7-f840-7683-a496-b2b5e5eabf06\\exec-4deff3e5-ff0d-4f76-ad24-3020012124be.png",
+      "sha256": "5348dc61ad7e495887f7b99557a7e718ae53f20021a9fc9be81c64eff69a44e5"
+    }
+  ],
+  "context_reference": {
+    "description": "Original in-game Nightshade mesh and albedo inspected for small side-light character; not an edit target.",
+    "report": "C:\\Users\\amind\\.codex\\visualizations\\2026\\10\\06\\01a112c7-f840-7683-a496-b2b5e5eabf06\\ingame-nightshade-reference\\reference.json"
+  },
+  "output": {
+    "path": "concept-05.png",
+    "sha256": "8c78c44e81d06431bff2942e5a16ddf4647e87a598ae635488058c999e40bfe8",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "source_commit": "c1fdb2746421408761f4202dfdef32422c554fdc",
+  "source_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "revision": [
+    "Very slightly enrich violet/plum armour and purple accents.",
+    "Keep the hull dark, centre non-emissive, and small symmetrical green lights restrained."
+  ],
+  "review_thumbnails": {
+    "crop_xyxy": [
+      681,
+      27,
+      1203,
+      600
+    ],
+    "ship_lengths_px": [
+      32,
+      48,
+      64,
+      96
+    ],
+    "reduction": "Lanczos",
+    "enlargement": "nearest",
+    "not_in_game": true
+  },
+  "source_geometry_or_materials_changed": false,
+  "final_masks_generated": false,
+  "prerequisites": {
+    "detail_model_approved": true,
+    "flight_approved": false,
+    "geometry_lock_written": false,
+    "uv_approved": false,
+    "paint_concept_approved": true
+  },
+  "discarded_attempts": [
+    {
+      "path": "C:\\Users\\amind\\.codex\\generated_images\\01a112c7-f840-7683-a496-b2b5e5eabf06\\exec-4deff3e5-ff0d-4f76-ad24-3020012124be.png",
+      "sha256": "5348dc61ad7e495887f7b99557a7e718ae53f20021a9fc9be81c64eff69a44e5",
+      "reason": "Vibrancy increase exceeded the requested tiny adjustment.",
+      "prompt": "Use case: precise-object-edit\nAsset type: Nightshade spacecraft paint concept, round 05.\nInput image: EDIT TARGET, the approved direction from concept 04: four views of the dark blue-black and violet Nightshade ship with small symmetrical green side lights and dark centre hardware.\n\nPrimary request: The user likes this design and asks for the colours to be only a tiny bit more vibrant to fit alongside the other game ships. Make a subtle final colour refinement, not a redesign or a large colour shift.\n\nChange only the existing colour intensity:\n- Lift chroma in the existing violet/plum armour panels by one small step, roughly a 10\u00e2\u20ac\u201c15 percent relative saturation increase. They should read as a slightly richer deep violet, with just a gentle lift to their midtones; stay dark, avoid pastel or hot neon purple.\n- Bring out the existing midnight-indigo tint in the blue-black hull very slightly. Keep the dark gunmetal centre and deep shadow values intact.\n- Add a very small richness boost to existing purple tip patches and blue-violet glass. The canopy already reads brightly: preserve its value and reflections, do not make it glow more.\n- Preserve exactly the small green side lamp banks and the one symmetrical pair of tiny inner-shoulder indicator slits. Same sizes, shapes, locations and understated brightness. Centreline fittings remain dark and non-emissive. No green lights in the middle.\n\nPreserve EVERYTHING else exactly: mechanical geometry, silhouette, all panel divisions, framing and nose/canopy, forked tail, fins, surface detail, paint placement, line art, shading, four camera views, image layout, spacing, neutral grey background and square format. The change should be apparent in a side-by-side comparison but look like the same palette at first glance.\nNo bronze, gold, brass, copper, tan or olive metal. No extra lights or decals, no added geometry, no new accent colours. Do not change the overall exposure or background. No text, labels, borders or watermark.\n"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "current_preview_images_verified": 48,
+  "hardware_triangles": 26024,
+  "final_scene_sha256": "000a48060af90c3d307bcbd318fe4344e64d170cf6dc129023cc1e96e84c6f3d",
+  "all_finish_checks": true,
+  "all_coverage_checks": true,
+  "window_mask_unchanged": true,
+  "build_exit_code": 0,
+  "build_completed": true,
+  "renderer_diagnostics": "Side-view Freestyle reported an empty stroke set; front-view Freestyle corrected two doubled edge pairs. All ten views saved and were inspected; mesh and ink verifiers passed."
+}

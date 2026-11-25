@@ -1,0 +1,3 @@
+- balance between pursuing greatness and stopping to enjoy the little things
+- Main character struggles with feeling pressure to achieve from parent figure(s)
+-  Driven by the urgency to defeat some big bad or save the world or something, but side characters teach him that the journey is more important than the destination (how?)

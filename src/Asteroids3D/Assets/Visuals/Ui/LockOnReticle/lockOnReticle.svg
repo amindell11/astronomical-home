@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- Four red corner lines (initially wide; animate inward during lock-on) -->
+  <!-- Top-left corner -->
+  <line x1="40" y1="70" x2="40" y2="40" stroke="#FF0000" stroke-width="4"/>
+  <line x1="40" y1="40" x2="70" y2="40" stroke="#FF0000" stroke-width="4"/>
+  <!-- Top-right corner -->
+  <line x1="216" y1="40" x2="186" y2="40" stroke="#FF0000" stroke-width="4"/>
+  <line x1="216" y1="40" x2="216" y2="70" stroke="#FF0000" stroke-width="4"/>
+  <!-- Bottom-left corner -->
+  <line x1="40" y1="186" x2="40" y2="216" stroke="#FF0000" stroke-width="4"/>
+  <line x1="40" y1="216" x2="70" y2="216" stroke="#FF0000" stroke-width="4"/>
+  <!-- Bottom-right corner -->
+  <line x1="216" y1="216" x2="186" y2="216" stroke="#FF0000" stroke-width="4"/>
+  <line x1="216" y1="216" x2="216" y2="186" stroke="#FF0000" stroke-width="4"/>
+</svg> 

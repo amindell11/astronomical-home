@@ -1,0 +1,13 @@
+# Nightshade
+
+Nightshade.blend holds the editable source. The geometry and live X mirrors remain editable; `lock.json`, written by `ship_lock`, locks the geometry. Concept 05 is approved (`paint/concept-05.png`); the pale blue palette the owner recoloured to is the one in `palettes.json`.
+
+The Sub-assemblies collection contains nine ASSEMBLY controls: Cockpit, Main wings, Upper fins, Lower fins, Tail, Upper spine, Lower spine, Engine and Central hull. Select a control and use G, R or S to manipulate its complete assembly. Expand it to edit individual meshes. Each control carries its own mirror plane, and the panel joint beds follow their matching assembly. Export roles remain in a separate collection tree.
+
+PaintUV gives native and mirrored surfaces independent charts in the lower-left and lower-right atlas quadrants. The upper half is reserved. Half-scale charts and a 0.5 U offset on the live Mirror modifiers preserve the prior texel density while allowing asymmetric painted lighting.
+
+Paint follows the house recipe (`art/tools/ship/README.md` → Paint settings). The six material slots on the role parts are the palette regions and `palettes.json` holds their linear colours; `ship_paint` bakes `layers/Shadow.png`, `Light.png`, `Ink.png` and `Emission.png` from the locked geometry with the knobs in `paint.json`: Midnight, Violet, Plum and Edge plates sweep, Violet plates ink their walls, the canopy glazing and its frames keep their palette colour, and the wing cooling louvers emit green. `layers/baseline/` is the tool's own last output, so a mask edited in place survives a re-run. The images packed in the source predate the recipe; `layers/` is the paint of record.
+
+The Unity ship binds the tool's bundle: `Assets/Visuals/Ships/Nightshade/Paint/` and one `_PaintLayers` material per region under `Materials/nightshade/`. Every region shares the lighting numbers in `paint.json`'s material block (shadow strength 1.531, saturation 1.25, shadow threshold -0.063, a near-white shadow colour): the owner chose them in the 2026-10-19 lineup because the shader defaults turn the pale palette slate under the game's warm sun. The breakup materials are the same materials on the debris render queue with soot. Nightshade.fbx carries Hull, Canopy, Cores and Collider roles; the source contains a hidden convex Flight collision hull. The prefab retains the previous inertia explicitly and places the engine exhaust at Engine.Main. Full chassis-anatomy and breakup migration remain separate from this visual integration.
+
+`paint/` keeps the concept rounds and the marker paintings behind the retired projected masks, which live on `evidence/nightshade` under `paint/2026-10-17-projected-masks/`. UV-guide.svg shows both sets of charts.

@@ -1,0 +1,402 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Balance;
+using Combat.Weapons;
+using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
+using Loot;
+using NUnit.Framework;
+using Ships;
+using Ships.Command;
+using Ships.Loadout;
+using Ships.Weapons;
+using Substrate.Sectors;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+using Substrate.Sessions;
+
+namespace Tests.EditMode
+{
+    /// <summary>The loadout stat hash and the stat fingerprint over the authored assets: a hull's prefab asset and its instance hash alike, only marked fields move a hash, and list order does not. Every edit lands on a scratch copy, never on an asset.</summary>
+    [TestFixture]
+    [Category("Ships")]
+    public class StatHashEditModeTests
+    {
+        private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+        private const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
+        private const float MinionKillHeal = 10f;
+        private const float RivalKillHeal = 40f;
+        private const float PhaseWaveEvery = 6f;
+
+        private sealed class ScratchCommander : Commander
+        {
+            public override void Initialize(in ShipControl control) { }
+        }
+
+        private readonly List<Object> scratch = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var copy in scratch)
+                if (copy) Object.DestroyImmediate(copy);
+            scratch.Clear();
+        }
+
+        [Test]
+        public void OfLoadout_PrefabAssetAndInstance_HashAlike_ForEveryHangarHull()
+        {
+            var hulls = HangarOffer().ships;
+            foreach (var hull in hulls)
+            {
+                Assert.IsTrue(hull.Weapons, $"{hull.name}: the prefab asset has no weapons controller wired.");
+                Assert.AreSame(hull.GetComponent<WeaponsController>(), hull.Weapons,
+                    $"{hull.name}: the wired weapons controller must be the hull's own.");
+
+                var assetLines = StatHash.Lines(hull);
+                Assert.That(assetLines, Has.Some.StartsWith($"{hull.Weapons.PrimaryMountPrefab.name}/"),
+                    $"{hull.name}: the prefab asset's lines must reach its primary mount's weapon.");
+
+                var instance = Scratch(hull);
+                CollectionAssert.AreEqual(assetLines, StatHash.Lines(instance), $"{hull.name}: asset and instance lines");
+                Assert.AreEqual(StatHash.OfLoadout(hull), StatHash.OfLoadout(instance), $"{hull.name}: asset and instance hash");
+            }
+
+            Assert.AreEqual(hulls.Length, hulls.Select(StatHash.OfLoadout).Distinct().Count(),
+                "Different hulls must not share a loadout stat hash.");
+        }
+
+        [Test]
+        public void OfLoadout_EveryHangarWeapon_ReachesEachConditionOnItsPrefab()
+        {
+            var offer = HangarOffer();
+            var ship = Scratch(offer.ships[0]);
+            foreach (var weapon in offer.weapons)
+            {
+                ship.Weapons.primaryMount = weapon;
+                var lines = StatHash.Lines(ship);
+                foreach (var condition in weapon.GetComponents<WeaponCondition>())
+                    Assert.That(lines, Has.Some.StartsWith($"{weapon.name}/{condition.GetType().Name}."),
+                        $"{weapon.name}: {condition.GetType().Name} sits on the prefab but no marked reference reaches it.");
+            }
+        }
+
+        [Test]
+        public void Of_HashesOneItemsOwnSubtree_AndNothingElse()
+        {
+            var offer = HangarOffer();
+            var ship = Scratch(offer.ships[0]);
+            var prefab = ship.Weapons.PrimaryMountPrefab;
+            var weapon = Scratch(prefab);
+            ship.Weapons.primaryMount = weapon;
+
+            Assert.AreEqual(StatHash.Of(prefab), StatHash.Of(weapon),
+                "A copy with the same name and numbers hashes like the prefab.");
+            CollectionAssert.IsSubsetOf(StatHash.Lines(weapon), StatHash.Lines(ship),
+                "A mounted weapon's lines are part of its ship's lines.");
+            Assert.AreEqual(offer.weapons.Length, offer.weapons.Select(StatHash.Of).Distinct().Count(),
+                "Different weapons must not share a hash.");
+
+            var engine = StatHash.Of(ship.Engine);
+            SetSerialized(weapon.GetComponent<Cooldown>(), "fireRate", property => property.floatValue += 0.01f);
+            Assert.AreNotEqual(StatHash.Of(prefab), StatHash.Of(weapon),
+                "A marked number on the weapon's condition moves the weapon's hash.");
+            Assert.AreEqual(engine, StatHash.Of(ship.Engine), "A weapon edit leaves the engine's hash alone.");
+        }
+
+        [Test]
+        public void OfLoadout_MovesWithMarkedFields_AndIgnoresUnmarkedOnes()
+        {
+            var ship = Scratch(HangarOffer().ships[0]);
+            var weapon = Scratch(ship.Weapons.PrimaryMountPrefab);
+            var baseline = StatHash.OfLoadout(ship);
+
+            ship.Weapons.primaryMount = weapon;
+            Assert.AreEqual(baseline, StatHash.OfLoadout(ship), "A copy with the same name and numbers is the same part.");
+
+            ship.teamNumber += 1;
+            SetSerialized(weapon, "displayName", property => property.stringValue += " (scratch)");
+            Assert.AreEqual(baseline, StatHash.OfLoadout(ship), "Unmarked fields (team, display name) must not move the hash.");
+
+            ship.maxHealth += 1f;
+            var hullChanged = StatHash.OfLoadout(ship);
+            Assert.AreNotEqual(baseline, hullChanged, "A marked hull number must move the hash.");
+
+            SetSerialized(weapon.GetComponent<Cooldown>(), "fireRate", property => property.floatValue += 0.01f);
+            Assert.AreNotEqual(hullChanged, StatHash.OfLoadout(ship),
+                "A marked number on a condition, two references from the hull, must move the hash.");
+        }
+
+        [Test]
+        public void Of_IncludesADeclaredHoldRange()
+        {
+            IncludesHoldRange("Assets/Prefabs/Weapons/Railgun.prefab", "Railguns", 30f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Missiles.prefab", "Missiles", 13f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Grenades.prefab", "Grenades", 18f);
+        }
+
+        [Test]
+        public void OfSetting_IgnoresListOrder()
+        {
+            var offer = HangarOffer();
+            var baseline = StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery) }, MinionKillHeal, RivalKillHeal);
+
+            var reordered = Object.Instantiate(offer);
+            scratch.Add(reordered);
+            Array.Reverse(reordered.ships);
+            Array.Reverse(reordered.weapons);
+
+            Assert.AreEqual(baseline,
+                StatHash.OfSetting(reordered, null, new[] { ScratchRow(PhaseWaveEvery) }, MinionKillHeal, RivalKillHeal));
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenAFactionsRanksSwapPilots()
+        {
+            var offer = HangarOffer();
+            var first = ScratchPilot("FirstPilot");
+            var second = ScratchPilot("SecondPilot");
+            var paired = ScratchRow(PhaseWaveEvery);
+            paired.faction = ScratchFaction(offer.ships[0], first, second);
+            var swapped = ScratchRow(PhaseWaveEvery);
+            swapped.faction = ScratchFaction(offer.ships[0], second, first);
+
+            Assert.AreNotEqual(StatHash.OfSetting(offer, null, new[] { paired }, MinionKillHeal, RivalKillHeal),
+                StatHash.OfSetting(offer, null, new[] { swapped }, MinionKillHeal, RivalKillHeal),
+                "Which pilot flies which rank is part of what a run can draw from.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenAPhasesMinionRangeChanges()
+        {
+            var offer = HangarOffer();
+            var baseline = StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 3) },
+                MinionKillHeal, RivalKillHeal);
+
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 2, most: 3) }, MinionKillHeal, RivalKillHeal),
+                "How few minions fly with the rival must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 4) }, MinionKillHeal, RivalKillHeal),
+                "How many minions fly with the rival must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWithEverySectorsPacingAndKillRefills()
+        {
+            var offer = HangarOffer();
+            var sector = ScratchRow(PhaseWaveEvery);
+            var baseline = StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal, RivalKillHeal);
+
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery + 1f) }, MinionKillHeal, RivalKillHeal),
+                "A pacing number on the row must move the fingerprint.");
+            var capped = ScratchRow(PhaseWaveEvery);
+            capped.minionCap = sector.minionCap + 1;
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { capped }, MinionKillHeal, RivalKillHeal),
+                "The minion cap must move the fingerprint.");
+            var rivalCapped = ScratchRow(PhaseWaveEvery);
+            rivalCapped.rivalCap = sector.rivalCap + 1;
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { rivalCapped }, MinionKillHeal, RivalKillHeal),
+                "The rival cap must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal + 1f, RivalKillHeal),
+                "The minion kill refill must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal, RivalKillHeal + 1f),
+                "The rival kill refill must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, null, new[] { sector, ScratchRow(PhaseWaveEvery + 1f) }, MinionKillHeal, RivalKillHeal),
+                "A later sector's pacing must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenALullModsMagnitudeChanges()
+        {
+            var offer = HangarOffer();
+            var rows = new[] { ScratchRow(PhaseWaveEvery) };
+            var pool = AssetDatabase.LoadAssetAtPath<LullModPool>(LullModsPath);
+            Assert.IsNotNull(pool, $"Lull mod pool missing at {LullModsPath}");
+            var mod = pool.mods.OfType<WeaponMod>().First();
+            var baseline = StatHash.OfSetting(offer, pool, rows, MinionKillHeal, RivalKillHeal);
+
+            var copy = Object.Instantiate(pool);
+            scratch.Add(copy);
+            var scratchMod = Object.Instantiate(mod);
+            scratch.Add(scratchMod);
+            copy.mods[Array.IndexOf(copy.mods, mod)] = scratchMod;
+            Assert.AreEqual(baseline, StatHash.OfSetting(offer, copy, rows, MinionKillHeal, RivalKillHeal),
+                "A copy with the same name and numbers is the same pool.");
+
+            SetSerialized(scratchMod, "amount", property => property.floatValue += 0.05f);
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, copy, rows, MinionKillHeal, RivalKillHeal),
+                "A lull mod's magnitude must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenSectorPhasesReorderOrRepeat()
+        {
+            var offer = HangarOffer();
+            var early = new SectorPhase
+            {
+                seconds = 40f, waveEvery = 6f, sendsWaves = true, fewestMinions = 1, mostMinions = 2,
+            };
+            var late = new SectorPhase
+            {
+                seconds = 40f, waveEvery = 4f, sendsWaves = true, fewestMinions = 1, mostMinions = 2,
+            };
+
+            var baseline = PhasedSetting(offer, early, late);
+
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, late, early),
+                "Phase order is pacing, so a reordered table must move the fingerprint.");
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, early, early, late),
+                "A repeated phase lengthens the sector, so it must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenRunSectorsReorderOrRepeat()
+        {
+            var offer = HangarOffer();
+            var easy = ScratchRow(PhaseWaveEvery);
+            var hard = ScratchRow(PhaseWaveEvery - 2f);
+
+            var baseline = StatHash.OfSetting(offer, null, new[] { easy, hard }, MinionKillHeal, RivalKillHeal);
+
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { hard, easy }, MinionKillHeal, RivalKillHeal),
+                "Sector order sets the difficulty curve, so a reordered run must move the fingerprint.");
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { easy, hard, hard }, MinionKillHeal, RivalKillHeal),
+                "A repeated sector lengthens the run, so it must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_CoversTheTrialRowsPacingRosterPatrolsAndFaction_AndItsLayoutsDirector()
+        {
+            var run = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath);
+            Assert.IsNotNull(run, $"Sector run missing at {RunPath}");
+            var row = run.Sectors[0];
+            var director = row.prefab.Spawners.OfType<WaveDirector>().Single();
+
+            var lines = StatHash.SettingLines(HangarOffer(), null, new[] { row }, MinionKillHeal, RivalKillHeal);
+
+            var phase = lines.Single(line => line.StartsWith("sector[0]/row/SectorEntry.phases[0]={"));
+            Assert.That(phase, Does.Contain("sendsWaves="));
+            Assert.That(phase, Does.Contain("fewestMinions="));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.patrols={row.patrols}"));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.rivalCap={row.rivalCap}"));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.minionCap={row.minionCap}"));
+            Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.lullSeconds="));
+            Assert.That(lines, Has.Some.StartsWith(
+                "sector[0]/RepairStationFeel/RepairStationFeelProfile.lullGraceSeconds="));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.minion={"));
+            Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
+            Assert.That(lines, Has.Member("setting/minionKillHeal=10"));
+            Assert.That(lines, Has.Member("setting/rivalKillHeal=40"));
+        }
+
+        [Test]
+        public void OfLoadout_DoesNotDependOnTheMachinesCulture()
+        {
+            var hull = HangarOffer().ships[0];
+            var previous = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+                var expected = StatHash.OfLoadout(hull);
+
+                // German writes 0.5 as "0,5".
+                CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+                Assert.AreEqual(expected, StatHash.OfLoadout(hull));
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = previous;
+            }
+        }
+
+        private static ItemSubset HangarOffer()
+        {
+            var offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(HangarOfferPath);
+            Assert.IsNotNull(offer, $"Hangar offer missing at {HangarOfferPath}");
+            return offer;
+        }
+
+        private static void IncludesHoldRange(string path, string typeName, float range)
+        {
+            var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>(path);
+            Assert.IsNotNull(weapon, path);
+            var line = $"{weapon.name}/{typeName}.holdRange={range.ToString("R", CultureInfo.InvariantCulture)}";
+            Assert.That(StatHash.Lines(weapon), Has.Member(line), path);
+        }
+
+        private T Scratch<T>(T original) where T : Component
+        {
+            var copy = Object.Instantiate(original);
+            scratch.Add(copy.gameObject);
+            return copy;
+        }
+
+        private Faction ScratchFaction(Ship ship, Commander rivalPilot, Commander minionPilot)
+        {
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            scratch.Add(faction);
+            faction.signature = new FactionShip { ship = ship, pilot = rivalPilot };
+            faction.minion = new FactionMinion { ship = ship, pilot = minionPilot };
+            faction.elite = new FactionElite { ship = ship };
+            return faction;
+        }
+
+        private Commander ScratchPilot(string pilotName)
+        {
+            var pilot = new GameObject(pilotName).AddComponent<ScratchCommander>();
+            scratch.Add(pilot.gameObject);
+            return pilot;
+        }
+
+        private string PhasedSetting(ItemSubset offer, params SectorPhase[] phases)
+        {
+            var row = ScratchRow(6f);
+            row.phases = phases;
+            return StatHash.OfSetting(offer, null, new[] { row }, MinionKillHeal, RivalKillHeal);
+        }
+
+        private SectorEntry ScratchRow(float waveEvery, int fewest = 1, int most = 2)
+        {
+            var sector = new GameObject("ScratchSector").AddComponent<Sector>();
+            scratch.Add(sector.gameObject);
+            var director = new GameObject("WaveDirector").AddComponent<WaveDirector>();
+            director.transform.SetParent(sector.transform);
+            sector.SetManifest(null, new SectorSpawner[] { director }, null);
+            return new SectorEntry
+            {
+                prefab = sector,
+                phases = new[]
+                {
+                    new SectorPhase
+                    {
+                        seconds = 40f,
+                        waveEvery = waveEvery,
+                        sendsWaves = true,
+                        fewestMinions = fewest,
+                        mostMinions = most,
+                    },
+                },
+            };
+        }
+
+        private static void SetSerialized(Object target, string property, Action<SerializedProperty> edit)
+        {
+            var serialized = new SerializedObject(target);
+            edit(serialized.FindProperty(property));
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+    }
+}

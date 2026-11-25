@@ -1,0 +1,658 @@
+{
+  "checks": {
+    "object_names_exact": true,
+    "all_geometry_transforms_roles_properties_exact": true,
+    "only_launch_material_assignments_changed": true,
+    "only_launch_key_and_legend_ink_membership_removed": true,
+    "other_materials_exact": true,
+    "linesets_exact": true,
+    "glass_shader_exact": true,
+    "preview_lights_exact": true,
+    "key_black_unlit": true,
+    "legend_warm_yellow_lit": true,
+    "new_material_only_on_launch_legend": true,
+    "material_names_exact": true,
+    "closed_consistently_wound_solids": true,
+    "clean_meshes": true,
+    "no_intersections": true,
+    "six_aspect_coverage": true,
+    "bounded_ink": true,
+    "glass_clear_of_hardware": true,
+    "lettering_visible": true
+  },
+  "hardware_triangles": 24296,
+  "hardware_meshes": 31,
+  "intersection_pairs_checked": 33,
+  "lit_yellow_letter_pixels": 425,
+  "key_material": {
+    "base": [
+      0.006000000052154064,
+      0.00800000037997961,
+      0.012000000104308128
+    ],
+    "emission": [
+      0.006000000052154064,
+      0.00800000037997961,
+      0.012000000104308128
+    ],
+    "strength": 0.0,
+    "roughness": 1.0,
+    "specular": 0.05000000074505806
+  },
+  "legend_material": {
+    "base": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "emission": [
+      1.0,
+      0.7200000286102295,
+      0.18000000715255737
+    ],
+    "strength": 1.2000000476837158,
+    "roughness": 1.0,
+    "specular": 0.05000000074505806
+  },
+  "coverage": {
+    "16x10": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "3x2": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "4x3": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "16x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "21x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "32x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    }
+  },
+  "ink": {
+    "black_bar_pixel_boxes_xyxy": [
+      [
+        0,
+        450,
+        80,
+        490
+      ],
+      [
+        2480,
+        450,
+        2560,
+        490
+      ]
+    ],
+    "black_linear_rgb_max": 0.005,
+    "unbounded_black_pixels": [
+      3120,
+      3120
+    ],
+    "bounded_black_pixels": [
+      0,
+      0
+    ],
+    "central_16x9_changed_pixels": 0,
+    "test": "Shared projected_ink return compared with its pre-bound input; AST function extraction only, no exporter top-level execution, atlas bake or Unity import"
+  },
+  "glass_projection": {
+    "hardware_rear_depth": 25.236102983355522,
+    "glass_near_depth": 25.336100339889526,
+    "depth_clearance": 0.09999735653400421,
+    "face_toward_eye": [
+      26.890519574284554,
+      26.99556076526642,
+      26.599755108356476,
+      26.99555742740631,
+      26.599754989147186
+    ],
+    "nonzero_texels": 26743,
+    "nonzero_texels_outside_strokes": 0,
+    "island_margins_and_unused_atlas_maximum": 0.0,
+    "views": {
+      "16x9": {
+        "resolution": [
+          1920,
+          1080
+        ],
+        "pixels_checked": 2073600,
+        "glass_ahead_of_hardware_pixels": 0,
+        "tinted_hardware_pixels": 0,
+        "uncovered_window_pixels": 0
+      },
+      "21x9": {
+        "resolution": [
+          2560,
+          1080
+        ],
+        "pixels_checked": 2764800,
+        "glass_ahead_of_hardware_pixels": 0,
+        "tinted_hardware_pixels": 0,
+        "uncovered_window_pixels": 204
+      },
+      "32x9": {
+        "resolution": [
+          3840,
+          1080
+        ],
+        "pixels_checked": 4147200,
+        "glass_ahead_of_hardware_pixels": 0,
+        "tinted_hardware_pixels": 0,
+        "uncovered_window_pixels": 204
+      }
+    }
+  },
+  "source_and_scene_sha256": {
+    "build_deck.py": "acdfbd80ba0f2c8eb52085bcc655f5ae8779accf9df39e252671712e4dd395da",
+    "deck.blend": "1f2a620ce9dd8ecab65760e7fc3f557a977a81d7c756b1d873e5d537b7870dc7",
+    "NOTES.md": "ee0bfc75d62c9d3a8b87518216572671da73f610c92a0b233284ef7ae0851b93"
+  },
+  "verified_preview_count": 58,
+  "previews": [
+    {
+      "name": "deck-camera-16x10.png",
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "3d5f1d3bc9444775d78fc36ebccd0812f772e7af644f6108e664eed51501e3f0"
+    },
+    {
+      "name": "deck-camera-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "15bf29ef4dad0be64272c8436ae3a4a9a72b393465c36f751abbbe1f1953a426"
+    },
+    {
+      "name": "deck-camera-32x9.png",
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "7ee4944d57e48d95e5932f13399f640b5f549bfe6a35403f5caa4e751d97b1ab"
+    },
+    {
+      "name": "deck-camera-3x2.png",
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "be9b85e6eaea83cec46532ec5cdf911e0d80e630965b2c5c9f79ed89ef3a11cd"
+    },
+    {
+      "name": "deck-camera-4x3.png",
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "a0ff0723a7de184c318e395f6b7361c5991dba7fd21ec921391266644cc15bc6"
+    },
+    {
+      "name": "deck-camera-overlay.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "1227811e4da844ec93cf388ec6a5d6f1d6c28596ff1ae125090410694193cc72"
+    },
+    {
+      "name": "deck-camera.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "bd313cfb3e6e374002cf752261adc6aa34a9a1ce2ed4f2bba1831972415030b5"
+    },
+    {
+      "name": "deck-coverage-16x10.png",
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "12b6bbca9f9daae531f14ca8b66e43763a1f3ae8b0203f7246531397daf19118"
+    },
+    {
+      "name": "deck-coverage-16x9.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "e38c6e9ea365130e8872976de616f9e985e1856f6f20e8e1fb3abf64914a63a3"
+    },
+    {
+      "name": "deck-coverage-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "c20da403ff384f798f7f1b6e242df1f804aab958debd1c19216948b0a3d85c63"
+    },
+    {
+      "name": "deck-coverage-32x9.png",
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "6064333bd8b046faf6f9adbe25f2ef8ce14b7383cc9672647cab39dea3f011d2"
+    },
+    {
+      "name": "deck-coverage-3x2.png",
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "17df3ea285774f7ef4ae0c20d0d0a8cd888b553ee21c46b731320dc7b4fd35f7"
+    },
+    {
+      "name": "deck-coverage-4x3.png",
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "dc0a93875a8b18ef78cfac6cde2480ded9f458c3248586e6a84ccfa1511cf904"
+    },
+    {
+      "name": "deck-coverage-sheet.png",
+      "size": [
+        1920,
+        1980
+      ],
+      "sha256": "cff6790b9878663375f12b307da4dd1a8d4f14d78fdc517c547a9162af5ba9c3"
+    },
+    {
+      "name": "deck-extension-difference.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "9b511c49677d4f670ba76a91a5146dfdc47fadd91c724102158e3e9e2afca40c"
+    },
+    {
+      "name": "deck-finish1-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "15bf29ef4dad0be64272c8436ae3a4a9a72b393465c36f751abbbe1f1953a426"
+    },
+    {
+      "name": "deck-finish1-compare.png",
+      "size": [
+        3840,
+        1150
+      ],
+      "sha256": "8101d6d50924fa40ad4f20b613343e26cbd22951e4111a4276c18ef6f465c7e9"
+    },
+    {
+      "name": "deck-finish1-crops.png",
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "21675fa2845841004c164fef7561fbc8e8727cb1a639be66108c054da0065c5a"
+    },
+    {
+      "name": "deck-finish1-half.png",
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "650aedf3b2fd1abc3484396973a211bbc49e8061b2b2669137e1c34007c42699"
+    },
+    {
+      "name": "deck-finish2-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "15bf29ef4dad0be64272c8436ae3a4a9a72b393465c36f751abbbe1f1953a426"
+    },
+    {
+      "name": "deck-finish2-compare.png",
+      "size": [
+        5760,
+        1150
+      ],
+      "sha256": "9ef69a9bce9d9dec4605fb018d2511bedcb3192f85c4ad18d964a6adf226450f"
+    },
+    {
+      "name": "deck-finish2-crops.png",
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "21675fa2845841004c164fef7561fbc8e8727cb1a639be66108c054da0065c5a"
+    },
+    {
+      "name": "deck-finish2-half.png",
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "650aedf3b2fd1abc3484396973a211bbc49e8061b2b2669137e1c34007c42699"
+    },
+    {
+      "name": "deck-finish4-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "15bf29ef4dad0be64272c8436ae3a4a9a72b393465c36f751abbbe1f1953a426"
+    },
+    {
+      "name": "deck-finish4-compare.png",
+      "size": [
+        5760,
+        1150
+      ],
+      "sha256": "29ea11c1c9e9a0a90a6d55774aedf1641d695b035ff6dcde3f12713ae6b08c79"
+    },
+    {
+      "name": "deck-finish4-crops.png",
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "21675fa2845841004c164fef7561fbc8e8727cb1a639be66108c054da0065c5a"
+    },
+    {
+      "name": "deck-finish4-half.png",
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "650aedf3b2fd1abc3484396973a211bbc49e8061b2b2669137e1c34007c42699"
+    },
+    {
+      "name": "deck-finish5-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "15bf29ef4dad0be64272c8436ae3a4a9a72b393465c36f751abbbe1f1953a426"
+    },
+    {
+      "name": "deck-finish5-compare.png",
+      "size": [
+        3840,
+        1140
+      ],
+      "sha256": "5ff5ede31bccb6a3ba4b038a2556694565ced07341ff36792001f94701632b8c"
+    },
+    {
+      "name": "deck-finish5-crops.png",
+      "size": [
+        3840,
+        2280
+      ],
+      "sha256": "db63377447c8b5859910b36b730a05e1cb9b995baaf916fa63b311f76b5b161a"
+    },
+    {
+      "name": "deck-finish5-geometry-crops.png",
+      "size": [
+        3840,
+        2280
+      ],
+      "sha256": "a9d299e3df7f00fa6c5554d0e95fbab277a30e170692860237ab384751b2da28"
+    },
+    {
+      "name": "deck-finish5-geometry.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "7b1f84041c8a1e2e3705b130dd666dff15fa49c79dbc15dd2bb550fb9714e4c0"
+    },
+    {
+      "name": "deck-finish5-half.png",
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "650aedf3b2fd1abc3484396973a211bbc49e8061b2b2669137e1c34007c42699"
+    },
+    {
+      "name": "deck-finish7-compare.png",
+      "size": [
+        3840,
+        2100
+      ],
+      "sha256": "9a4510c98edeea9d1afff8014e60a62dfe6a53c33054a31fb1136bf6ecbdd8f1"
+    },
+    {
+      "name": "deck-front.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "1702b6970391d2875204843285d5e6841edc882ab6f1ff7a18f7202b95942621"
+    },
+    {
+      "name": "deck-glass-check.png",
+      "size": [
+        3840,
+        3420
+      ],
+      "sha256": "af95ef2000e486f098d8f912a9aba6c0051210448714f5c5e159a8633b98bfab"
+    },
+    {
+      "name": "deck-ink-bounded-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "ed7969cde82f3d0a3173583e17dba38ace495591853ac266fdfc301da1fb2b10"
+    },
+    {
+      "name": "deck-ink-unbounded-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "5896e9377b32a0286cd9e2702304921716f57f0162c445223bc4e1a66130be82"
+    },
+    {
+      "name": "deck-mask-16x10.png",
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "45cad064b0deda7feb71045d509e5771edf6251730bb5af7d26524b059df71e8"
+    },
+    {
+      "name": "deck-mask-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "c3dfdf47af77415cabafa2afc45a8b4c7811acf741e0f59a703b0e9272b2e14c"
+    },
+    {
+      "name": "deck-mask-32x9.png",
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "3aeb4a74673b501771672d6a1676241fd83935a80be8d5468e017f1b3fe3e67a"
+    },
+    {
+      "name": "deck-mask-3x2.png",
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "db9abb4ffd718e51594401b2cbce20efc9ef044637f974b2202afe30cdc98de5"
+    },
+    {
+      "name": "deck-mask-4x3.png",
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "6f9503d3692206887855ad620c850258759e0f4f14c0d682eb95449b68b43d1d"
+    },
+    {
+      "name": "deck-mask.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "2db78073b02c2b3f7fb9730741d760d67a648a2e987510c740babb281f37f70d"
+    },
+    {
+      "name": "deck-parts-raw.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "31328d6d2197d075c53f48d9a09d4e8bd07e17d7ecdae15080b554e07ae66e62"
+    },
+    {
+      "name": "deck-parts.png",
+      "size": [
+        2500,
+        1140
+      ],
+      "sha256": "52f19365b7623aa3a0ff89918da5d668afa47856b1bc6f93fd00c571c2a0fddc"
+    },
+    {
+      "name": "deck-pedestal-compare.png",
+      "size": [
+        3240,
+        700
+      ],
+      "sha256": "77072fe66c463da7cedf3ef8ca7a907a655c4b11211d786cb99405077a8cba0e"
+    },
+    {
+      "name": "deck-recess-compare.png",
+      "size": [
+        3840,
+        1790
+      ],
+      "sha256": "8836be2ccd0b1a9858833e0b24cf6ca94212d6d969b8ee267729c96483d095d3"
+    },
+    {
+      "name": "deck-rgb-difference-amplified.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "0c3b1bc88169f294da6f4a568f0fac68cedfb2612e5b734520129428946d2a4a"
+    },
+    {
+      "name": "deck-side.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "616d46c935eaec60f11a041264b7cbf237e2df2716c5c6c494cc1aa1f61854ed"
+    },
+    {
+      "name": "deck-three-quarter.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "d17bd6f596ac298af0a1f59757ae9653f7bbccbadd5cf9289bcd6efa5e1113b7"
+    },
+    {
+      "name": "deck-top.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "bbd18fd07518af74568e34fa10d3033e6a34d3850a9c3ac9d7622ba2778a08cc"
+    },
+    {
+      "name": "deck-vs-massing.png",
+      "size": [
+        3840,
+        1140
+      ],
+      "sha256": "fa693ad7157a716046510c27a00c4d15aea11dec324126c37beb3c7269c7d710"
+    },
+    {
+      "name": "deck-window-etching-21x9.png",
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "a1bb0b7e076d0ad02a3e7f930fef8eb1f1251b938e75b45a0171339e7c8388e4"
+    },
+    {
+      "name": "deck-window-etching-mask.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "sha256": "a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d"
+    },
+    {
+      "name": "deck-window-etching.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "eb146816984a6987cf35ba50ba965cf9cf2afd88a332a46e98830f669dad09fb"
+    },
+    {
+      "name": "silhouette-difference.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "cd0f7e35169b8ddae682b99537318d2350efbc3113c0e5388d08505fce63af2d"
+    },
+    {
+      "name": "deck-launch-compare.png",
+      "size": [
+        2520,
+        570
+      ],
+      "sha256": "4ea1aeb86819eec278508af63202f41d72956003d61f29121accf02c9fe0b0b0"
+    }
+  ],
+  "completed_headless_passes": [
+    "build_deck.py --no-render",
+    "verify_pedestal.py before the material change",
+    "exact scene snapshot comparison",
+    "ten saved-scene camera/construction renders",
+    "verify_deck.py",
+    "verify_coverage.py",
+    "verify_ink.py",
+    "verify_glass.py",
+    "verify_glass_projection.py",
+    "render_finish5.py",
+    "render_glass.py"
+  ],
+  "render_note": "The unchanged baked etch mask drives only the preview glass mask in memory. No preview changes are saved.",
+  "cleanup": {
+    "removed": false,
+    "reason": "Automatic approval review rejected checked directory-local cleanup with blocked by policy.",
+    "remaining_directories": [
+      ".temp",
+      ".blender"
+    ],
+    "python_cache_directories": []
+  }
+}

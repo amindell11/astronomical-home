@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: StarField
+  m_Shader: {fileID: 4800000, guid: 158759aec174df240b9bdba3928f8403, type: 3}
+  m_Parent: {fileID: 2100000, guid: b18f177bd928aa8469f8f3364cfa1cf0, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Brightness: 5
+    - _CellScale: 1.5
+    - _DepthElongation: 0.08
+    - _HaloSize: 2
+    - _HaloStrength: 0.015
+    - _ParallaxFar: 0
+    - _ParallaxNear: 0.1
+    - _ParallaxScale: 0.034
+    - _PointedShare: 0.9
+    - _Seed: 93
+    - _ShapeVariation: 0
+    - _ShootingBrightness: 0.1
+    - _ShootingParallax: 0.035
+    - _SmallStarBias: 2
+    - _Softness: 0
+    - _StarDensity: 0.035
+    - _StarSizeMax: 0.14
+    - _StarSizeMin: 0.01
+    - _TwinkleAmount: 0.12
+    - _WarmColorShare: 0.4
+    m_Colors:
+    - _ColorCool: {r: 0.15, g: 0.5, b: 1, a: 1}
+    - _ColorWarm: {r: 1, g: 0.38, b: 0.05, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -1,0 +1,335 @@
+using AI.Context;
+using AI.Gunnery;
+using AI.Scanning;
+using System;
+using Movement;
+using AI.Navigation.MPC;
+using Ships;
+using Ships.Command;
+using Ships.Keystones;
+using Unity.Mathematics;
+using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
+
+namespace AI
+{
+    [RequireComponent(typeof(Navigator))]
+    [RequireComponent(typeof(Scout))]
+
+    // Before MovementController (50), so the pilot command drives the same physics tick.
+    [DefaultExecutionOrder(10)]
+    public class AICommander : Commander
+    {
+        private const uint NavStream = 1;
+        private const uint GunnerStream = 2;
+
+        [Header("Difficulty")]
+        [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
+        [Range(0f, 1f)] public float difficulty = 1.0f;
+
+        [Header("Combat")]
+        [Tooltip("Seconds after losing an enemy before exiting combat state.")]
+        [SerializeField] private float combatExitDelay = 3f;
+
+        [Tooltip("Never fires the ship's keystone. Every minion pilot sets it.")]
+        [SerializeField] internal bool suppressKeystone;
+
+        [Header("Gunnery")]
+        [Tooltip("How well this pilot's Gunner sees its target. An armed pilot without one fails at spawn.")]
+        [SerializeField] internal AimSettings aimSettings;
+
+        [Header("Limp")]
+        [Tooltip("Hull % below which this pilot flies its ship slower and never boosts. 0 never limps.")]
+        [SerializeField, Range(0f, 100f)] private float limpBelowHull;
+
+        [Tooltip("Fraction of its ship's top speed and thrust a limping pilot flies at.")]
+        [SerializeField, Range(0.1f, 1f)] private float limpScale = 0.6f;
+
+        protected ShipControl control;
+        protected IShipRegistry registry;
+        protected IObstacleField field;
+        private bool sensingWired;
+        protected bool systemsInitialized;
+
+        // Per-slot engage gates, latched from the last decision; the Gunner owns trigger timing.
+        private bool engagePrimary;
+        private bool engageSecondary;
+        // The ability lane, latched beside the triggers.
+        private bool boost;
+        private bool hasAnchor;
+        private ShipId anchorId;
+        private EnemyTarget anchorTarget;
+        // The owner's route overrides the brain's nav lane, guns cold, whatever brain is installed.
+        private Vector2? steerPoint;
+        private float steerSpeed;
+
+        internal AIContext context;
+        private LimpingShip limpingShip;
+        private bool jumpRequested;
+
+        public Scout Scout { get; private set; }
+        public Navigator Navigator { get; private set; }
+        // Gunner is optional: an unarmed (peaceful) ship has no Gunner component.
+        public Gunner Gunner { get; private set; }
+        // Brain is optional too: the harness pilots author none and install one per episode.
+        public Brain Brain { get; private set; }
+
+        internal bool Steered => steerPoint.HasValue;
+
+        protected virtual void Awake()
+        {
+            Navigator = GetComponent<Navigator>();
+            Scout = GetComponent<Scout>();
+            Gunner = GetComponent<Gunner>();
+            Brain = GetComponent<Brain>();
+        }
+
+        /// <summary>Swaps the decision component, retiring whatever was installed before. The sole install path: an AddComponent that went around it would leave a ship whose decisions nothing reads.</summary>
+        internal T InstallBrain<T>() where T : Brain => (T)InstallBrain(host => host.AddComponent<T>());
+
+        /// <summary>Install overload for callers whose brain type is only known at runtime — the archetype switch hands its own attach step in rather than reproducing the swap.</summary>
+        internal Brain InstallBrain(Func<GameObject, Brain> attach)
+        {
+            if (Brain) DestroyImmediate(Brain);
+            Brain = attach(gameObject);
+            return Brain;
+        }
+
+        public void SteerTo(Vector2 planePoint, float speed)
+        {
+            steerPoint = planePoint;
+            steerSpeed = speed;
+        }
+
+        internal void FollowLeader(Ship leader, int place)
+        {
+            if (!systemsInitialized)
+                throw new InvalidOperationException($"{name} cannot follow a leader before its systems initialise.");
+            context.FollowLeader(leader, place);
+        }
+
+        internal void HuntBySight(Ship known)
+        {
+            if (!systemsInitialized)
+                throw new InvalidOperationException($"{name} cannot hunt by sight before its systems initialise.");
+            context.Combat.LimitToSight(known);
+        }
+
+        public void ClearSteer() => steerPoint = null;
+
+        /// <summary>What this ship senses: the registry it scans for ships and the obstacle field it scans for rocks (null for none). Set by the unit service at wiring, before the systems initialise.</summary>
+        public void SetSensing(IShipRegistry shipRegistry, IObstacleField obstacleField)
+        {
+            registry = shipRegistry ?? throw new ArgumentNullException(nameof(shipRegistry));
+            field = obstacleField;
+            sensingWired = true;
+            TryInitializeSystems();
+        }
+
+        public override void Initialize(in ShipControl control)
+        {
+            this.control = control;
+            TryInitializeSystems();
+        }
+
+        private void TryInitializeSystems()
+        {
+            if (systemsInitialized || control.Ship == null || !sensingWired) return;
+            var self = control.Ship;
+            limpingShip = new LimpingShip(self, limpBelowHull, limpScale, limpScale);
+            // The motion model keeps the hull's real speed cap; only the pilot's chosen speed drops.
+            var limpingHull = new LimpingShip(self, limpBelowHull, 1f, limpScale);
+            Func<Kinematics> pose = () => self.Kinematics;
+            var seed = control.DecisionSeed;
+
+            // Dynamics is captured by value: an AI ship cannot live-re-equip.
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), registry, field, control.Weapons);
+            Navigator.Initialize(limpingHull, limpingHull.Dynamics, Scout, seed.Derive(NavStream),
+                control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
+            if (Gunner && control.IsArmed)
+                Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
+                    seed.Derive(GunnerStream), self.Id, registry);
+
+            context = new AIContext(limpingShip, Scout, PrimaryHoldRange(), combatExitDelay);
+
+            systemsInitialized = true;
+        }
+
+        /// <summary>Resets the parts this commander composed, mirroring the Initialize cascade; RNG streams re-derive from the spawn seed.</summary>
+        public override void ResetState()
+        {
+            if (!systemsInitialized) return;
+            Scout.ResetState();
+            Navigator.ResetState();
+            if (Gunner) Gunner.ResetState();
+            engagePrimary = false;
+            engageSecondary = false;
+            boost = false;
+            jumpRequested = false;
+            hasAnchor = false;
+            steerPoint = null;
+            context = new AIContext(limpingShip, Scout, PrimaryHoldRange(), combatExitDelay);
+            if (Brain) Brain.ResetState();
+        }
+
+        protected virtual void FixedUpdate()
+        {
+            if (!systemsInitialized) return;
+
+            if (steerPoint.HasValue)
+                Route(new BrainDecision(NavObjective.Planar(
+                    (steerPoint.Value - control.Ship.Kinematics.pos).normalized * steerSpeed)));
+            else if (Brain && Brain.isActiveAndEnabled)
+            {
+                context.Update(Time.fixedDeltaTime);
+                Route(Brain.Decide(context));
+            }
+
+            var keystone = control.Keystone;
+            var seeking = keystone && hasAnchor && keystone.SeeksContact;
+            Navigator.ExemptFromAvoidance(seeking ? anchorId : ShipId.Invalid);
+            // A ram flies the navigator's heading; the aim servo would yaw the dash off the sight.
+            var command = Navigator.ComputeCommand(keystone && keystone.FliesNavigatorHeading || !Gunner
+                ? AimReference.None
+                : Gunner.PrimaryAimReference());
+            if (seeking) command.thrust = 1f;
+            command.abilityTarget = Navigator.PlanEnd;
+            command.boost = !suppressKeystone && (boost || SightFires(keystone)) ? 1f : 0f;
+            if (limpingShip.Limping)
+            {
+                if (command.thrust > 0f) command.thrust *= limpScale;
+                command.boost = 0f;
+            }
+            control.Pilot.Drive(command);
+            if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
+        }
+
+        /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole. Every referent resolves once here — anchor and rock seats alike — so the nav and fire lanes cannot aim at different moments of the same tick, and a held decision re-resolves fresh each tick (extrapolation only ever bridges one tick).</summary>
+        private void Route(BrainDecision? decision)
+        {
+            var concealed = false;
+            if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor, out concealed))
+            {
+                if (AnchorConcealed())
+                {
+                    SearchLastSeen();
+                    return;
+                }
+                Navigator.ResetNavigation();
+                // No decision: the gunner keeps its last aim, unless the target concealed itself.
+                engagePrimary = !concealed;
+                engageSecondary = !concealed;
+                if (concealed && Gunner) Gunner.HoldFire();
+                boost = false;
+                hasAnchor = false;
+                return;
+            }
+
+            var decided = decision.Value;
+            if (decided.recall)
+                context.Combat.Recall();
+            var nav = decided.nav;
+            var seat1 = ResolveRock(nav.rockSeat1);
+            var seat2 = ResolveRock(nav.rockSeat2);
+            var seat3 = ResolveRock(nav.rockSeat3);
+            Navigator.ApplyObjective(nav, anchor, seat1, seat2, seat3);
+            engagePrimary = decided.engagePrimary;
+            engageSecondary = decided.engageSecondary;
+            boost = decided.boost;
+            hasAnchor = nav.TryGetAnchorId(out anchorId);
+            anchorTarget = anchor;
+            if (decided.jump && !jumpRequested)
+            {
+                jumpRequested = true;
+                control.Jump.RequestJump();
+            }
+
+            if (!Gunner) return;
+            var aim = nav.sentence.aim;
+            if (aim.armed && aim.referent != 0)
+            {
+                // A dead rock holds fire until the next decision; its nav slot is already weight 0.
+                var snapshot = aim.referent switch
+                {
+                    1 => seat1,
+                    2 => seat2,
+                    3 => seat3,
+                    _ => default,
+                };
+                if (snapshot.valid)
+                    Gunner.Aim(new Vector2(snapshot.pos.x, snapshot.pos.y), new Vector2(snapshot.vel.x, snapshot.vel.y));
+                else
+                    Gunner.HoldFire();
+            }
+            else if (nav.hasAnchor) Gunner.Aim(anchor);
+            else Gunner.HoldFire();
+        }
+
+        private bool AnchorConcealed() =>
+            hasAnchor && Scout.Registry.TryGetShip(anchorId, out var ship) && ship && ship.Lock.IsConcealed;
+
+        // A concealed anchor is hunted where it was last seen, guns cold, until it reveals or dies.
+        private void SearchLastSeen()
+        {
+            var seen = anchorTarget.kinematics;
+            var lastSeen = anchorTarget;
+            lastSeen.kinematics = new Kinematics(seen.pos, Vector2.zero, seen.yaw, 0f, 0f);
+            Navigator.ApplyObjective(NavObjective.Anchored(anchorId).Position(0f, 0f, 0f, 1f), lastSeen);
+            engagePrimary = false;
+            engageSecondary = false;
+            boost = false;
+            if (Gunner) Gunner.HoldFire();
+        }
+
+        // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
+        private bool SightFires(Keystone keystone) =>
+            keystone && hasAnchor && (engagePrimary || engageSecondary)
+            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
+                Desired(Navigator.CostVelocityReference), Navigator.PlanEnd, control.Ship.ShieldPct,
+                anchorTarget.dynamics.shipRadius));
+
+        private float? PrimaryHoldRange() => control.Weapons?.HoldRange(WeaponSlot.Primary);
+
+        // The scout sizes its look-ahead once, so it must cover the keystone's raised cap.
+        private Dynamics PeakDynamics(IShipStatus self) =>
+            control.Keystone ? self.Dynamics.Scaled(control.Keystone.PeakSpeedScale, control.Keystone.PeakThrustScale) : self.Dynamics;
+
+        private static Vector2 Desired(float2 velocity) => new(velocity.x, velocity.y);
+
+        /// <summary>A registry miss or a concealed target is "target gone" — callers take the no-decision path.</summary>
+        private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor, out bool concealed)
+        {
+            anchor = default;
+            concealed = false;
+            if (!nav.TryGetAnchorId(out var id)) return true;
+            if (!Scout.Registry.TryGetShip(id, out var ship) || !ship) return false;
+            if (ship.Lock.IsConcealed)
+            {
+                concealed = true;
+                return false;
+            }
+
+            anchor = new EnemyTarget
+            {
+                kinematics = ship.Kinematics,
+                dynamics = ship.Dynamics,
+                id = id,
+                boostCooldownRemaining = ship.BoostCooldownRemaining,
+            };
+            return true;
+        }
+
+        /// <summary>A rock seat as the solver will see it this tick; a dead or unbound rock is an invalid snapshot, dropping its slots to weight 0 until the next decision. Rocks have no facing, so yaw stays 0.</summary>
+        private static ReferentSnapshot ResolveRock(in AsteroidRef rock)
+        {
+            if (!rock.TryResolve(out var pos, out var vel)) return default;
+            return new ReferentSnapshot
+            {
+                valid = true,
+                pos = new float2(pos.x, pos.y),
+                vel = new float2(vel.x, vel.y),
+            };
+        }
+    }
+}

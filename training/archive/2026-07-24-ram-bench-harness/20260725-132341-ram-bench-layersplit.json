@@ -1,0 +1,194 @@
+{
+    "schema": "rl-ram-bench-layersplit-v1",
+    "checkpoint": "Assets/Tests/Fixtures/ShipCombat-selfplay2-999950.onnx",
+    "contactRange": 3.559999942779541,
+    "baseline": {
+        "label": "baseline",
+        "episodes": 8,
+        "meanLongestContactSec": 5.202498435974121,
+        "maxLongestContactSec": 8.859996795654297,
+        "meanContactFraction": 0.5249258279800415,
+        "meanTtk": 12.047494888305664,
+        "mutualKillRate": 0.0,
+        "meanAgentHpLostPct": 0.9333333969116211,
+        "meanOppHpLostPct": 0.811833381652832,
+        "meanTumbleInContact": 78.04212951660156,
+        "perEpisode": [
+            {
+                "longestContactSec": 6.419997692108154,
+                "contactFraction": 0.5418006181716919,
+                "ttk": 12.439994812011719,
+                "mutualKill": false,
+                "agentHpLostPct": 0.8666666746139526,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 81.04264831542969,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 1.4999994039535523,
+                "contactFraction": 0.32064422965049746,
+                "ttk": 13.659995079040528,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.6000000238418579,
+                "meanTumbleInContact": 67.30886840820313,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 8.859996795654297,
+                "contactFraction": 0.7058823704719544,
+                "ttk": 13.259994506835938,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.8666666746139526,
+                "meanTumbleInContact": 92.61249542236328,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 5.739997863769531,
+                "contactFraction": 0.5541740655899048,
+                "ttk": 11.259995460510254,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.4800000488758087,
+                "meanTumbleInContact": 64.6637954711914,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 5.999997615814209,
+                "contactFraction": 0.5477527976036072,
+                "ttk": 14.239994049072266,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.8666666746139526,
+                "meanTumbleInContact": 92.7158432006836,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 6.7799973487854,
+                "contactFraction": 0.5539215803146362,
+                "ttk": 12.239995002746582,
+                "mutualKill": false,
+                "agentHpLostPct": 0.7333333492279053,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 63.89216232299805,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 3.659998655319214,
+                "contactFraction": 0.5747330784797669,
+                "ttk": 11.239995956420899,
+                "mutualKill": false,
+                "agentHpLostPct": 0.8666666746139526,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 76.17081451416016,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 2.659998893737793,
+                "contactFraction": 0.40049752593040469,
+                "ttk": 8.039997100830079,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.6813333630561829,
+                "meanTumbleInContact": 85.93045043945313,
+                "outcome": "Loss"
+            }
+        ]
+    },
+    "layerSplit": {
+        "label": "layer-split",
+        "episodes": 8,
+        "meanLongestContactSec": 4.884998321533203,
+        "maxLongestContactSec": 8.91999626159668,
+        "meanContactFraction": 0.4637060761451721,
+        "meanTtk": 13.767494201660157,
+        "mutualKillRate": 0.0,
+        "meanAgentHpLostPct": 0.7833333015441895,
+        "meanOppHpLostPct": 0.9136667251586914,
+        "meanTumbleInContact": 95.18525695800781,
+        "perEpisode": [
+            {
+                "longestContactSec": 3.6399986743927,
+                "contactFraction": 0.4341636896133423,
+                "ttk": 11.239995956420899,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.8666666746139526,
+                "meanTumbleInContact": 104.8780288696289,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 3.079998731613159,
+                "contactFraction": 0.4423292279243469,
+                "ttk": 17.85999298095703,
+                "mutualKill": false,
+                "agentHpLostPct": 0.7333333492279053,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 105.18829345703125,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 8.91999626159668,
+                "contactFraction": 0.6723646521568298,
+                "ttk": 14.039994239807129,
+                "mutualKill": false,
+                "agentHpLostPct": 0.8666666746139526,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 99.95262145996094,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 6.639997482299805,
+                "contactFraction": 0.6088082790374756,
+                "ttk": 15.439993858337403,
+                "mutualKill": false,
+                "agentHpLostPct": 0.46666666865348818,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 85.15907287597656,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 0.7799996733665466,
+                "contactFraction": 0.15835776925086976,
+                "ttk": 13.639994621276856,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.5760000348091126,
+                "meanTumbleInContact": 92.25605773925781,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 1.579999327659607,
+                "contactFraction": 0.3187347948551178,
+                "ttk": 8.219996452331543,
+                "mutualKill": false,
+                "agentHpLostPct": 0.46666666865348818,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 82.61185455322266,
+                "outcome": "Win"
+            },
+            {
+                "longestContactSec": 7.15999698638916,
+                "contactFraction": 0.5145228505134583,
+                "ttk": 14.459994316101075,
+                "mutualKill": false,
+                "agentHpLostPct": 1.0,
+                "oppHpLostPct": 0.8666666746139526,
+                "meanTumbleInContact": 97.18287658691406,
+                "outcome": "Loss"
+            },
+            {
+                "longestContactSec": 7.2799973487854,
+                "contactFraction": 0.5603674650192261,
+                "ttk": 15.239994049072266,
+                "mutualKill": false,
+                "agentHpLostPct": 0.7333333492279053,
+                "oppHpLostPct": 1.0,
+                "meanTumbleInContact": 94.25328063964844,
+                "outcome": "Win"
+            }
+        ]
+    },
+    "sustainedContactSplitOverBaseline": 0.9389715790748596
+}

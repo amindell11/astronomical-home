@@ -1,0 +1,416 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using Combat.Weapons;
+using Game.Runs;
+using NUnit.Framework;
+using UI.Recap;
+using UI.Screens;
+using UI.Screens.Windows;
+using Ships;
+using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
+
+namespace Tests.PlayMode.Screens
+{
+    [Category("UI"), Category("RequiresLfsPng")]
+    public class RunRecapScreensPlayModeTests : PlayModeInputTestFixture
+    {
+        private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
+
+        private RunRecapScreen screen;
+        private RecapFeelProfile feel;
+        private float timeScale;
+        private Keyboard keyboard;
+        private GameObject playbackOwner;
+        private RecapFeelProfile instantFeel;
+
+        public override void Setup()
+        {
+            base.Setup();
+            timeScale = Time.timeScale;
+            keyboard = InputSystem.AddDevice<Keyboard>();
+            feel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(FeelPath);
+            Assert.IsTrue(feel, $"feel profile asset at {FeelPath}");
+        }
+
+        public override void TearDown()
+        {
+            if (screen) Object.Destroy(screen.gameObject);
+            if (playbackOwner) Object.Destroy(playbackOwner);
+            if (instantFeel) Object.Destroy(instantFeel);
+            Time.timeScale = timeScale;
+            base.TearDown();
+        }
+
+        // The board slides on capped frame time, so a slow graphics frame can stretch it past its nominal length.
+        private static IEnumerator Settle(Func<bool> done)
+        {
+            var deadline = Time.realtimeSinceStartup + 3f;
+            while (!done() && Time.realtimeSinceStartup < deadline) yield return null;
+        }
+
+        private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
+
+        private void Play(RecapOutcomeContext context, RecapFeelProfile profile = null)
+        {
+            screen = RunRecapScreen.Create(null, context, null);
+            screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(profile ? profile : feel, context),
+                screen.Apply, () => screen.Continued));
+        }
+
+        [Test]
+        public void RecordedWeaponIcons_MatchEveryAuthoredWeaponHudIcon()
+        {
+            var catalog = RecapWeaponIcons.Load();
+            foreach (var weaponName in new[] { "Lasers", "TurboLasers", "Rippers", "Scattergun", "Railgun", "Missiles", "Grenades" })
+            {
+                var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");
+                Assert.IsNotNull(weapon.HudIcon, weaponName);
+                Assert.AreSame(weapon.HudIcon, catalog.Find(weaponName), weaponName);
+            }
+            Assert.IsNull(catalog.Find(""));
+            Assert.IsNull(catalog.Find("Removed historical weapon"));
+        }
+
+        [Test]
+        public void EveryPlayableChassis_HasANonEmptyTransparentSilhouette()
+        {
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Ships" }))
+            {
+                var ship = AssetDatabase.LoadAssetAtPath<Ship>(AssetDatabase.GUIDToAssetPath(guid));
+                if (!ship || ship.name == "ShipBase") continue;
+                var icon = Resources.Load<Texture2D>(RunRecapScreen.SilhouetteFolder + "/" + ship.name);
+                Assert.IsNotNull(icon, ship.name);
+                var pixels = new Texture2D(2, 2);
+                try
+                {
+                    pixels.LoadImage(File.ReadAllBytes(AssetDatabase.GetAssetPath(icon)));
+                    var ink = pixels.GetPixels32().Count(pixel => pixel.a > 128);
+                    Assert.That(ink, Is.InRange(50, pixels.width * pixels.height / 2), ship.name);
+                }
+                finally { Object.DestroyImmediate(pixels); }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SectorRecap_ShowsSectorKillsAndTime_WithoutScoreboard()
+        {
+            Play(RecapOutcomeContext.Extraction(new[] { "Valis", "Crimson" }, 2, 222.8f));
+            yield return null;
+            Assert.AreEqual("EXTRACTED", TextAt("Recap/Body/Outcome").text);
+            Assert.AreEqual("Orbitron-Medium", TextAt("Recap/Body/Outcome").font.name);
+            Assert.AreEqual("2", TextAt("Recap/Body/Kills").text);
+            Assert.AreEqual("SECTOR 02", TextAt("Recap/Title").text);
+            Assert.AreEqual("3:42", TextAt("Recap/Body/Time").text);
+            Assert.IsNull(screen.transform.Find("Panels/Scoreboard"));
+            Assert.IsNull(screen.transform.Find("OutcomeIntro"));
+            var window = screen.transform.Find("Panels/Recap").GetComponent<ScreenWindow>();
+            Assert.That(window.Open, Is.LessThan(1f), "the sector window opens over time");
+            yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
+            Assert.AreEqual(1f, window.Open);
+            screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>().onClick.Invoke();
+            Assert.IsTrue(screen.Continued);
+        }
+
+        [UnityTest]
+        public IEnumerator Victory_ShowsGreenOutcome_AndOpensTheScoreboardInFront()
+        {
+            yield return RunEnding(true);
+        }
+
+        [UnityTest]
+        public IEnumerator Defeat_ShowsRedOutcomeAndOnlyClearedSectors()
+        {
+            yield return RunEnding(false);
+        }
+
+        private IEnumerator RunEnding(bool victory)
+        {
+            var kills = Enumerable.Repeat("Nightshade", 17).ToArray();
+            var cleared = victory ? 3 : 2;
+            var previous = new LoadoutRow { chassis = "Valis", shield = "Light_Shield", primary = "Lasers", secondary = "Missiles" };
+            var current = new LoadoutRow { chassis = "Bulwark", shield = "Bulwark_Shield", primary = "Railgun", secondary = "" };
+            var board = new Scoreboard(new[] { new Scoreboard.Row(3, 25, 900, DateTime.UtcNow, previous) },
+                new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow, current));
+            Time.timeScale = 0f;
+            Press(keyboard.spaceKey);
+            Press(keyboard.wKey);
+            Play(victory
+                ? RecapOutcomeContext.Victory(kills, cleared, 3, board)
+                : RecapOutcomeContext.Defeat(kills, cleared, 3, board, Vector2.zero));
+            var details = screen.transform.Find("Panels").GetComponent<CanvasGroup>();
+            var intro = screen.transform.Find("OutcomeIntro");
+            var headline = intro.Find("Body/Outcome").GetComponent<Text>();
+            var button = screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
+            Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", headline.text);
+            Assert.That(headline.fontSize, Is.GreaterThan(TextAt("Recap/Body/Outcome").fontSize * 2));
+            Assert.AreEqual(TextAt("Recap/Body/Outcome").color, headline.color);
+            Assert.AreEqual(0f, details.alpha);
+            Assert.IsFalse(button.IsInteractable());
+            button.OnSubmit(null);
+            Assert.IsFalse(screen.Continued, "the opening outcome cannot dismiss the recap");
+            Assert.AreEqual(0f, intro.GetComponent<CanvasGroup>().alpha);
+            var revealDelay = victory ? feel.HudFadeSeconds : Mathf.Max(feel.HudFadeSeconds, feel.DeathRevealDelaySeconds);
+            yield return new WaitForSecondsRealtime(revealDelay + feel.BannerInSeconds + .1f);
+            Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha);
+            Assert.AreEqual(0f, details.alpha, "a combat key held through the banner cannot advance it");
+            Release(keyboard.wKey);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha,
+                "releasing one combat key while another stays held is not a fresh press");
+            Release(keyboard.spaceKey);
+            yield return null;
+            yield return new WaitForSecondsRealtime(.5f);
+            Assert.AreEqual(0f, details.alpha, "releasing the held key does not advance the banner");
+            Press(keyboard.spaceKey);
+            yield return null;
+            yield return new WaitForSecondsRealtime(feel.BannerOutSeconds + feel.GapSeconds + feel.BreakdownInSeconds + .1f);
+            Assert.AreEqual(1f, details.alpha, "the configured transition completes even while the key stays held");
+            Assert.IsFalse(details.interactable, "the advancing press cannot also submit Continue");
+            button.OnSubmit(null);
+            Assert.IsFalse(screen.Continued);
+            Release(keyboard.spaceKey);
+            var deadline = Time.realtimeSinceStartup + .3f;
+            while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
+            yield return null;
+            Assert.IsFalse(intro.gameObject.activeSelf, "the outcome fades away even while gameplay is paused");
+            Assert.AreEqual(1f, details.alpha);
+            Assert.IsTrue(button.IsInteractable());
+            Assert.AreEqual(0f, Time.timeScale);
+            Canvas.ForceUpdateCanvases();
+            var outcome = TextAt("Recap/Body/Outcome");
+            Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", outcome.text);
+            Assert.That(victory ? outcome.color.g > outcome.color.r : outcome.color.r > outcome.color.g);
+            Assert.AreEqual($"{cleared} / 3", TextAt("Recap/Body/Progress").text);
+            Assert.AreEqual("17", TextAt("Recap/Body/Kills").text);
+            Assert.AreEqual(17, screen.transform.Find("Panels/Recap/Body/Trophies/Content").childCount);
+            foreach (var marker in screen.GetComponentsInChildren<RecapSectorMarker>())
+                Assert.IsNotNull(marker.canvasRenderer, "sector markers need a renderer");
+            Assert.AreEqual("2 OF 2", TextAt("Scoreboard/Corner").text);
+            Assert.AreEqual("2", TextAt("Scoreboard/Body/Row2/Rank").text);
+            Assert.AreEqual(cleared.ToString(), TextAt("Scoreboard/Body/Row2/Sectors").text);
+            Assert.IsNotNull(screen.transform.Find("Panels/Scoreboard/Body/Row2/CurrentRun"), "this run's row is marked");
+            foreach (var (number, loadout) in new[] { (1, previous), (2, current) })
+            {
+                var rowPath = $"Scoreboard/Body/Row{number}/";
+                Assert.AreEqual(loadout.chassis, TextAt(rowPath + "Ship").text);
+                var icon = screen.transform.Find("Panels/" + rowPath + "Silhouette").GetComponent<RawImage>();
+                Assert.AreSame(Resources.Load<Texture2D>(RunRecapScreen.SilhouetteFolder + "/" + loadout.chassis), icon.texture);
+                foreach (var (mount, weaponName) in new[] { ("Primary", loadout.primary), ("Secondary", loadout.secondary) })
+                {
+                    var weaponIcon = screen.transform.Find("Panels/" + rowPath + mount).GetComponent<Image>();
+                    var firstIcon = (RectTransform)screen.transform.Find("Panels/Scoreboard/Body/Row1/" + mount);
+                    Assert.AreEqual(firstIcon.anchoredPosition.x, weaponIcon.rectTransform.anchoredPosition.x,
+                        "weapon columns align across different ship names and empty mounts");
+                    Assert.AreEqual(!string.IsNullOrEmpty(weaponName), weaponIcon.enabled);
+                    var weapon = string.IsNullOrEmpty(weaponName) ? null
+                        : AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");
+                    Assert.AreSame(weapon ? weapon.HudIcon : null, weaponIcon.sprite);
+                }
+            }
+            var recorder = (RectTransform)screen.transform.Find("Panels/Recap");
+            var scoreboard = (RectTransform)screen.transform.Find("Panels/Scoreboard");
+            var boardWindow = scoreboard.GetComponent<ScreenWindow>();
+            Assert.AreEqual(0f, boardWindow.Open,"the scoreboard waits for its button");
+            Assert.IsNull(scoreboard.GetComponentInChildren<ScrollRect>());
+            Assert.IsNull(screen.transform.Find("Panels/Recap/Body/Time"));
+            var centred = recorder.anchoredPosition;
+            screen.transform.Find("Panels/Actions/ScoreboardButton").GetComponent<Button>().onClick.Invoke();
+            Assert.IsTrue(screen.ScoreboardShown);
+            yield return Settle(() => boardWindow.Open >= 1f);
+            Assert.AreEqual(1f, boardWindow.Open, "the scoreboard opens while gameplay is paused");
+            Assert.Less(recorder.anchoredPosition.x, centred.x, "the flight recorder slides aside");
+            Assert.Greater(recorder.anchoredPosition.y, centred.y);
+            var canvasBounds = ((RectTransform)screen.transform).rect;
+            foreach (var window in new[] { recorder, scoreboard })
+            {
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, window);
+                Assert.GreaterOrEqual(bounds.min.x, canvasBounds.xMin, window.name);
+                Assert.LessOrEqual(bounds.max.x, canvasBounds.xMax, window.name);
+                Assert.GreaterOrEqual(bounds.min.y, canvasBounds.yMin, window.name);
+                Assert.LessOrEqual(bounds.max.y, canvasBounds.yMax, window.name);
+            }
+            var recorderBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, recorder);
+            var boardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, scoreboard);
+            Assert.IsTrue(recorderBounds.Intersects(boardBounds), "the scoreboard overlaps the recorder's corner");
+            Assert.Greater(scoreboard.GetSiblingIndex(), recorder.GetSiblingIndex(), "the scoreboard draws in front");
+            screen.ToggleScoreboard();
+            yield return Settle(() => Vector2.Distance(recorder.anchoredPosition, centred) < .01f);
+            Assert.AreEqual(0f, boardWindow.Open);
+            // The getter rebuilds the position from a canvas that resized since `centred` was read.
+            Assert.That(Vector2.Distance(centred, recorder.anchoredPosition), Is.LessThan(.01f));
+            button.OnSubmit(null);
+            Assert.IsTrue(screen.Continued);
+        }
+
+        [UnityTest]
+        public IEnumerator ZeroDurationReveal_ShowsTheCardBeforeRelease_WithoutSubmittingContinue()
+        {
+            instantFeel = Object.Instantiate(feel);
+            var properties = new SerializedObject(instantFeel);
+            foreach (var field in new[] { "hudFadeSeconds", "bannerInSeconds", "bannerOutSeconds", "gapSeconds", "breakdownInSeconds" })
+                properties.FindProperty(field).floatValue = 0f;
+            properties.ApplyModifiedPropertiesWithoutUndo();
+            Play(RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3,
+                new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(3, 0, 60f, DateTime.UtcNow))), instantFeel);
+            yield return null;
+            Press(keyboard.enterKey);
+            yield return null;
+            yield return null;
+            var details = screen.transform.Find("Panels").GetComponent<CanvasGroup>();
+            Assert.AreEqual(1f, details.alpha);
+            Assert.IsFalse(details.interactable);
+            Assert.IsFalse(screen.Continued);
+            Release(keyboard.enterKey);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(details.interactable);
+            Assert.IsFalse(screen.Continued);
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractionScreenOnly_KeepsTheClockAndCompletesOnce()
+        {
+            var context = RecapOutcomeContext.Extraction(new[] { "Valis" }, 1, 42f);
+            playbackOwner = new GameObject("PlaybackOwner");
+            var runner = playbackOwner.AddComponent<RunRecapScreen>();
+            var completed = 0;
+            Time.timeScale = .65f;
+            IEnumerator ShowCard()
+            {
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null);
+                completed++;
+            }
+            runner.StartCoroutine(ShowCard());
+            yield return null;
+            screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
+            yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
+            Assert.AreEqual(.65f, Time.timeScale);
+            Assert.AreEqual(0, completed, "cruise waits for the real card's Continue");
+            screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>().OnSubmit(null);
+            yield return new WaitForSecondsRealtime(feel.BreakdownOutSeconds + .1f);
+            yield return null;
+            Assert.AreEqual(1, completed);
+            Assert.IsFalse(screen, "completion destroys the owned screen");
+            Assert.AreEqual(.65f, Time.timeScale);
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationDuringThePressHold_DisposesInputAndTheScreen()
+        {
+            var context = RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3,
+                new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(3, 0, 60f, DateTime.UtcNow)));
+            playbackOwner = new GameObject("PlaybackOwner");
+            var runner = playbackOwner.AddComponent<RunRecapScreen>();
+            var cancelled = false;
+            var completed = false;
+            IEnumerator ShowCard()
+            {
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null,
+                    cancelled: () => cancelled);
+                completed = true;
+            }
+            var actionsBefore = InputSystem.ListEnabledActions().Count;
+            runner.StartCoroutine(ShowCard());
+            yield return AsyncAssert.WaitUntil(() => InputSystem.ListEnabledActions().Count > actionsBefore,
+                5f, "the banner is listening for input");
+            screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
+            Assert.Greater(InputSystem.ListEnabledActions().Count, actionsBefore, "the banner is listening for input");
+            cancelled = true;
+            yield return null;
+            yield return null;
+            Assert.IsTrue(completed);
+            Assert.IsFalse(screen);
+            Assert.AreEqual(actionsBefore, InputSystem.ListEnabledActions().Count);
+        }
+
+        [UnityTest]
+        public IEnumerator LongRun_KeepsEveryTrophy_AndOpensTheScoreboardOnThisRunsPage()
+        {
+            var previous = Enumerable.Range(0, 8).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow)).ToArray();
+            var board = new Scoreboard(previous, new Scoreboard.Row(2, 57, 600, DateTime.UtcNow));
+            Play(RecapOutcomeContext.Defeat(Enumerable.Repeat("Bulwark", 57).ToArray(), 2, 3, board, Vector2.zero));
+            yield return null;
+            var scroll = screen.transform.Find("Panels/Recap/Body/Trophies").GetComponent<ScrollRect>();
+            Assert.AreEqual(57, scroll.content.childCount);
+            Assert.IsTrue(scroll.vertical);
+            scroll.verticalNormalizedPosition = 0f;
+            yield return null;
+            Assert.Greater(scroll.content.anchoredPosition.y, 0f);
+            Assert.AreEqual("9", TextAt("Scoreboard/Body/Row9/Rank").text);
+            Assert.AreEqual("57", TextAt("Scoreboard/Body/Row9/Kills").text);
+            Assert.AreEqual("9 OF 9", TextAt("Scoreboard/Corner").text);
+            var body = screen.transform.Find("Panels/Scoreboard/Body");
+            Assert.AreEqual("3 / 3", TextAt("Scoreboard/Body/Pager/Page").text, "the board opens on this run's page");
+            Assert.IsTrue(body.Find("Row9").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row8").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Pager/Next").GetComponent<Button>().interactable, "no page after the last");
+            body.Find("Pager/Previous").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("2 / 3", TextAt("Scoreboard/Body/Pager/Page").text);
+            Assert.IsTrue(body.Find("Row5").gameObject.activeSelf);
+            Assert.IsTrue(body.Find("Row8").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row9").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row4").gameObject.activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator LongShipNames_EllipsizeWithinOneRow_AndLeaveEmptyWeaponSpaces()
+        {
+            var longName = string.Join(" ", Enumerable.Repeat("Long recorded component name", 5));
+            var loadout = new LoadoutRow { chassis = longName, shield = longName, primary = longName, secondary = "" };
+            var previous = Enumerable.Range(0, 4).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow, loadout)).ToArray();
+            var board = new Scoreboard(previous, new Scoreboard.Row(2, 1, 600, DateTime.UtcNow, loadout));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            var scoreboard = screen.transform.Find("Panels/Scoreboard/Body");
+            for (var i = 1; i <= 5; i++)
+            {
+                var row = (RectTransform)scoreboard.Find("Row" + i);
+                var ship = row.Find("Ship").GetComponent<Text>();
+                StringAssert.EndsWith("…", ship.text);
+                StringAssert.StartsWith(ship.text.Substring(0, ship.text.Length - 1), longName);
+                Assert.LessOrEqual(ship.preferredWidth, ship.rectTransform.rect.width);
+                Assert.IsFalse(row.Find("Primary").GetComponent<Image>().enabled);
+                Assert.IsFalse(row.Find("Secondary").GetComponent<Image>().enabled);
+                CollectionAssert.AreEquivalent(new[] { "Rank", "Ship", "Sectors", "Kills", "Time", "UnavailableIcon" },
+                    row.GetComponentsInChildren<Text>(true).Select(label => label.name));
+                foreach (var label in row.GetComponentsInChildren<Text>(true))
+                    Assert.GreaterOrEqual(label.rectTransform.rect.height + .01f, label.preferredHeight, label.name);
+                Assert.LessOrEqual(ship.rectTransform.anchoredPosition.x + ship.preferredWidth,
+                    ((RectTransform)row.Find("Primary")).anchoredPosition.x);
+                var secondary = (RectTransform)row.Find("Secondary");
+                Assert.LessOrEqual(secondary.anchoredPosition.x + secondary.rect.width,
+                    ((RectTransform)row.Find("Sectors")).anchoredPosition.x);
+                if (i < RunRecapScreen.PageSize)
+                    Assert.GreaterOrEqual(row.anchoredPosition.y - row.rect.height,
+                        ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
+            }
+            Assert.AreEqual("5", TextAt("Scoreboard/Body/Row5/Rank").text);
+        }
+
+        [UnityTest]
+        public IEnumerator Scoreboard_HasAnOpaqueBody_AndItsHeadingsShareOneBaseline()
+        {
+            var board = new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(2, 1, 600, DateTime.UtcNow));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Assert.AreEqual(1f, screen.transform.Find("Panels/Scoreboard/Back").GetComponent<ChamferedShape>().color.a,
+                "the Flight Recorder behind does not show through");
+            var columns = screen.transform.Find("Panels/Scoreboard/Body/Columns");
+            var baselines = new[] { "Rank", "ShipHeading", "LoadoutHeading", "Sectors", "Kills", "Time" }
+                .Select(heading => ((RectTransform)columns.Find(heading)).anchoredPosition.y).ToArray();
+            Assert.That(baselines, Is.All.EqualTo(baselines[0]));
+        }
+    }
+}
+#endif

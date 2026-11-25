@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash show:*)",
+      "Bash(xargs grep:*)",
+      "Bash(./scripts/agent_worktree_pool.sh acquire:*)",
+      "Bash(./scripts/agent_worktree_pool.sh status:*)",
+      "Bash(./scripts/agent_worktree_pool.sh review-comments:*)",
+      "Bash(./scripts/agent_worktree_pool.sh revise:*)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(t[''name''],t.get\\(''status'',''?''\\)\\) for t in d.get\\(''tests'',d.get\\(''results'',[]\\)\\) if t.get\\(''status'',''''\\)==''Failed'' or t.get\\(''result'',''''\\)==''Failed'']\")",
+      "Read(//d/amind/git/agent-3/**)",
+      "Bash(python -c \":*)",
+      "Bash(python:*)",
+      "Bash(./scripts/agent_worktree_pool.sh run-tests:*)",
+      "Bash(pwsh:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git -C D:/amind/git/agent-4 diff --name-only origin/main...HEAD)",
+      "Bash(gh issue *)",
+      "Bash(./scripts/agent_worktree_pool.sh land *)",
+      "Bash(./scripts/drain_pick.sh result *)",
+      "Bash(./scripts/agent_worktree_pool.sh borrow *)",
+      "Bash(./scripts/agent_worktree_pool.sh return *)"
+    ]
+  }
+}

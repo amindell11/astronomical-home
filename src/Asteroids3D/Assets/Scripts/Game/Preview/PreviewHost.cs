@@ -1,0 +1,451 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.ExceptionServices;
+using Cameras;
+using Game.Player;
+using Game.Preview.Fixtures;
+using Game.Runs;
+using Ships;
+using Substrate.Results;
+using Substrate.Services.Locales;
+using Substrate.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Sessions;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using Utils.Coroutines;
+
+namespace Game.Preview
+{
+    public enum PreviewEntry
+    {
+        RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss, Sector1Elite,
+        Sector2Elite, CrowdedFight
+    }
+
+    /// <summary>
+    /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
+    /// owns an instance of the game's GameHost prefab, overriding only its run records, its title (off) and, for some
+    /// entries, its sectors: the crowded jump gate, the elite entries and the crowded fight fly their
+    /// fixtures, resolved against the game run at each compose, and Combat flies its Sector and Locale
+    /// picks, read again at each restart. Replay takes its rig, observer, jump shader and feel profiles
+    /// from the same prefab, so both kinds of entry run on the feel assets the game ships. A switch
+    /// between Replay entries swaps only the subject; any other switch or restart awaits the previous
+    /// entry's teardown before composing the next. Only Replay entries touch this host's clock: a
+    /// scrubbing subject may freeze it, and while a subject that plays from its start is selected, the
+    /// host sets it from the transport. Restart and Loop re-compose such a subject, keeping its fixture.
+    /// The Player invulnerable pick, read at each Playtest compose, keeps every player ship that
+    /// playtest spawns from taking damage.
+    /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
+    /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
+    /// https://github.com/amindell11/astronomical-home/issues/1151
+    /// </summary>
+    [RequireComponent(typeof(UnitService))]
+    [RequireComponent(typeof(ObjectiveService))]
+    public sealed class PreviewHost : MonoBehaviour
+    {
+        internal const int WholeRun = -1;
+
+        [SerializeField] internal GameHost gameHostPrefab;
+        [SerializeField] internal SessionProfile sessionProfile;
+        [SerializeField] internal PreviewFixture[] crowdedJumpSectors;
+        [SerializeField] internal PreviewFixture hudQuietSector;
+        [SerializeField] internal PreviewFixture hudExtractionSector;
+        [SerializeField] internal PreviewFixture bossSector;
+        [SerializeField] internal PreviewFixture sector1EliteSector;
+        [SerializeField] internal PreviewFixture sector2EliteSector;
+        [SerializeField] internal PreviewFixture crowdedFightSector;
+        [SerializeField] internal LocaleSky jumpDestination;
+        [SerializeField] internal PreviewEntry entry;
+        [SerializeField] internal int combatSector = WholeRun;
+        [SerializeField] internal LocaleSky combatLocale;
+        [SerializeField] internal bool playerInvulnerable;
+
+        private UnitService unitService;
+        private ObjectiveService objectiveService;
+        private Session session;
+        private ObserverCam observer;
+        private PlayerRig rig;
+        private Transform viewport;
+        private Transform ui;
+        private PreviewWorld world;
+        private float? savedTimeScale;
+        private bool clockFollowsTransport;
+        private GameHost playtest;
+        private bool composing;
+        private bool replacing;
+        private bool closing;
+        private bool closed;
+        private ExceptionDispatchInfo fault;
+
+        public PreviewTransport Transport { get; } = new();
+
+        public IPreviewSubject Subject { get; private set; }
+
+        public ObserverCam Observer => observer;
+        public PreviewEntry Entry => entry;
+        public GameHost Playtest => playtest;
+        public bool IsReplacing => replacing || closing;
+        public Exception Fault => fault?.SourceException;
+        public bool IsReady => fault == null && !composing && !IsReplacing &&
+            (IsPlaytest(entry) ? playtest != null : Subject != null);
+
+        public static bool IsPlaytest(PreviewEntry entry) => entry switch
+        {
+            PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
+                or PreviewEntry.Damage or PreviewEntry.Extraction or PreviewEntry.EnemyDeath => false,
+            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss
+                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite or PreviewEntry.CrowdedFight => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
+        };
+
+        private void Awake()
+        {
+            unitService = GetComponent<UnitService>();
+            objectiveService = GetComponent<ObjectiveService>();
+            RequireEntry(entry);
+            if (!sessionProfile.presentation)
+                throw new InvalidOperationException("The preview host requires presentation to be enabled.");
+            DontDestroyOnLoad(gameObject);
+            composing = true;
+            StartCoroutine(CatchingRoutine.Run(ComposeEntry(entry), Faulted));
+        }
+
+        // Takes its entry: a Playtest selection may land while a Replay is still composing.
+        private IEnumerator ComposeEntry(PreviewEntry composed)
+        {
+            if (IsPlaytest(composed))
+                BuildPlaytest(composed);
+            else
+                yield return ComposeReplay(composed);
+            composing = false;
+        }
+
+        private IEnumerator ComposeReplay(PreviewEntry composed)
+        {
+            viewport = NewRoot("Viewport");
+            ui = NewRoot("UI");
+            session = new Session(ReplayProfile(), gameObject, unitService, objectiveService);
+            var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            eventSystem.transform.SetParent(ui, false);
+            yield return session.Compose();
+
+            observer = Instantiate(gameHostPrefab.observerCamPrefab, viewport);
+            var registry = session.Units.ActiveRegistry;
+            registry.ActiveShips.OnAdd += AddCameraSubject;
+            registry.ActiveShips.OnRemove += RemoveCameraSubject;
+
+            rig = Instantiate(gameHostPrefab.playerRig, transform);
+            yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null);
+            rig.ApplyLoadout();
+            yield return session.LoadSector(0, rig.Player);
+            world = new PreviewWorld(session, rig, observer, ui, transform, SetSimulationFrozen, loadedSector: 0);
+
+            yield return ComposeSubject(composed, 0);
+            Transport.Restart();
+        }
+
+        private SessionProfile ReplayProfile()
+        {
+            var gameRun = GameRun();
+            return new SessionProfile
+            {
+                run = SectorRun.Create(sessionProfile.run.Sectors.Select(row => Named(sessionProfile.run, row))
+                    .Append(Named(gameRun, hudQuietSector.Resolve(gameRun)))
+                    .Append(Named(gameRun, hudExtractionSector.Resolve(gameRun))).ToArray()),
+                idleLocale = sessionProfile.idleLocale,
+                presentation = sessionProfile.presentation,
+                offset = sessionProfile.offset
+            };
+        }
+
+        // Replays draw nothing, so a Random row shows its pool's first locale there.
+        private static SectorEntry Named(SectorRun run, SectorEntry row) =>
+            row.random ? row.WithLocale(run.LocalePool[0]) : row;
+
+        // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
+        private void BuildPlaytest(PreviewEntry composed)
+        {
+            var staging = new GameObject("Preview Playtest staging");
+            staging.SetActive(false);
+            playtest = Instantiate(gameHostPrefab, staging.transform);
+            playtest.openOnTitle = false;
+            if (composed == PreviewEntry.Combat)
+                playtest.sessionProfile.run = CombatRun();
+            if (composed == PreviewEntry.CrowdedJumpGate)
+                playtest.sessionProfile.run = SectorRun.Create(
+                    crowdedJumpSectors.Select(fixture => fixture.Resolve(GameRun())).ToArray());
+            var fixture = PlaytestFixture(composed);
+            if (fixture != null)
+                playtest.sessionProfile.run = OneRowFixtureRun(fixture);
+            playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
+                Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
+            playtest.transform.SetParent(null, false);
+            // Its Awake has run, and its run spawns the player only after its first yield.
+            if (playerInvulnerable) playtest.Units.OnShipSpawned += Protect;
+            Destroy(staging);
+        }
+
+        // The hangar can rebuild the player, so each player ship the playtest spawns is covered.
+        private static void Protect(Ship ship)
+        {
+            if (ship.Commander as PlayerCommander) ship.Damage.AlwaysInvulnerable = true;
+        }
+
+        internal SectorRun OneRowFixtureRun(PreviewFixture fixture)
+        {
+            var gameRun = GameRun();
+            return SectorRun.Create(gameRun.LocalePool.ToArray(), fixture.Resolve(gameRun));
+        }
+
+        private SectorRun GameRun() => gameHostPrefab.sessionProfile.run;
+
+        // New rows, so a Locale pick never writes to the run asset.
+        internal SectorRun CombatRun()
+        {
+            var run = gameHostPrefab.sessionProfile.run;
+            if (combatSector == WholeRun && !combatLocale) return run;
+            IEnumerable<SectorEntry> rows = combatSector == WholeRun ? run.Sectors : new[] { run.Sectors[combatSector] };
+            return SectorRun.Create(run.LocalePool.ToArray(), rows.Select(row =>
+                row.WithLocale(combatLocale ? combatLocale : row.locale, !combatLocale && row.random)).ToArray());
+        }
+
+        public void Select(PreviewEntry selected)
+        {
+            RequireEntry(selected);
+            RequireAvailable();
+            if (selected == entry) throw new InvalidOperationException("That preview entry is already selected.");
+            if (IsPlaytest(selected) || IsPlaytest(entry))
+            {
+                entry = selected;
+                BeginReplacement();
+                return;
+            }
+            if (composing) throw new InvalidOperationException("The preview is still composing.");
+            entry = selected;
+            Transport.Playing = false;
+            Transport.Restart();
+            RecomposeSubject(0);
+        }
+
+        public void RestartReplay()
+        {
+            RequireAvailable();
+            if (IsPlaytest(entry)) throw new InvalidOperationException("Restart Replay requires a Replay entry.");
+            if (composing) throw new InvalidOperationException("The preview is still composing.");
+            Transport.Restart();
+            if (!Subject.Scrubs) RecomposeSubject(Subject.Fixture);
+        }
+
+        private void RecomposeSubject(int fixture)
+        {
+            DisposeSubject();
+            composing = true;
+            StartCoroutine(CatchingRoutine.Run(ReplaceSubject(fixture), Faulted));
+        }
+
+        public void RestartPlaytest()
+        {
+            RequireAvailable();
+            if (!IsPlaytest(entry))
+                throw new InvalidOperationException("Restart Playtest requires a Playtest entry.");
+            BeginReplacement();
+        }
+
+        private void BeginReplacement()
+        {
+            replacing = true;
+            Transport.Playing = false;
+            StartCoroutine(CatchingRoutine.Run(ReplaceEntry(), Faulted));
+        }
+
+        private IEnumerator ReplaceEntry()
+        {
+            while (composing && fault == null) yield return null;
+            if (fault != null) yield break;
+            yield return TeardownEntry();
+            composing = true;
+            yield return ComposeEntry(entry);
+            replacing = false;
+        }
+
+        private IEnumerator ReplaceSubject(int fixture)
+        {
+            yield return ComposeSubject(entry, fixture);
+            composing = false;
+        }
+
+        private IEnumerator ComposeSubject(PreviewEntry composed, int fixture)
+        {
+            var subject = NewSubject(composed, fixture);
+            FollowTransport(!subject.Scrubs);
+            yield return subject.Compose(world);
+            Subject = subject;
+        }
+
+        private IPreviewSubject NewSubject(PreviewEntry composed, int fixture) => composed switch
+        {
+            PreviewEntry.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
+            PreviewEntry.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
+                jumpDestination),
+            PreviewEntry.Startup => new HudReplaySubject(composed, 0),
+            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count),
+            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count + 1),
+            PreviewEntry.EnemyDeath => new EnemyDeathSubject(gameHostPrefab.hangarOffer.ships, sessionProfile.run.Sectors.Count,
+                fixture),
+            _ => throw new ArgumentOutOfRangeException(nameof(composed), composed, "Not a Replay entry.")
+        };
+
+        private void LateUpdate()
+        {
+            if (clockFollowsTransport) SetSimulationClock(Transport.Playing ? Transport.Speed : 0f);
+            if (IsPlaytest(entry) || !IsReady) return;
+            if (Transport.Tick(Time.unscaledDeltaTime, Subject)) RestartReplay();
+        }
+
+        public IEnumerator Shutdown()
+        {
+            if (closing)
+            {
+                while (!closed)
+                {
+                    fault?.Throw();
+                    yield return null;
+                }
+                yield break;
+            }
+            closing = true;
+            Transport.Playing = false;
+            while (composing || replacing)
+            {
+                fault?.Throw();
+                yield return null;
+            }
+            yield return CatchingRoutine.Run(TeardownEntry(), Faulted);
+            fault?.Throw();
+            closed = true;
+        }
+
+        private IEnumerator TeardownEntry()
+        {
+            if (playtest)
+            {
+                yield return playtest.Shutdown();
+                Destroy(playtest.gameObject);
+                playtest = null;
+            }
+            if (session != null)
+            {
+                DisposeSubject();
+                FollowTransport(false);
+                rig.Teardown();
+                yield return session.Teardown();
+                session = null;
+                unitService.ActiveRegistry.ActiveShips.OnAdd -= AddCameraSubject;
+                unitService.ActiveRegistry.ActiveShips.OnRemove -= RemoveCameraSubject;
+                Destroy(rig.gameObject);
+                Destroy(viewport.gameObject);
+                Destroy(ui.gameObject);
+                rig = null;
+                world = null;
+                observer = null;
+                viewport = ui = null;
+            }
+            yield return null;
+        }
+
+        private void AddCameraSubject(Ship ship) => observer.AddSecondarySubject(ship.transform);
+        private void RemoveCameraSubject(Ship ship) => observer.RemoveSecondarySubject(ship.transform);
+
+        private void DisposeSubject()
+        {
+            Subject.Dispose();
+            Subject = null;
+        }
+
+        private void Faulted(Exception exception)
+        {
+            fault ??= ExceptionDispatchInfo.Capture(exception);
+            Debug.LogException(exception, this);
+        }
+
+        private void RequireEntry(PreviewEntry selected)
+        {
+            if (!Enum.IsDefined(typeof(PreviewEntry), selected))
+                throw new ArgumentOutOfRangeException(nameof(selected));
+            if (selected == PreviewEntry.CrowdedJumpGate &&
+                (crowdedJumpSectors is not { Length: > 0 } || !gameHostPrefab.jumpFeel || !gameHostPrefab.jumpFeature))
+                throw new InvalidOperationException("The crowded jump setup requires its fixture sectors and jump assets.");
+            if (selected is PreviewEntry.Startup or PreviewEntry.LowHull or PreviewEntry.Damage or PreviewEntry.Extraction
+                && !(hudQuietSector?.layout && hudExtractionSector?.layout))
+                throw new InvalidOperationException("The HUD replays require their fixture sectors.");
+            if (selected == PreviewEntry.EnemyDeath &&
+                !(hudQuietSector?.layout && gameHostPrefab.hangarOffer && gameHostPrefab.hangarOffer.ships is { Length: > 0 }))
+                throw new InvalidOperationException("The enemy death replay requires its fixture sector and the hangar's ships.");
+            PlaytestFixture(selected);
+        }
+
+        private PreviewFixture PlaytestFixture(PreviewEntry entry)
+        {
+            var (sector, name) = entry switch
+            {
+                PreviewEntry.Boss => (bossSector, "boss"),
+                PreviewEntry.Sector1Elite => (sector1EliteSector, "sector 1 elite"),
+                PreviewEntry.Sector2Elite => (sector2EliteSector, "sector 2 elite"),
+                PreviewEntry.CrowdedFight => (crowdedFightSector, "crowded fight"),
+                _ => (null, null)
+            };
+            if (name != null && !sector?.layout)
+                throw new InvalidOperationException($"The {name} playtest requires its fixture sector.");
+            return sector;
+        }
+
+        private void RequireAvailable()
+        {
+            if (fault != null)
+                throw new InvalidOperationException("The preview host faulted; exit play mode to recover.",
+                    fault.SourceException);
+            if (IsReplacing) throw new InvalidOperationException("The preview is already replacing or shutting down.");
+        }
+
+        private Transform NewRoot(string name)
+        {
+            var root = new GameObject(name).transform;
+            root.SetParent(transform, false);
+            return root;
+        }
+
+        private void SetSimulationFrozen(bool frozen) => SetSimulationClock(frozen ? 0f : null);
+
+        private void FollowTransport(bool follow)
+        {
+            clockFollowsTransport = follow;
+            if (!follow) SetSimulationClock(null);
+        }
+
+        // Null gives back the scale saved when the host first took the clock.
+        private void SetSimulationClock(float? scale)
+        {
+            if (scale.HasValue)
+            {
+                savedTimeScale ??= Time.timeScale;
+                Time.timeScale = scale.Value;
+                return;
+            }
+            if (!savedTimeScale.HasValue) return;
+            Time.timeScale = savedTimeScale.Value;
+            savedTimeScale = null;
+        }
+
+        private void OnDestroy()
+        {
+            Subject?.Dispose();
+            FollowTransport(false);
+            if (playtest) Destroy(playtest.gameObject);
+        }
+    }
+}

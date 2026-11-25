@@ -1,0 +1,101 @@
+using System.Collections;
+using Combat.Weapons;
+using NUnit.Framework;
+using Ships;
+using Ships.Command;
+using Tests.PlayMode.Common;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests.PlayMode
+{
+    /// <summary>A commander pushing fire commands each FixedUpdate reaches the mounted weapons: Ship dispatches to WeaponsController and OnFire is raised for both slots.</summary>
+    [Category("Weapons")]
+    public class WeaponCommandDispatchPlayModeTests : PlayModeWorldFixture
+    {
+        private Ship ship;
+        private Ship combatShip;
+        private Commander commanderPrefab;
+
+        private sealed class AlwaysFireCommander : Commander
+        {
+            private IWeapons weapons;
+            public bool Fired { get; private set; }
+
+            public override void Initialize(in ShipControl control)
+            {
+                weapons = control.WeaponActuator;
+            }
+
+            private void FixedUpdate()
+            {
+                if (weapons == null) return;
+                weapons.Fire(WeaponSlot.Primary, new WeaponCommand { pressed = true, held = true });
+                weapons.Fire(WeaponSlot.Secondary, new WeaponCommand { pressed = true, held = true });
+                Fired = true;
+            }
+        }
+
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+
+#if UNITY_EDITOR
+            var shipPrefab = TestAssets.LoadCrimsonPrefab();
+
+            Assert.IsNotNull(shipPrefab, "Crimson prefab failed to load");
+
+            var commanderGo = new GameObject("AlwaysFireCommanderPrefab");
+            commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
+
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, projectiles: Projectiles, position: Vector3.zero, rotation: Quaternion.identity);
+            combatShip = ship;
+            Assert.IsNotNull(ship, "Ship failed to instantiate");
+            Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
+            Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon mount not instantiated");
+            Assert.IsNotNull(combatShip.Weapons.Secondary, "Secondary weapon mount not instantiated");
+#else
+            Assert.Ignore("WeaponCommandDispatchPlayModeTests requires Unity Editor assets.");
+#endif
+        }
+
+        [TearDown]
+        public override void TearDown()
+        {
+            if (ship != null)
+                Object.DestroyImmediate(ship.gameObject);
+
+            if (commanderPrefab != null)
+                DestroyTestObject(commanderPrefab.gameObject);
+
+            base.TearDown();
+        }
+
+        [UnityTest]
+        public IEnumerator FireCommands_DispatchToBothWeapons_OnFireIsRaised()
+        {
+            var primaryFires = 0;
+            var secondaryFires = 0;
+            combatShip.Weapons.Primary.OnFire += () => primaryFires++;
+            combatShip.Weapons.Secondary.OnFire += () => secondaryFires++;
+
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue((ship.Commander as AlwaysFireCommander)?.Fired ?? false,
+                "Setup sanity: commander should be pushing fire commands.");
+
+            var elapsed = 0f;
+            const float timeoutSec = 1.0f;
+            while ((primaryFires == 0 || secondaryFires == 0) && elapsed < timeoutSec)
+            {
+                yield return new WaitForFixedUpdate();
+                elapsed += Time.fixedDeltaTime;
+            }
+
+            Assert.Greater(primaryFires, 0,
+                "Primary OnFire must be raised while the commander holds primaryFire.");
+            Assert.Greater(secondaryFires, 0,
+                "Secondary OnFire must be raised while the commander holds secondaryFire.");
+        }
+    }
+}

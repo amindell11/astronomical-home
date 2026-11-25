@@ -1,0 +1,6 @@
+# FMOD Studio per-user, cache and autosave state (FMOD manual: Using Source Control)
+.user/
+.cache/
+.unsaved/
+# Ableton analysis sidecars; they also hold warp markers, so check before deleting one
+*.asd

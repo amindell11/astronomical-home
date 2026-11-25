@@ -1,0 +1,388 @@
+using System;
+using System.Collections.Generic;
+using Balance;
+using Combat.Weapons.Mods;
+using Damage;
+using Game.Player.Recorders;
+using Game.Runs;
+using Loot;
+using NUnit.Framework;
+using Ships;
+using Ships.Loadout;
+using Ships.Registry;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Elements.Phases;
+using Substrate.Services.Locales;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace Tests.EditMode.Runs
+{
+    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, a spawn row carries its elite flag, an extracted run carries no killing blow, and no ship id reaches the text.</summary>
+    [Category("Bootstrap")]
+    public class RunRecordEditModeTests
+    {
+        private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string PlayerHash = "a1b2c3d4e5f60718";
+        private const string Fingerprint = "f0e1d2c3b4a59687";
+        private static readonly string[] LocaleNames = { "IllustratedBlue", "CoralSunset" };
+
+        // Distinctive values, so a leaked instance id would be findable in the text.
+        private static readonly ShipId Player = new(555000111);
+        private static readonly ShipId Laserer = new(987654321);
+        private static readonly ShipId Bystander = new(123456789);
+
+        private sealed class FixedTally : IRunTally
+        {
+            public int Kills => 3;
+            public float SecondsSurvived => 42.5f;
+        }
+
+        private readonly List<GameObject> scratch = new();
+        private ItemSubset offer;
+        private RunRecord record;
+        private string json;
+
+        [SetUp]
+        public void SetUp()
+        {
+            offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(HangarOfferPath);
+            Assert.IsNotNull(offer, $"Hangar offer missing at {HangarOfferPath}");
+
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.Log(Player, NewHull(), 0f);
+            spawns.Log(Bystander, NewHull(), 1f);
+            spawns.Log(Laserer, NewHull(), 2f);
+            spawns.End(42.5f);
+
+            var ledger = new DamageLedger();
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 3f);
+            ledger.Record(AppliedHit(15f, DamageKind.Laser, Laserer), 4f);
+            ledger.Record(AppliedHit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
+
+            record = Compose(ledger, spawns);
+            json = record.ToJsonLine();
+        }
+
+        private RunRecord Compose(DamageLedger ledger, SpawnLog spawns) =>
+            Compose(ledger, spawns, 1, Hit(99f, DamageKind.Laser, Laserer));
+
+        private RunRecord Compose(DamageLedger ledger, SpawnLog spawns, int sectorsCleared, DamageInfo? killingBlow) =>
+            RunRecord.Compose(
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, 1,
+                Array.ConvertAll(LocaleNames,
+                    name => AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab")),
+                new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
+                new FixedTally(), ledger, spawns, killingBlow,
+                new RunCourse(), default, new List<string>(), default, RunRecord.OriginEditor,
+                new List<DealtRow>(), false);
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var go in scratch)
+                if (go) Object.DestroyImmediate(go);
+            scratch.Clear();
+        }
+
+        private Ship NewHull()
+        {
+            var hull = Object.Instantiate(offer.ships[0]);
+            scratch.Add(hull.gameObject);
+            return hull;
+        }
+
+        private static DamageInfo Hit(float amount, DamageKind kind, ShipId attacker) =>
+            new(amount, kind, attacker, 0f, Vector3.zero, Vector3.zero);
+
+        private static AppliedDamage AppliedHit(float amount, DamageKind kind, ShipId attacker) =>
+            new(Hit(amount, kind, attacker), amount * 0.4f, amount * 0.6f);
+
+        [Test]
+        public void JsonLine_IsOneLineTaggedWithTheSchema()
+        {
+            StringAssert.DoesNotContain("\n", json);
+            StringAssert.Contains("\"schema\":\"" + RunRecord.SchemaId + "\"", json);
+            Assert.AreEqual(RunRecord.SchemaId, JsonUtility.FromJson<RunRecord>(json).schema);
+        }
+
+        [Test]
+        public void JsonLine_RoundTripsWhatTheRunWasPlayedOn()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(json);
+
+            Assert.AreEqual("2026-10-01T12:34:56Z", read.endedUtc);
+            Assert.AreEqual(RunRecord.Died, read.outcome);
+            Assert.AreEqual(1, read.sectorsCleared);
+            Assert.AreEqual("Sector 2", read.sector, "named by its run row, the run's second");
+            Assert.That(read.locales, Is.EqualTo(LocaleNames), "the locale each sector drew, in run order");
+            Assert.AreEqual("abc123", read.buildIdentity.commit);
+            Assert.IsTrue(read.buildIdentity.dirty);
+            Assert.AreEqual(Fingerprint, read.statFingerprint);
+            Assert.AreEqual(3, read.kills);
+            Assert.AreEqual(42.5f, read.secondsSurvived, 1e-4f);
+        }
+
+        [Test]
+        public void PlayerRow_NamesThePendingLoadoutByAsset()
+        {
+            var player = JsonUtility.FromJson<RunRecord>(json).player;
+
+            Assert.AreEqual(offer.ships[0].name, player.chassis);
+            Assert.AreEqual(offer.ships[0].Engine.name, player.engine, "the engine is the chassis's own");
+            Assert.AreEqual(offer.ships[0].Shield.name, player.shield, "the shield is the chassis's own");
+            Assert.AreEqual(offer.weapons[0].name, player.primary);
+            Assert.AreEqual(string.Empty, player.secondary, "an empty mount is an empty name");
+            Assert.AreEqual(PlayerHash, player.statHash);
+        }
+
+        [Test]
+        public void SpawnRows_LeaveOutThePlayer_AndCarryEachLoadoutStatHash()
+        {
+            var spawns = JsonUtility.FromJson<RunRecord>(json).spawns;
+
+            Assert.AreEqual(2, spawns.Count, "the player's own spawn is not an entry");
+            Assert.AreEqual(1f, spawns[0].spawnSeconds, 1e-4f);
+            Assert.AreEqual(2f, spawns[1].spawnSeconds, 1e-4f);
+            Assert.AreEqual(40.5f, spawns[1].aliveSeconds, 1e-4f);
+            foreach (var spawn in spawns)
+                Assert.AreEqual(StatHash.OfLoadout(offer.ships[0]), spawn.loadout.statHash);
+        }
+
+        [Test]
+        public void DamageRowsAndKillingBlow_PointAtTheirSpawnEntry()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(json);
+
+            Assert.AreEqual(2, read.damage.Count);
+            Assert.AreEqual("Laser", read.damage[0].kind);
+            Assert.AreEqual(25f, read.damage[0].total, 1e-4f);
+            Assert.AreEqual(2, read.damage[0].hits);
+            Assert.AreEqual(1, read.damage[0].spawn, "the laser's attacker is the second spawn entry");
+            Assert.AreEqual("Collision", read.damage[1].kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.damage[1].spawn, "a non-ship source links to no entry");
+            Assert.AreEqual("Laser", read.killingBlow.kind);
+            Assert.AreEqual(1, read.killingBlow.spawn);
+        }
+
+        [Test]
+        public void DamageSplit_RoundTripsActualPoints_AndMarksOlderRecordsAsUnmeasured()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(json);
+            Assert.IsTrue(read.hasDamageSplit);
+            Assert.AreEqual(10f, read.damage[0].shield, 1e-4f);
+            Assert.AreEqual(15f, read.damage[0].hull, 1e-4f);
+            Assert.AreEqual(16f, read.damage[1].shield, 1e-4f);
+            Assert.AreEqual(24f, read.damage[1].hull, 1e-4f);
+
+            var old = JsonUtility.FromJson<RunRecord>("{\"schema\":\"run-record-v2\",\"damage\":[{\"total\":25}]}");
+            Assert.IsFalse(old.hasDamageSplit);
+            Assert.AreEqual(25f, old.damage[0].total);
+        }
+
+        [Test]
+        public void ExtractedRun_CarriesNoKillingBlow()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.End(30f);
+
+            var read = JsonUtility.FromJson<RunRecord>(Compose(new DamageLedger(), spawns, 3, null).ToJsonLine());
+
+            Assert.AreEqual(RunRecord.Extracted, read.outcome);
+            Assert.AreEqual(3, read.sectorsCleared);
+            Assert.AreEqual(string.Empty, read.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        [Test]
+        public void DamageRows_SplitByTheAttackersLife()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.Log(Laserer, NewHull(), 1f);
+            spawns.MarkDead(Laserer, Hit(1f, DamageKind.Laser, Player), 10f);
+            spawns.Log(Laserer, NewHull(), 15f);
+            spawns.End(30f);
+
+            var ledger = new DamageLedger();
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 5f);
+            ledger.Record(AppliedHit(20f, DamageKind.Laser, Laserer), 20f);
+            ledger.Record(AppliedHit(30f, DamageKind.Laser, Laserer), 25f);
+
+            var damage = Compose(ledger, spawns).damage;
+
+            Assert.AreEqual(2, damage.Count, "one row per attacker life, though the ledger holds one");
+            Assert.AreEqual(0, damage[0].spawn, "the first-life hit points at the first life");
+            Assert.AreEqual(10f, damage[0].total, 1e-4f);
+            Assert.AreEqual(1, damage[0].hits);
+            Assert.AreEqual(1, damage[1].spawn);
+            Assert.AreEqual(50f, damage[1].total, 1e-4f);
+            Assert.AreEqual(2, damage[1].hits);
+        }
+
+        [Test]
+        public void SpawnRows_CarryTheEliteFlag_ThroughComposeAndTheJsonLine()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.Log(Bystander, NewHull(), 1f);
+            spawns.Log(Laserer, NewHull(), 2f);
+            spawns.MarkElite(new EliteMoment(0, "shoal", Laserer));
+            spawns.End(30f);
+
+            var composed = Compose(new DamageLedger(), spawns, 1, null);
+            Assert.IsFalse(composed.spawns[0].elite);
+            Assert.IsTrue(composed.spawns[1].elite);
+
+            var read = JsonUtility.FromJson<RunRecord>(composed.ToJsonLine());
+            Assert.IsFalse(read.spawns[0].elite);
+            Assert.IsTrue(read.spawns[1].elite);
+        }
+
+        [Test]
+        public void JsonLine_CarriesNoShipId()
+        {
+            foreach (var id in new[] { Player, Laserer, Bystander })
+                StringAssert.DoesNotContain(id.Value.ToString(), json);
+        }
+
+        [Test]
+        public void V3Fields_RoundTrip()
+        {
+            var mod = ScriptableObject.CreateInstance<WeaponMod>();
+            mod.name = "Overcharge";
+            var stack = new LullModStack();
+            stack.Add(mod);
+
+            var course = new RunCourse();
+            course.NotePick(RunRecord.PickMod, 1, 4f, new[] { "Overcharge", "Cooling" }, "Overcharge", "");
+            course.NotePick(RunRecord.PickWeapon, 2, 9f, new[] { "Missiles", "Rippers" }, "Missiles", "Lasers");
+            course.Enter(1, 0f, 1f, 0.8f);
+            var tally = new ShieldRecovery.Tally(4.5f, 2, 1, 30f, 3f, 1.5f, 10f);
+            course.End(12f, 2, 0.5f, 0.25f, true, false, tally);
+            var end = new LoadoutRow { chassis = "Bulwark", primary = "Missiles", statHash = "end-hash" };
+            var phase = new EndPhaseRow { index = 1, inLull = true, done = false, elapsedSeconds = 3.5f };
+            var dealt = new List<DealtRow>
+            {
+                new() { sector = 1, kind = "Laser", total = 40f, shield = 10f, hull = 30f, hits = 4 },
+            };
+
+            var composed = RunRecord.Compose(
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), 1, 1, null,
+                new BuildIdentity { commit = "abc123" }, Fingerprint,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
+                new FixedTally(), new DamageLedger(), EmptySpawns(), null,
+                course, end, stack.PickedNames(), phase, RunRecord.OriginEditor, dealt, false);
+            var read = JsonUtility.FromJson<RunRecord>(composed.ToJsonLine());
+
+            Assert.AreEqual(RunRecord.SchemaId, read.schema);
+            Assert.AreEqual(RunRecord.OriginEditor, read.origin);
+            CollectionAssert.AreEqual(new[] { "Overcharge" }, read.mods);
+            Assert.AreEqual("Bulwark", read.playerEnd.chassis);
+            Assert.AreEqual("Missiles", read.playerEnd.primary);
+            Assert.AreEqual("end-hash", read.playerEnd.statHash);
+            Assert.AreEqual(offer.ships[0].name, read.player.chassis, "player stays the hangar loadout");
+            Assert.AreEqual(2, read.picks.Count);
+            Assert.AreEqual(RunRecord.PickMod, read.picks[0].kind);
+            Assert.AreEqual(1, read.picks[0].sector);
+            Assert.AreEqual(4f, read.picks[0].seconds, 1e-4f);
+            CollectionAssert.AreEqual(new[] { "Overcharge", "Cooling" }, read.picks[0].offered);
+            Assert.AreEqual("Overcharge", read.picks[0].taken);
+            Assert.AreEqual(string.Empty, read.picks[0].replaced);
+            Assert.AreEqual(RunRecord.PickWeapon, read.picks[1].kind);
+            Assert.AreEqual("Missiles", read.picks[1].taken);
+            Assert.AreEqual("Lasers", read.picks[1].replaced);
+            Assert.AreEqual(1, read.sectors.Count);
+            Assert.AreEqual(1, read.sectors[0].sector);
+            Assert.AreEqual(12f, read.sectors[0].seconds, 1e-4f);
+            Assert.AreEqual(2, read.sectors[0].kills);
+            Assert.AreEqual(1f, read.sectors[0].hullIn, 1e-4f);
+            Assert.AreEqual(0.8f, read.sectors[0].shieldIn, 1e-4f);
+            Assert.AreEqual(0.5f, read.sectors[0].hullOut, 1e-4f);
+            Assert.AreEqual(0.25f, read.sectors[0].shieldOut, 1e-4f);
+            Assert.IsTrue(read.sectors[0].eliteMet);
+            Assert.IsFalse(read.sectors[0].eliteBeaten);
+            Assert.AreEqual(4.5f, read.sectors[0].regenSeconds, 1e-4f);
+            Assert.AreEqual(2, read.sectors[0].regenStarts);
+            Assert.AreEqual(1, read.sectors[0].shieldRefills);
+            Assert.AreEqual(30f, read.sectors[0].shieldRestored, 1e-4f);
+            Assert.AreEqual(3f, read.sectors[0].shieldDownSeconds, 1e-4f);
+            Assert.AreEqual(1.5f, read.sectors[0].contestedRegenSeconds, 1e-4f);
+            Assert.AreEqual(10f, read.sectors[0].contestedShieldRestored, 1e-4f);
+            Assert.AreEqual(1, read.endPhase.index);
+            Assert.IsTrue(read.endPhase.inLull);
+            Assert.IsFalse(read.endPhase.done);
+            Assert.AreEqual(3.5f, read.endPhase.elapsedSeconds, 1e-4f);
+            Assert.AreEqual(1, read.dealt.Count);
+            Assert.AreEqual(1, read.dealt[0].sector);
+            Assert.AreEqual("Laser", read.dealt[0].kind);
+            Assert.AreEqual(40f, read.dealt[0].total, 1e-4f);
+            Assert.AreEqual(10f, read.dealt[0].shield, 1e-4f);
+            Assert.AreEqual(30f, read.dealt[0].hull, 1e-4f);
+            Assert.AreEqual(4, read.dealt[0].hits);
+            Object.DestroyImmediate(mod);
+        }
+
+        [Test]
+        public void AbandonedRun_CarriesNoKillingBlow()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(RunRecord.Compose(
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), 0, 0, null,
+                new BuildIdentity { commit = "abc123" }, Fingerprint,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
+                new FixedTally(), new DamageLedger(), EmptySpawns(), null,
+                new RunCourse(), default, new List<string>(), default, RunRecord.OriginEditor,
+                new List<DealtRow>(), true).ToJsonLine());
+
+            Assert.AreEqual(RunRecord.Abandoned, read.outcome);
+            Assert.AreEqual(string.Empty, read.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        [TestCase(0, true, false, false, 2f, false, "hunt")]
+        [TestCase(0, false, false, false, 4f, false, "phase 1")]
+        [TestCase(1, true, false, false, 5f, false, "lull before phase 2")]
+        [TestCase(2, true, true, false, 3f, false, "closing lull")]
+        [TestCase(2, false, false, true, 6f, true, "elite")]
+        [TestCase(2, false, false, true, 6f, false, "extraction")]
+        public void EndPhaseRow_NamesTheMark(int index, bool inLull, bool closing, bool done,
+            float elapsed, bool eliteUnbeaten, string phase)
+        {
+            var mark = new SectorPhaseMark(index, inLull, closing, done, 0f, 0f, elapsed, 0f);
+            var row = EndPhaseRow.Of(mark, eliteUnbeaten);
+            Assert.AreEqual(phase, row.phase);
+            Assert.AreEqual(index, row.index);
+            Assert.AreEqual(inLull, row.inLull);
+            Assert.AreEqual(done, row.done);
+            Assert.AreEqual(elapsed, row.elapsedSeconds, 1e-4f);
+        }
+
+        [Test]
+        public void Counts_AcceptsV2ThroughV5_AndSkipsAbandoned()
+        {
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV2, RunRecord.Died));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Extracted));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV4, RunRecord.Extracted));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaId, RunRecord.Died));
+            Assert.IsFalse(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Abandoned));
+            Assert.IsFalse(RunRecord.Counts("run-record-v1", RunRecord.Died));
+        }
+
+        private SpawnLog EmptySpawns()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.End(1f);
+            return spawns;
+        }
+    }
+}

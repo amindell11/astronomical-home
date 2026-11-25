@@ -1,0 +1,316 @@
+Shader "Custom/StarField"
+{
+    Properties
+    {
+        [HideInInspector][PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
+
+        [Header(Pattern)]
+        _Seed ("Seed", Float) = 0
+        _StarDensity ("Total Star Density", Range(0, 1)) = 0.12
+        _CellScale ("Cells Per World Unit", Range(0.05, 4)) = 0.8
+        _StarSizeMin ("Minimum Star Radius", Range(0.002, 0.15)) = 0.012
+        _StarSizeMax ("Maximum Star Radius", Range(0.002, 0.2)) = 0.045
+        _SmallStarBias ("Small Star Bias", Range(1, 8)) = 1
+        _PositionJitter ("Position Jitter", Range(0, 0.6)) = 0.5
+
+        [HideInInspector] _ZoomReferenceSize ("Zoom Reference Size", Float) = 7
+
+        [Header(Depth)]
+        _ParallaxScale ("Overall Parallax Scale", Range(0, 2)) = 1
+        _ParallaxFar ("Far Parallax", Range(0, 2)) = 0.2
+        _ParallaxNear ("Near Parallax", Range(0, 2)) = 0.9
+        _NearLayerShare ("Near Half Share", Range(0, 1)) = 0.35
+
+        _DepthElongation ("Extra Far Elongation", Range(0, 1)) = 0.35
+
+        [Header(Zoom)]
+        _SizeZoomResponse ("Size Response to Zoom", Range(0, 1)) = 1
+        _SpacingZoomResponse ("Spacing Response to Zoom", Range(0, 1)) = 1
+
+        [Header(Appearance)]
+        [HDR] _ColorCool ("Cool Star Color", Color) = (0.65, 0.8, 1, 1)
+        [HDR] _ColorWarm ("Warm Star Color", Color) = (1, 0.82, 0.58, 1)
+        _WarmColorShare ("Warm Color Share", Range(0, 1)) = 0.25
+        _Brightness ("Brightness", Range(0, 8)) = 1.5
+        _HaloSize ("Halo Size", Range(1, 4)) = 2
+        _HaloStrength ("Halo Strength", Range(0, 1)) = 0.2
+
+        _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
+        _Softness ("Softness", Range(0, 1)) = 0
+        _PointedShare ("Four Point Star Share", Range(0, 1)) = 0
+
+        [Header(Shooting Stars)]
+        _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
+        _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 12
+        _ShootingParallax ("Shooting Star Parallax", Range(0, 1)) = 0.1
+        _ShootingColor ("Shooting Star Color", Color) = (0.65, 0.8, 1, 1)
+
+        [Header(Motion)]
+        _TwinkleNoise ("Twinkle Noise", Range(0, 1)) = 0
+        _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
+        _TwinkleDurationMin ("Minimum Twinkle Duration (seconds)", Range(0.1, 60)) = 10
+        _TwinkleDurationMax ("Maximum Twinkle Duration (seconds)", Range(0.1, 60)) = 18
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "RenderPipeline" = "UniversalPipeline"
+            "RenderType" = "Transparent"
+            "Queue" = "Transparent-50"
+        }
+
+        Blend One One
+        Cull Off
+        ZTest LEqual
+        ZWrite Off
+
+        Pass
+        {
+            Name "StarField"
+            Tags { "LightMode" = "UniversalForward" }
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "SkyCommon.hlsl"
+
+            CBUFFER_START(UnityPerMaterial)
+                float _Seed;
+                float _StarDensity;
+                float _CellScale;
+                float _StarSizeMin;
+                float _StarSizeMax;
+                float _SmallStarBias;
+                float _PositionJitter;
+                float _ZoomReferenceSize;
+                float _ParallaxScale;
+                float _ParallaxFar;
+                float _ParallaxNear;
+                float _NearLayerShare;
+                float _DepthElongation;
+                float _SizeZoomResponse;
+                float _SpacingZoomResponse;
+                float4 _ColorCool;
+                float4 _ColorWarm;
+                float _WarmColorShare;
+                float _Brightness;
+                float _HaloSize;
+                float _HaloStrength;
+                float _ShapeVariation;
+                float _Softness;
+                float _PointedShare;
+                float _TwinkleNoise;
+                float _TwinkleAmount;
+                float _TwinkleDurationMin;
+                float _TwinkleDurationMax;
+                float _ShootingBrightness;
+                float _ShootingInterval;
+                float _ShootingParallax;
+                float4 _ShootingColor;
+            CBUFFER_END
+
+            float3 ShootingRegion(float2 position, float2 region, float aa)
+            {
+                const float regionSize = 24.0;
+                float4 regionRandom = Hash42(region + _Seed * float2(31.3, 17.7));
+                float time = _Time.y + regionRandom.x * _ShootingInterval;
+                float cycle = floor(time / _ShootingInterval);
+                float4 random = Hash42(region + cycle * float2(73.1, 91.7) + _Seed + 173.3);
+                float age = time - cycle * _ShootingInterval - lerp(0.1, 0.6, random.x) * _ShootingInterval;
+                float duration = lerp(0.9, 1.5, random.y);
+                [branch]
+                if (random.w > 0.65 || age <= 0 || age >= duration) return 0;
+
+                float life = age / duration;
+                float angle = lerp(-0.9, -0.3, random.z) + step(0.5, regionRandom.z) * PI;
+                float2 direction = float2(cos(angle), sin(angle));
+                float2 center = (region + regionRandom.yz) * regionSize;
+                float2 head = center + direction * lerp(-4.0, 4.0, life);
+                float2 offset = position - head;
+                float along = dot(offset, direction);
+                float across = abs(dot(offset, float2(-direction.y, direction.x)));
+                float tail = saturate(1.0 + along / 3.0);
+
+                float width = 0.012 * tail;
+                float streak = (1.0 - smoothstep(width, width + aa, across)) * tail * tail *
+                    (1.0 - smoothstep(0.0, aa, along));
+                float glow = exp2(-length(offset) * 35.0);
+                float fade = smoothstep(0.0, 0.2, life) * (1.0 - smoothstep(0.65, 1.0, life));
+
+                return _ShootingColor.rgb * (streak + glow * 0.4) * fade * _ShootingBrightness;
+            }
+            float3 ShootingStars(float2 position)
+            {
+                [branch]
+                if (_ShootingBrightness <= 0) return 0;
+                float2 region = floor(position / 24.0);
+                float aa = max(length(fwidth(position)), 0.001);
+                float3 light = 0;
+                [unroll]
+                for (int y = -1; y <= 1; y++)
+                [unroll]
+                for (int x = -1; x <= 1; x++)
+                    light += ShootingRegion(position, region + float2(x, y), aa);
+                return light;
+            }
+
+            float StarSupport(float radius, float haloRadius, float antialiasWidth, float elongation)
+            {
+                float blurScale = _Softness > 0 ? 1.2 : 1.0;
+                float haloSupport = haloRadius * (blurScale + 0.2 * _ShapeVariation);
+                return (max(radius * blurScale, haloSupport) + antialiasWidth) *
+                    (1.0 + elongation);
+            }
+
+            float LightFalloff(float distanceToCenter, float radius, float antialiasWidth)
+            {
+                float original = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
+                float normalizedDistance = distanceToCenter / (radius * 1.2 + antialiasWidth);
+                float soft = max(0.0, (exp2(-6.0 * normalizedDistance * normalizedDistance) - 0.015625) /
+                    0.984375);
+                return lerp(original, soft, _Softness);
+            }
+
+            float3 EvaluateCell(
+                float2 cell,
+                float2 positionInCell,
+                float antialiasWidth,
+                float density,
+                float sizeScale,
+                float brightnessScale,
+                float layerSeed,
+                float elongation)
+            {
+                float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
+                float4 random = Hash42(seededCell);
+
+                if (random.x >= density)
+                    return 0;
+
+                float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
+                float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), pow(random.w, _SmallStarBias)) * sizeScale;
+                float distanceToCenter = length(positionInCell - center);
+                float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
+                float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
+                float haloRadius = radius * _HaloSize * lerp(0.75, 1.25, appearance.y);
+                float haloStrength = _HaloStrength * lerp(0.65, 1.25, appearance.z);
+                float maxHaloRadius = haloRadius * (1.0 + 0.25 * _TwinkleAmount);
+                if (distanceToCenter > StarSupport(radius, maxHaloRadius, antialiasWidth, elongation))
+                    return 0;
+
+                float4 shape = Hash42(seededCell + float2(269.5, 183.3));
+                float angle = shape.x * TWO_PI;
+                float2 axis = float2(cos(angle), sin(angle));
+                float2 offset = positionInCell - center;
+                float2 local = float2(dot(offset, axis), dot(offset, float2(-axis.y, axis.x)));
+                float stretch = 1.0 + elongation * shape.y;
+                local *= float2(1.0 / stretch, stretch);
+                float core = LightFalloff(length(local), radius, antialiasWidth);
+
+                float phase = random.y * TWO_PI;
+                float minimumDuration = max(0.1, min(_TwinkleDurationMin, _TwinkleDurationMax));
+                float maximumDuration = max(minimumDuration, max(_TwinkleDurationMin, _TwinkleDurationMax));
+                float duration = lerp(minimumDuration, maximumDuration, appearance.w);
+                float speed = TWO_PI / duration;
+                float cycle = _Time.y * speed + phase;
+                float regularWave = sin(cycle) * 0.5 + 0.5;
+                float noisyWave = 0.5 + 0.25 * sin(cycle) +
+                    0.15 * sin(cycle * 3.0 + shape.z * TWO_PI) +
+                    0.1 * sin(cycle * 5.0 + shape.w * TWO_PI);
+                float twinkleWave = lerp(regularWave, noisyWave, _TwinkleNoise);
+                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
+                haloRadius *= 1.0 + (twinkleWave - 0.5) * _TwinkleAmount * 0.5;
+                float2 haloOffset = (shape.zw - 0.5) * (0.28 * _ShapeVariation * haloRadius);
+                float halo = LightFalloff(length(local - haloOffset), haloRadius, antialiasWidth);
+                float intensity = core + halo * haloStrength;
+                if (appearance.w < _PointedShare)
+                {
+                    float2 pointDistance = abs(offset) / (haloRadius + antialiasWidth);
+                    float diamond = pow(saturate(1 - sqrt(pointDistance.x) - sqrt(pointDistance.y)), 2);
+                    float pointedCore = 1 - smoothstep(0, radius + antialiasWidth, abs(local.x) + abs(local.y));
+                    intensity = pointedCore + halo * haloStrength + diamond * 2;
+                }
+
+                if (intensity <= 0)
+                    return 0;
+
+                float warmBlend = _WarmColorShare > 0
+                    ? smoothstep(1.0 - _WarmColorShare, 1.0, random.z)
+                    : 0;
+                float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
+                return color * intensity * brightness * brightnessScale * twinkle * _Brightness;
+            }
+
+            float3 EvaluateLayer(
+                float2 planePosition,
+                float2 cameraPosition,
+                float parallax,
+                float density,
+                float sizeScale,
+                float brightnessScale,
+                float layerSeed,
+                float depth,
+                float zoomSizeScale)
+            {
+                sizeScale *= zoomSizeScale;
+                float2 fieldPosition = (planePosition + cameraPosition * ((1.0 + parallax) * _ParallaxScale)) * _CellScale;
+                float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
+                float maximumRadius = max(_StarSizeMin, _StarSizeMax) * sizeScale;
+                float maximumHaloRadius = maximumRadius * _HaloSize * 1.25 * (1.0 + 0.25 * _TwinkleAmount);
+                float elongation = _ShapeVariation * (0.4 + _DepthElongation * depth);
+                float support = StarSupport(maximumRadius, maximumHaloRadius, antialiasWidth, elongation);
+                float centerOffset = 0.5 * _PositionJitter;
+
+                [branch]
+                if (support <= 0.5 - centerOffset)
+                    return EvaluateCell(floor(fieldPosition), frac(fieldPosition), antialiasWidth,
+                        density, sizeScale, brightnessScale, layerSeed, elongation);
+
+                int2 firstCell = (int2)ceil(fieldPosition - 0.5 - centerOffset - support);
+                int2 lastCell = (int2)floor(fieldPosition - 0.5 + centerOffset + support);
+                float3 stars = 0;
+                [loop]
+                for (int y = firstCell.y; y <= lastCell.y; y++)
+                [loop]
+                for (int x = firstCell.x; x <= lastCell.x; x++)
+                {
+                    float2 cell = float2(x, y);
+                    stars += EvaluateCell(cell, fieldPosition - cell, antialiasWidth,
+                        density, sizeScale, brightnessScale, layerSeed, elongation);
+                }
+                return stars;
+            }
+
+            half4 Frag(Varyings input) : SV_Target
+            {
+                SkyCoordinates coordinates = GetSkyCoordinates(input.projectedPosition, _ZoomReferenceSize);
+                float2 planePosition = coordinates.planePosition * pow(coordinates.zoom, -_SpacingZoomResponse);
+                float2 cameraPosition = coordinates.cameraPosition;
+                float zoomSizeScale = pow(coordinates.zoom, _SizeZoomResponse - _SpacingZoomResponse);
+
+                float nearDensity = _StarDensity * _NearLayerShare * 0.5;
+                float farDensity = _StarDensity * (1.0 - _NearLayerShare) * 0.5;
+                float3 farStars = EvaluateLayer(
+                    planePosition, cameraPosition, _ParallaxFar,
+                    farDensity, 0.65, 0.6, 19.19, 1.0, zoomSizeScale);
+                float3 middleFarStars = EvaluateLayer(
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 1.0 / 3.0),
+                    farDensity, 0.85, 0.7333333, 37.37, 2.0 / 3.0, zoomSizeScale);
+                float3 middleNearStars = EvaluateLayer(
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 2.0 / 3.0),
+                    nearDensity, 1.05, 0.8666667, 55.55, 1.0 / 3.0, zoomSizeScale);
+                float3 nearStars = EvaluateLayer(
+                    planePosition, cameraPosition, _ParallaxNear,
+                    nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
+
+                float3 shootingStars = ShootingStars(planePosition + cameraPosition * _ShootingParallax);
+                return half4(farStars + middleFarStars + middleNearStars + nearStars + shootingStars, 0);
+            }
+            ENDHLSL
+        }
+    }
+}

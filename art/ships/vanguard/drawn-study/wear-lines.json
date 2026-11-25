@@ -1,0 +1,24 @@
+{
+  "source": "Authored asymmetric glancing impacts: starboard forward pod, port canopy armor and port aft spar. Each site has a torn paint entry and a directional trailing gouge; no hatch grids. One static battle-worn finish, not runtime damage levels.",
+  "lines": [
+    {"name":"starboard glancing strike main gouge","object":"MVP wing_armor","points":[[0.317,0.047],[0.326,0.032],[0.326,0.023],[0.338,0.003],[0.34,-0.009],[0.353,-0.034]],"width":0.01,"offset":0.0017},
+    {"name":"starboard strike torn leading lip","object":"MVP wing_armor","points":[[0.309,0.054],[0.318,0.047],[0.32,0.032],[0.326,0.035]],"width":0.006,"offset":0.0017},
+    {"name":"starboard strike exposed paint chip","object":"MVP wing_armor","points":[[0.316,0.043],[0.316,0.035],[0.328,0.021]],"width":0.013,"offset":0.0017},
+    {"name":"starboard strike trailing splinter","object":"MVP wing_armor","points":[[0.337,-0.003],[0.348,-0.031],[0.349,-0.042],[0.36,-0.065]],"width":0.003,"offset":0.0017},
+    {"name":"starboard strike parallel shrapnel drag","object":"MVP wing_armor","points":[[0.303,0.038],[0.312,0.02],[0.313,0.01],[0.326,-0.014]],"width":0.0034,"offset":0.0017},
+    {"name":"starboard strike separated trailing chip","object":"MVP wing_armor","points":[[0.358,-0.057],[0.36,-0.065],[0.364,-0.07]],"width":0.005,"offset":0.0017},
+    {"name":"port canopy armor grazing hit","object":"MVP Cockpit.001","points":[[-0.126,0.688],[-0.131,0.673],[-0.129,0.66],[-0.139,0.633],[-0.139,0.621],[-0.145,0.605]],"width":0.008,"offset":0.0017},
+    {"name":"port canopy hit broken paint lip","object":"MVP Cockpit.001","points":[[-0.121,0.69],[-0.124,0.679],[-0.123,0.669]],"width":0.005,"offset":0.0017},
+    {"name":"port canopy hit peeled chip","object":"MVP Cockpit.001","points":[[-0.13,0.654],[-0.139,0.648],[-0.134,0.638]],"width":0.009,"offset":0.0017},
+    {"name":"port canopy hit fine trailing scrape","object":"MVP Cockpit.001","points":[[-0.142,0.613],[-0.145,0.595],[-0.143,0.585],[-0.148,0.568]],"width":0.0027,"offset":0.0017},
+    {"name":"port canopy hit adjacent fragment","object":"MVP Cockpit.001","points":[[-0.119,0.659],[-0.122,0.646],[-0.12,0.637],[-0.128,0.619]],"width":0.0028,"offset":0.0017},
+    {"name":"port aft spar shrapnel cut","object":"MVP Sparrow Tail","points":[[-0.215,-0.72],[-0.208,-0.738],[-0.209,-0.749],[-0.199,-0.777]],"width":0.006,"offset":0.0017},
+    {"name":"port aft spar chipped shoulder","object":"MVP Sparrow Tail","points":[[-0.22,-0.721],[-0.212,-0.734],[-0.214,-0.742]],"width":0.009,"offset":0.0017},
+    {"name":"port aft spar trailing scratch","object":"MVP Sparrow Tail","points":[[-0.205,-0.779],[-0.198,-0.797],[-0.198,-0.808]],"width":0.0028,"offset":0.0017},
+    {"name":"port aft spar minor fragment","object":"MVP Sparrow Tail","points":[[-0.229,-0.738],[-0.227,-0.752],[-0.221,-0.764]],"width":0.0025,"offset":0.0017},
+    {"name":"nose leading edge paint chip","object":"MVP Cockpit.001","points":[[0.036,0.939],[0.048,0.931],[0.052,0.92]],"width":0.007,"offset":0.0017},
+    {"name":"nose chip scrape trail","object":"MVP Cockpit.001","points":[[0.052,0.927],[0.054,0.911],[0.063,0.895]],"width":0.003,"offset":0.0017},
+    {"name":"starboard outer armor edge chip","object":"MVP wing_armor","points":[[0.413,-0.168],[0.407,-0.175],[0.414,-0.182]],"width":0.006,"offset":0.0017},
+    {"name":"starboard outer armor chipped seam","object":"MVP wing_armor","points":[[0.415,-0.182],[0.411,-0.193],[0.413,-0.203]],"width":0.003,"offset":0.0017}
+  ]
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024" viewBox="0 0 1024 512">
+  <rect width="1024" height="512" fill="#000"/>
+  <defs>
+    <g id="strokes" fill="none">
+      <path d="M 214.906293 -64 C 201.038940 149.333333 181.414185 362.666667 156.032030 576" stroke="#9e9e9e" stroke-width="40.000000"/>
+      <path d="M 178.840314 -64 C 159.278095 149.333333 139.715876 362.666667 120.153657 576" stroke="#d9d9d9" stroke-width="11.225878"/>
+    </g>
+    <g id="side">
+      <use href="#strokes"/>
+      <use href="#strokes" transform="translate(512 0) scale(-1 1)"/>
+    </g>
+  </defs>
+  <use href="#side"/>
+  <use href="#side" transform="translate(512 0)"/>
+</svg>

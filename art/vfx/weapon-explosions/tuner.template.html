@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Missile and mine explosions</title>
+<style>
+  :root { color-scheme: dark; font: 16px system-ui, sans-serif; color: #e5eff7; background: #101923; }
+  body { max-width: 1080px; margin: auto; padding: 24px; }
+  h1 { font-size: 24px; font-weight: 500; }
+  h2 { font-size: 17px; font-weight: 500; }
+  canvas { display: block; width: 100%; height: auto; background: #07121f; }
+  button, input, textarea { font: inherit; }
+  button { padding: 9px 16px; }
+  .controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin: 16px 0; }
+  label { display: grid; gap: 7px; flex: 1 1 180px; }
+  input { min-width: 0; width: 100%; }
+  textarea { box-sizing: border-box; width: 100%; height: 225px; padding: 12px; }
+  output { font-variant-numeric: tabular-nums; }
+  details { margin-top: 20px; }
+  @media(max-width:600px) { body { padding: 12px; } label { flex-basis: 130px; } }
+</style>
+<h1>Missile and mine explosions</h1>
+<canvas id="preview" width="1024" height="500" aria-label="Painted missile burst and seismic mine at original speed, with smaller game-scale views"></canvas>
+<div class="controls">
+  <button id="play" type="button">Pause</button>
+  <label>Time <output id="time">0 ms</output><input id="scrub" type="range" min="0" max="800" step="10" value="0"></label>
+  <label><span>Playback</span><select id="speed"><option value="1">Original speed</option><option value="0.25">Quarter speed</option></select></label>
+</div>
+<div class="controls" id="knobs"></div>
+<details><summary>Source layers</summary><canvas id="debug" width="1024" height="720" aria-label="Extracted layers from the approved source sheets"></canvas></details>
+<details><summary>Export settings</summary><textarea id="settings" readonly aria-label="Animation settings"></textarea></details>
+<script>
+/* EFFECTS */
+</script>
+<script>
+(async () => {
+  const settings = /* SETTINGS */;
+  await WeaponExplosions.load(/* SOURCES */);
+  const preview = document.getElementById('preview');
+  const ctx = preview.getContext('2d');
+  let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let elapsed = playing ? 0 : 0.12;
+  let last = performance.now();
+  const scrub = document.getElementById('scrub');
+  const play = document.getElementById('play');
+  play.textContent = playing ? 'Pause' : 'Play';
+
+  function label(text, x, y, size = 16) {
+    ctx.fillStyle = '#bbcedf'; ctx.font = `${size}px system-ui`; ctx.textAlign = 'center'; ctx.fillText(text, x, y);
+  }
+  function render(time) {
+    ctx.fillStyle = '#07121f'; ctx.fillRect(0, 0, 1024, 500);
+    for (let i = 0; i < 70; i++) {
+      ctx.fillStyle = `rgba(160,195,224,${0.12 + (i % 3) * 0.06})`;
+      ctx.fillRect((i * 317 + 51) % 1024, (i * 137 + 32) % 500, 1, 1);
+    }
+    label('MISSILE', 245, 35); label('MINE · CIRCULAR', 745, 35);
+    ctx.save(); ctx.translate(245, 180); WeaponExplosions.missile(ctx, time, 280, settings); ctx.restore();
+    ctx.save(); ctx.translate(745, 180); WeaponExplosions.mine(ctx, time, 280, settings); ctx.restore();
+    label('Game scale', 245, 320, 14); label('Game scale', 630, 320, 14); label('Oblique comparison', 865, 320, 14);
+    ctx.save(); ctx.translate(245, 395); WeaponExplosions.missile(ctx, time, 110, settings); ctx.restore();
+    ctx.save(); ctx.translate(630, 395); WeaponExplosions.mine(ctx, time, 145, settings); ctx.restore();
+    ctx.save(); ctx.translate(865, 395); WeaponExplosions.mine(ctx, time, 145, settings, 0.28); ctx.restore();
+    label(`${Math.round(time * 1000)} ms`, 965, 475, 14);
+    scrub.value = Math.min(time, 0.8) * 1000;
+    document.getElementById('time').textContent = `${Math.round(time * 1000)} ms`;
+  }
+  const debug = document.getElementById('debug').getContext('2d');
+  Object.entries(WeaponExplosions.layers).forEach(([name, sprite], i) => {
+    const x = (i % 4) * 256, y = Math.floor(i / 4) * 240;
+    debug.fillStyle = '#233243'; debug.fillRect(x + 6, y + 6, 244, 220);
+    const width = Math.min(216, 175 * sprite.width / sprite.height);
+    const height = width * sprite.height / sprite.width;
+    debug.drawImage(sprite, x + 128 - width / 2, y + 108 - height / 2, width, height);
+    debug.fillStyle = '#e5eff7'; debug.font = '15px system-ui'; debug.textAlign = 'center'; debug.fillText(name, x + 128, y + 215);
+  });
+  const knobs = [
+    ['missileSpread', 'Missile spread', 0.7, 1.3], ['smokeOpacity', 'Smoke opacity', 0, 1],
+    ['mineFill', 'Mine fill', 0.1, 0.7], ['mineGlow', 'Mine edge', 0.4, 1],
+    ['mineMotion', 'Mine ripples', 0, 1], ['mineCorePulse', 'Mine core pulse', 0, 1]
+  ];
+  for (const [key, name, min, max] of knobs) {
+    const label = document.createElement('label');
+    const caption = document.createElement('span');
+    const input = Object.assign(document.createElement('input'), {type:'range', min, max, step:0.01, value:settings[key]});
+    const update = () => {settings[key] = Number(input.value); caption.textContent = `${name} ${settings[key].toFixed(2)}`; document.getElementById('settings').value = JSON.stringify(settings, null, 2); render(elapsed);};
+    input.addEventListener('input', update); label.append(caption, input); document.getElementById('knobs').append(label); update();
+  }
+  play.onclick = () => {playing = !playing; play.textContent = playing ? 'Pause' : 'Play';};
+  scrub.oninput = () => {playing = false; play.textContent = 'Play'; elapsed = Number(scrub.value) / 1000; render(elapsed);};
+  function tick(now) {
+    if (playing) {elapsed = (elapsed + (now - last) / 1000 * Number(document.getElementById('speed').value)) % 1.35; render(elapsed);}
+    last = now; requestAnimationFrame(tick);
+  }
+  window.explosionPreview = {settings, render: time => {playing = false; elapsed = time; render(time);}, textures: () => WeaponExplosions.textures(settings)};
+  render(elapsed); requestAnimationFrame(tick);
+})();
+</script>
+</html>

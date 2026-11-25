@@ -1,0 +1,22 @@
+{
+  "clean_model": {
+    "added_mask_pixels": 2805,
+    "removed_mask_pixels": 0,
+    "maximum_edge_distance_px": 4.0,
+    "edge_distance_95_percentile_px": 2.0,
+    "resolution": [
+      1920,
+      1080
+    ]
+  },
+  "finish_round_1": {
+    "added_mask_pixels": 1612,
+    "removed_mask_pixels": 0,
+    "maximum_edge_distance_px": 3.0,
+    "edge_distance_95_percentile_px": 2.0,
+    "resolution": [
+      1920,
+      1080
+    ]
+  }
+}

@@ -1,0 +1,129 @@
+using System;
+using System.Linq;
+using AI.Tactics;
+using Asteroids.Fields;
+using Cameras;
+using Cameras.Shake;
+using Game;
+using Game.Companion;
+using Game.Player;
+using Game.Preview;
+using Game.Preview.Targets;
+using NUnit.Framework;
+using Ships.Keystones.Tells;
+using Ships.Visuals.Breakup;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Elements.Stations.Visual;
+using UI.Hangar.Displays;
+using UI.Hangar.Hardware;
+using UI.Hangar.Hologram;
+using UI.Projection;
+using UI.Weapons;
+using UnityEditor;
+
+namespace Tests.EditMode.Preview
+{
+    [Category("Bootstrap")]
+    public class TuningTargetEditModeTests
+    {
+        private GameHost game;
+
+        [SetUp]
+        public void SetUp() => game = AssetDatabase.LoadAssetAtPath<GameHost>(PreviewHostBootstrap.GameHostPath);
+
+        [Test]
+        public void EachTarget_OffersExactlyItsEntries_AndTunesExactlyItsProfiles()
+        {
+            var canopy = AssetDatabase.LoadAssetAtPath<CanopyProjectionProfile>("Assets/Settings/UI/CanopyProjection.asset");
+            AssertTarget(Target<SectorJumpTarget>(), new[] { PreviewEntry.SectorJump, PreviewEntry.CrowdedJumpGate },
+                game.jumpFeel);
+            AssertTarget(Target<RunRecapTarget>(), new[] { PreviewEntry.RunRecap, PreviewEntry.Combat }, game.recapFeel);
+            AssertTarget(Target<HudTarget>(), new[]
+            {
+                PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
+            }, canopy, AssetDatabase.LoadAssetAtPath<ReadyFlashProfile>("Assets/Settings/UI/ReadyFlash.asset"));
+            AssertTarget(Target<ShipDeathTarget>(), new[] { PreviewEntry.EnemyDeath, PreviewEntry.RunRecap, PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
+            var flightCamera = Target<FlightCameraTarget>();
+            var shakes = AssetDatabase.FindAssets("t:CameraShakeProfile")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(path => (UnityEngine.Object)AssetDatabase.LoadAssetAtPath<CameraShakeProfile>(path));
+            var flightProfiles = flightCamera.Profiles(game).ToArray();
+            Assert.That(flightCamera.Entries, Is.EqualTo(new[] { PreviewEntry.Combat }), flightCamera.Name);
+            Assert.That(flightProfiles[0],
+                Is.EqualTo(AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset")));
+            Assert.That(flightProfiles.Skip(1), Is.EquivalentTo(shakes), "every shake profile in the project");
+            var fields = new[] { "SparseField", "MediumField", "DenseField" }.Select(field =>
+                AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}.asset"));
+            AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
+            AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
+            AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>("Assets/Settings/Game/BeaconCacheFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/DamageSurge.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/FireRateSurge.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/ShieldSurge.asset"));
+            AssertTarget(Target("Sector 1 elite"), new[] { PreviewEntry.Sector1Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/ShoalElite.asset"));
+            AssertTarget(Target("Sector 2 elite"), new[] { PreviewEntry.Sector2Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/VeilElite.asset"));
+            AssertTarget(Target("Boss"), new[] { PreviewEntry.Boss },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
+            AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
+            AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
+            AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
+            AssertTarget(Target<HangarLightTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarLightProfile>("Assets/Settings/UI/HangarLightProfile.asset"));
+            AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
+                new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
+                    AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
+                    .ToArray());
+            AssertTarget(Target<StationsTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
+            AssertTarget(Target<DashEffectTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/VanguardDashFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/CrimsonBlinkFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/ValisOverdriveFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/BulwarkRamFeel.asset"));
+        }
+
+        [Test]
+        public void SwitchingTargets_KeepsAnOfferedEntry_ElseTakesTheTargetsFirst()
+        {
+            Assert.AreEqual(PreviewEntry.Combat, Target<RunRecapTarget>().EntryAfterSwitch(PreviewEntry.Combat));
+            Assert.AreEqual(PreviewEntry.Combat, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.Combat));
+            Assert.AreEqual(PreviewEntry.RunRecap, Target<RunRecapTarget>().EntryAfterSwitch(PreviewEntry.CrowdedJumpGate));
+            Assert.AreEqual(PreviewEntry.Startup, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
+            Assert.AreEqual(PreviewEntry.SectorJump, Target<SectorJumpTarget>().EntryAfterSwitch(PreviewEntry.Combat));
+            Assert.AreEqual(PreviewEntry.RunRecap, Target<ShipDeathTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
+            Assert.AreEqual(PreviewEntry.EnemyDeath, Target<ShipDeathTarget>().EntryAfterSwitch(PreviewEntry.CrowdedJumpGate));
+        }
+
+        [Test]
+        public void EveryPreviewEntry_IsOfferedBySomeTarget()
+        {
+            foreach (PreviewEntry entry in Enum.GetValues(typeof(PreviewEntry)))
+                Assert.IsTrue(TuningTarget.All.Any(target => target.Offers(entry)), $"{entry} has no tuning target");
+        }
+
+        private static TuningTarget Target<T>() where T : TuningTarget => TuningTarget.All.OfType<T>().Single();
+
+        private static TuningTarget Target(string name) => TuningTarget.All.Single(target => target.Name == name);
+
+        private void AssertTarget(TuningTarget target, PreviewEntry[] entries, params UnityEngine.Object[] profiles)
+        {
+            foreach (var profile in profiles) Assert.IsTrue(profile, $"{target.Name}'s profile ships");
+            Assert.That(target.Entries, Is.EqualTo(entries), target.Name);
+            Assert.That(target.Profiles(game), Is.EqualTo(profiles), target.Name);
+        }
+    }
+}

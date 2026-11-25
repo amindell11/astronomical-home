@@ -1,0 +1,60 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-06T22:56:17.217127+00:00",
+  "status": "exploration",
+  "approval": "Pending owner paint-concept approval.",
+  "prompt": "Use case: precise-object-edit.\nEdit the supplied Nightshade spacecraft paint-concept sheet. Change ONLY its surface colour palette. Preserve every silhouette, part, panel line, glass shape, inset pane-divider rail, reflection shape, straight fork tail, chunky root mounting block, all four cameras, 2x2 layout, background and framing exactly. This remains the SAME mechanical ship, not a redesign.\n\nGoal: a SUBTLE richer palette fitting \"Nightshade\", using colour theory. The existing slate armour should still read dark, restrained and mechanical from a distance. Add a coordinated analogous family of deep aubergine, midnight indigo, and blackened plum rather than uniformly tinting everything purple. Approximately two thirds of the hull should remain near-black cool charcoal/indigo; selected broad upper armour faces and shoulder panels gain a quiet deep plum-violet bias, with different dark values separating overlapping mechanical plates. Keep the lowest recesses nearly neutral graphite. Existing edge highlights become desaturated lavender-steel, not glowing purple outlines.\nRetain luminous blue-violet cockpit glass as the primary focal point. Keep the existing magenta tips in exactly their existing locations and extents, but make them slightly richer berry-orchid rather than fluorescent hot pink. Do not add new magenta areas.\n\nIntroduce a TINY complementary yellow-green note: muted lichen-gold / aged pale brass, low saturation, covering clearly less than one percent of the whole ship. Place it only on the already existing small collar latch tongue directly behind the canopy and the small existing service-cover inset on the central dorsal bridge. These are subtle material accents, NOT hazard stripes, lights or emissive neon. Keep corresponding part colours consistent across the four views. No green outlining, no green canopy, no broad gold panels. If it draws attention before the canopy, it is too strong.\nExample colour relationships, interpreted with the sheet's existing lighting: charcoal-indigo #202332, deep aubergine #302338, slate-plum #443B50, muted lavender steel #69657F, violet glass #5142BE, berry-orchid accents #B13BC5, restrained lichen brass #8B8E65.\nPreserve the original value hierarchy and all planar cel shadows/ink. The richer hues should be noticed on a second look, not become a saturated toy or a high-contrast superhero livery. Do not introduce scratches, greebles, decals, labels, swatches, text or new geometry. Keep all four views and their neutral gray backdrop exactly. High-resolution square review sheet.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "palette-edit target; preserve all geometry and composition",
+      "path": "art/ships/nightshade/paint/concept-01.png",
+      "sha256": "254feefffda9372a89eab3fe69ccfef2cd7d334c7a2efb34d1b5f41afdb819c4"
+    }
+  ],
+  "output": {
+    "path": "concept-02.png",
+    "sha256": "a6c3ef0669b0d055aa679e22dbbb909c225c28ba7aa6787f3229adcba8d2dcd4",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "source_commit": "c1fdb2746421408761f4202dfdef32422c554fdc",
+  "source_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "palette_intent": {
+    "dominant": "charcoal-indigo",
+    "secondary": "deep aubergine and slate-plum",
+    "edges": "muted lavender steel",
+    "glass": "blue-violet",
+    "tips": "berry-orchid",
+    "small_complement": "muted lichen brass"
+  },
+  "review_thumbnails": {
+    "crop_xyxy": [
+      681,
+      27,
+      1203,
+      600
+    ],
+    "ship_lengths_px": [
+      32,
+      48,
+      64,
+      96
+    ],
+    "reduction": "Lanczos",
+    "enlargement": "nearest",
+    "not_in_game": true
+  },
+  "source_geometry_or_materials_changed": false,
+  "final_masks_generated": false,
+  "prerequisites": {
+    "detail_model_approved": true,
+    "flight_approved": false,
+    "geometry_lock_written": false,
+    "uv_approved": false,
+    "paint_concept_approved": false
+  }
+}

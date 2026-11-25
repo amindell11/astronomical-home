@@ -1,0 +1,1638 @@
+{
+  "mesh_objects": [
+    {
+      "name": "Deck | joined closed structure",
+      "role": "ConsoleBody",
+      "triangles": 21632,
+      "vertices": 11494,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4098.852795176915,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "07 | Main rectangular display",
+      "role": "MainScreenGlass",
+      "triangles": 6,
+      "vertices": 8,
+      "closed": false,
+      "manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "volume": -0.8290000092933572,
+      "planar_screen": true,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "role": "DetailScreenGlass",
+      "triangles": 6,
+      "vertices": 8,
+      "closed": false,
+      "manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "volume": -0.19520000403722126,
+      "planar_screen": true,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "role": "PrimaryScreenGlass",
+      "triangles": 6,
+      "vertices": 8,
+      "closed": false,
+      "manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "volume": -0.4323333450853826,
+      "planar_screen": true,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "role": "OrdnanceScreenGlass",
+      "triangles": 6,
+      "vertices": 8,
+      "closed": false,
+      "manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "volume": -0.4480000124772392,
+      "planar_screen": true,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Previous chunky keycap",
+      "role": "PreviousButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.021927951189869257,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Previous inlaid chevron",
+      "role": "PreviousLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.879999816194167e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "role": "NextButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.021927951189869257,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Next inlaid chevron",
+      "role": "NextLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.879999816194168e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "role": "SelectorKnob",
+      "triangles": 44,
+      "vertices": 24,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0832320034747843,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "role": "LaunchButton",
+      "triangles": 300,
+      "vertices": 152,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.13187254790354225,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "19 | Launch legend",
+      "role": "LaunchLegend",
+      "triangles": 236,
+      "vertices": 128,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.00013704800418954093,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "role": "PrimaryPreviousButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.016431200721389937,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "role": "PrimaryPreviousLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.880000952407745e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Primary Next key",
+      "role": "PrimaryNextButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.016431200721389937,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "role": "PrimaryNextLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.880000952407743e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "role": "OrdnancePreviousButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.016431200721389937,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "role": "OrdnancePreviousLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.880000952407745e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "role": "OrdnanceNextButton",
+      "triangles": 56,
+      "vertices": 30,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.016431200721389937,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "role": "OrdnanceNextLegend",
+      "triangles": 20,
+      "vertices": 12,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 4.880000952407743e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "09 | Projector lens",
+      "role": "ProjectorLens",
+      "triangles": 1916,
+      "vertices": 960,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.013892140591462186,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left status 1 green lens",
+      "role": "StatusLamp1",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "role": "StatusLamp2",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "role": "StatusLamp3",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "role": "StatusLamp4",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "role": "StatusLamp5",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "role": "StatusLamp6",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 7.045833441139088e-05,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "role": "LaunchLampLeft",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006465000375807293,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "role": "LaunchLampRight",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006465000375807293,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.018954101286216815,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.018954101286216815,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006375000680796826,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006375000680796826,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    }
+  ],
+  "triangles": 25000,
+  "lamps": [
+    {
+      "name": "Deck | Left status 1 green lens",
+      "anchor": "Left status 1 green lens",
+      "position": [
+        -3.922534942626953,
+        -1.8565412759780884,
+        1.8196005821228027
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "anchor": "Left status 2 green lens",
+      "position": [
+        -3.6568851470947266,
+        -1.8893375396728516,
+        1.855020523071289
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "anchor": "Left status 3 amber lens",
+      "position": [
+        -3.3912353515625,
+        -1.9221338033676147,
+        1.8904404640197754
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "anchor": "Right status 1 green lens",
+      "position": [
+        3.3912353515625,
+        -1.9221338033676147,
+        1.8904404640197754
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "anchor": "Right status 2 green lens",
+      "position": [
+        3.6568851470947266,
+        -1.8893375396728516,
+        1.855020523071289
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "anchor": "Right status 3 amber lens",
+      "position": [
+        3.922534942626953,
+        -1.8565412759780884,
+        1.8196005821228027
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "anchor": "Left Launch armed red lens",
+      "position": [
+        -1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "anchor": "Right Launch armed red lens",
+      "position": [
+        1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "anchor": "Header downlight 01 cold white lens",
+      "position": [
+        -3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": true
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "anchor": "Header downlight 02 cold white lens",
+      "position": [
+        3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": true
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "anchor": "Left header corner cold strip lens",
+      "position": [
+        -11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "anchor": "Right header corner cold strip lens",
+      "position": [
+        11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "anchor": "Left header gusset warm lens",
+      "position": [
+        -6.539999961853027,
+        3.2919998168945312,
+        10.239999771118164
+      ],
+      "size": [
+        0.30000001192092896,
+        0.07500000298023224,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.8199999928474426,
+        0.6200000047683716
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "anchor": "Right header gusset warm lens",
+      "position": [
+        6.539999961853027,
+        3.2919998168945312,
+        10.239999771118164
+      ],
+      "size": [
+        0.30000001192092896,
+        0.07500000298023224,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.8199999928474426,
+        0.6200000047683716
+      ],
+      "downlight": false
+    }
+  ],
+  "parts": {
+    "MainScreenGlass": "07 | Main rectangular display",
+    "DetailScreenGlass": "07 | Detail rectangular display",
+    "PrimaryScreenGlass": "30 | Primary blank glass",
+    "OrdnanceScreenGlass": "30 | Ordnance blank glass",
+    "PreviousButton": "08 | Previous chunky keycap",
+    "PreviousLegend": "08 | Previous inlaid chevron",
+    "NextButton": "08 | Next chunky keycap",
+    "NextLegend": "08 | Next inlaid chevron",
+    "SelectorKnob": "08 | Selector faceted grip",
+    "LaunchButton": "08 | Launch broad beveled button",
+    "LaunchLegend": "19 | Launch legend",
+    "PrimaryPreviousButton": "30 | Primary Previous key",
+    "PrimaryPreviousLegend": "30 | Primary Previous ivory inlay",
+    "PrimaryNextButton": "30 | Primary Next key",
+    "PrimaryNextLegend": "30 | Primary Next ivory inlay",
+    "OrdnancePreviousButton": "30 | Ordnance Previous key",
+    "OrdnancePreviousLegend": "30 | Ordnance Previous ivory inlay",
+    "OrdnanceNextButton": "30 | Ordnance Next key",
+    "OrdnanceNextLegend": "30 | Ordnance Next ivory inlay",
+    "ProjectorLens": "09 | Projector lens",
+    "StatusLamp1": "Deck | Left status 1 green lens",
+    "StatusLamp2": "Deck | Left status 2 green lens",
+    "StatusLamp3": "Deck | Left status 3 amber lens",
+    "StatusLamp4": "Deck | Right status 1 green lens",
+    "StatusLamp5": "Deck | Right status 2 green lens",
+    "StatusLamp6": "Deck | Right status 3 amber lens",
+    "LaunchLampLeft": "Deck | Left Launch armed red lens",
+    "LaunchLampRight": "Deck | Right Launch armed red lens"
+  },
+  "screens": [
+    {
+      "role": "MainScreenGlass",
+      "name": "07 | Main rectangular display",
+      "label": "SHIP",
+      "size": [
+        4.25,
+        3.0
+      ],
+      "outline": [
+        [
+          -1.925,
+          -1.5
+        ],
+        [
+          1.925,
+          -1.5
+        ],
+        [
+          2.125,
+          -1.3
+        ],
+        [
+          2.125,
+          0.9
+        ],
+        [
+          1.275,
+          1.5
+        ],
+        [
+          -1.925,
+          1.5
+        ],
+        [
+          -2.125,
+          1.3
+        ],
+        [
+          -2.125,
+          -1.3
+        ]
+      ],
+      "origin": [
+        -7.427190780639648,
+        1.048761010169983,
+        3.2811710834503174
+      ],
+      "mouth": [
+        [
+          -1.9697349071502686,
+          -1.6080000400543213
+        ],
+        [
+          1.9697349071502686,
+          -1.6080000400543213
+        ],
+        [
+          2.2330000400543213,
+          -1.3447349071502686
+        ],
+        [
+          2.2330000400543213,
+          0.9559608697891235
+        ],
+        [
+          1.3092777729034424,
+          1.6080000400543213
+        ],
+        [
+          -1.9697349071502686,
+          1.6080000400543213
+        ],
+        [
+          -2.2330000400543213,
+          1.3447349071502686
+        ],
+        [
+          -2.2330000400543213,
+          -1.3447349071502686
+        ]
+      ],
+      "face_depth": -0.1,
+      "glass_depth": -0.2,
+      "wall_angle_degrees": 45,
+      "u": [
+        0.7818030714988708,
+        0.6210977435112,
+        0.05496884882450104
+      ],
+      "v": [
+        -0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ]
+    },
+    {
+      "role": "DetailScreenGlass",
+      "name": "07 | Detail rectangular display",
+      "label": "DETAIL",
+      "size": [
+        3.76,
+        0.8
+      ],
+      "outline": [
+        [
+          -1.68,
+          -0.4
+        ],
+        [
+          1.68,
+          -0.4
+        ],
+        [
+          1.88,
+          -0.2
+        ],
+        [
+          1.88,
+          0.2
+        ],
+        [
+          1.68,
+          0.4
+        ],
+        [
+          -1.68,
+          0.4
+        ],
+        [
+          -1.88,
+          0.2
+        ],
+        [
+          -1.88,
+          -0.2
+        ]
+      ],
+      "origin": [
+        -6.525543212890625,
+        0.06409154832363129,
+        1.5832138061523438
+      ],
+      "mouth": [
+        [
+          -1.7247350215911865,
+          -0.5080000162124634
+        ],
+        [
+          1.7247350215911865,
+          -0.5080000162124634
+        ],
+        [
+          1.9880000352859497,
+          -0.2447350025177002
+        ],
+        [
+          1.9880000352859497,
+          0.2447350025177002
+        ],
+        [
+          1.7247350215911865,
+          0.5080000162124634
+        ],
+        [
+          -1.7247350215911865,
+          0.5080000162124634
+        ],
+        [
+          -1.9880000352859497,
+          0.2447350025177002
+        ],
+        [
+          -1.9880000352859497,
+          -0.2447350025177002
+        ]
+      ],
+      "face_depth": -0.1,
+      "glass_depth": -0.2,
+      "wall_angle_degrees": 45,
+      "u": [
+        0.7818030714988708,
+        0.6210977435112,
+        0.05496884882450104
+      ],
+      "v": [
+        -0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ]
+    },
+    {
+      "role": "PrimaryScreenGlass",
+      "name": "30 | Primary blank glass",
+      "label": "PRIMARY",
+      "size": [
+        4.25,
+        1.6
+      ],
+      "outline": [
+        [
+          -1.925,
+          -0.8
+        ],
+        [
+          1.925,
+          -0.8
+        ],
+        [
+          2.125,
+          -0.6000000000000001
+        ],
+        [
+          2.125,
+          0.6000000000000001
+        ],
+        [
+          1.925,
+          0.8
+        ],
+        [
+          -1.275,
+          0.8
+        ],
+        [
+          -2.125,
+          0.20000000000000007
+        ],
+        [
+          -2.125,
+          -0.6000000000000001
+        ]
+      ],
+      "origin": [
+        7.719390869140625,
+        1.3678666353225708,
+        3.831434965133667
+      ],
+      "mouth": [
+        [
+          -1.9697349071502686,
+          -0.9079999923706055
+        ],
+        [
+          1.9697349071502686,
+          -0.9079999923706055
+        ],
+        [
+          2.2330000400543213,
+          -0.6447348594665527
+        ],
+        [
+          2.2330000400543213,
+          0.6447348594665527
+        ],
+        [
+          1.9697349071502686,
+          0.9079999923706055
+        ],
+        [
+          -1.309277892112732,
+          0.9079999923706055
+        ],
+        [
+          -2.2330000400543213,
+          0.25596094131469727
+        ],
+        [
+          -2.2330000400543213,
+          -0.6447348594665527
+        ]
+      ],
+      "face_depth": -0.1,
+      "glass_depth": -0.2,
+      "wall_angle_degrees": 45,
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ]
+    },
+    {
+      "role": "OrdnanceScreenGlass",
+      "name": "30 | Ordnance blank glass",
+      "label": "ORDNANCE",
+      "size": [
+        4.25,
+        1.6
+      ],
+      "outline": [
+        [
+          -1.925,
+          -0.8
+        ],
+        [
+          1.925,
+          -0.8
+        ],
+        [
+          2.125,
+          -0.6000000000000001
+        ],
+        [
+          2.125,
+          0.6000000000000001
+        ],
+        [
+          1.925,
+          0.8
+        ],
+        [
+          -1.925,
+          0.8
+        ],
+        [
+          -2.125,
+          0.6000000000000001
+        ],
+        [
+          -2.125,
+          -0.6000000000000001
+        ]
+      ],
+      "origin": [
+        6.926275253295898,
+        0.5017223954200745,
+        2.3378615379333496
+      ],
+      "mouth": [
+        [
+          -1.9697349071502686,
+          -0.9079999923706055
+        ],
+        [
+          1.9697349071502686,
+          -0.9079999923706055
+        ],
+        [
+          2.2330000400543213,
+          -0.6447348594665527
+        ],
+        [
+          2.2330000400543213,
+          0.6447348594665527
+        ],
+        [
+          1.9697349071502686,
+          0.9079999923706055
+        ],
+        [
+          -1.9697349071502686,
+          0.9079999923706055
+        ],
+        [
+          -2.2330000400543213,
+          0.6447348594665527
+        ],
+        [
+          -2.2330000400543213,
+          -0.6447348594665527
+        ]
+      ],
+      "face_depth": -0.1,
+      "glass_depth": -0.2,
+      "wall_angle_degrees": 45,
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "role": "PreviousButton",
+      "name": "08 | Previous chunky keycap",
+      "origin": [
+        -4.023410797119141,
+        -2.2873423099517822,
+        1.414997935295105
+      ],
+      "u": [
+        0.9838882088661194,
+        -0.12146764248609543,
+        0.13118509948253632
+      ],
+      "v": [
+        -0.006988069042563438,
+        0.7070721387863159,
+        0.7071067690849304
+      ],
+      "outward_axis": [
+        -0.1786479353904724,
+        -0.6966307759284973,
+        0.6948311924934387
+      ],
+      "local_axis": "+Z",
+      "front": 0.015
+    },
+    {
+      "role": "NextButton",
+      "name": "08 | Next chunky keycap",
+      "origin": [
+        -3.2953333854675293,
+        -2.3772284984588623,
+        1.5120748281478882
+      ],
+      "u": [
+        0.9838882088661194,
+        -0.12146764248609543,
+        0.13118509948253632
+      ],
+      "v": [
+        -0.006988069042563438,
+        0.7070721387863159,
+        0.7071067690849304
+      ],
+      "outward_axis": [
+        -0.1786479353904724,
+        -0.6966307759284973,
+        0.6948311924934387
+      ],
+      "local_axis": "+Z",
+      "front": 0.015
+    },
+    {
+      "role": "SelectorKnob",
+      "name": "08 | Selector faceted grip",
+      "origin": [
+        3.659372091293335,
+        -2.3322854042053223,
+        1.4635363817214966
+      ],
+      "u": [
+        0.9686556458473206,
+        0.2484075129032135,
+        1.2085976663911424e-08
+      ],
+      "v": [
+        -0.17260131239891052,
+        0.673052191734314,
+        0.7191727757453918
+      ],
+      "outward_axis": [
+        0.17864792048931122,
+        -0.6966307163238525,
+        0.6948312520980835
+      ],
+      "local_axis": "+Z",
+      "front": 0.2
+    },
+    {
+      "role": "LaunchButton",
+      "name": "08 | Launch broad beveled button",
+      "origin": [
+        0.0,
+        -3.440000057220459,
+        1.5
+      ],
+      "u": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        0.8910065293312073,
+        0.45399048924446106
+      ],
+      "outward_axis": [
+        0.0,
+        -0.45399048924446106,
+        0.8910065293312073
+      ],
+      "local_axis": "+Z",
+      "front": 0.015
+    },
+    {
+      "role": "PrimaryPreviousButton",
+      "name": "30 | Primary Previous key",
+      "origin": [
+        5.589367866516113,
+        2.6262195110321045,
+        3.8893096446990967
+      ],
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "outward_axis": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "local_axis": "+Z",
+      "front": 0.1
+    },
+    {
+      "role": "PrimaryNextButton",
+      "name": "30 | Primary Next key",
+      "origin": [
+        5.355607509613037,
+        2.3709347248077393,
+        3.4490983486175537
+      ],
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "outward_axis": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "local_axis": "+Z",
+      "front": 0.1
+    },
+    {
+      "role": "OrdnancePreviousButton",
+      "name": "30 | Ordnance Previous key",
+      "origin": [
+        5.025838375091553,
+        2.010801076889038,
+        2.8280863761901855
+      ],
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "outward_axis": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "local_axis": "+Z",
+      "front": 0.1
+    },
+    {
+      "role": "OrdnanceNextButton",
+      "name": "30 | Ordnance Next key",
+      "origin": [
+        4.792077541351318,
+        1.7555164098739624,
+        2.3878750801086426
+      ],
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "outward_axis": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "local_axis": "+Z",
+      "front": 0.1
+    }
+  ],
+  "pods": [
+    {
+      "label": "Left",
+      "profile": [
+        [
+          -2.4749999999999996,
+          -1.52
+        ],
+        [
+          2.4749999999999996,
+          -1.52
+        ],
+        [
+          2.925,
+          -1.0700000000000003
+        ],
+        [
+          2.925,
+          2.1369241551851954
+        ],
+        [
+          1.9049999999999998,
+          2.8569241551851956
+        ],
+        [
+          -2.4749999999999996,
+          2.8569241551851956
+        ],
+        [
+          -2.925,
+          2.4069241551851954
+        ],
+        [
+          -2.925,
+          -1.0700000000000003
+        ]
+      ],
+      "face_depth": -0.1,
+      "origin": [
+        -6.989999771118164,
+        0.25,
+        2.450000047683716
+      ],
+      "u": [
+        0.7818030714988708,
+        0.6210977435112,
+        0.05496884882450104
+      ],
+      "v": [
+        -0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "front_world": [
+        [
+          -8.336787223815918,
+          -1.9163808822631836,
+          1.0575274229049683
+        ],
+        [
+          -4.466862678527832,
+          1.158052921295166,
+          1.3296231031417847
+        ],
+        [
+          -4.302894592285156,
+          1.642686367034912,
+          1.7081003189086914
+        ],
+        [
+          -5.64155912399292,
+          3.104612350463867,
+          4.229035377502441
+        ],
+        [
+          -6.739546775817871,
+          2.7993156909942627,
+          4.73895263671875
+        ],
+        [
+          -10.163844108581543,
+          0.0789075717329979,
+          4.4981889724731445
+        ],
+        [
+          -10.327812194824219,
+          -0.40572574734687805,
+          4.119711875915527
+        ],
+        [
+          -8.876441955566406,
+          -1.9907355308532715,
+          1.3865323066711426
+        ]
+      ]
+    },
+    {
+      "label": "Right",
+      "profile": [
+        [
+          -2.4749999999999996,
+          -1.52
+        ],
+        [
+          2.4749999999999996,
+          -1.52
+        ],
+        [
+          2.925,
+          -1.0700000000000003
+        ],
+        [
+          2.925,
+          2.4069241551851954
+        ],
+        [
+          2.4749999999999996,
+          2.8569241551851956
+        ],
+        [
+          -1.9049999999999998,
+          2.8569241551851956
+        ],
+        [
+          -2.925,
+          2.1369241551851954
+        ],
+        [
+          -2.925,
+          -1.0700000000000003
+        ]
+      ],
+      "face_depth": -0.1,
+      "origin": [
+        6.989999771118164,
+        0.25,
+        2.450000047683716
+      ],
+      "u": [
+        0.7818030714988708,
+        -0.6210977435112,
+        -0.05496884882450104
+      ],
+      "v": [
+        0.4174293875694275,
+        0.4558654725551605,
+        0.7860912680625916
+      ],
+      "normal": [
+        -0.46318113803863525,
+        -0.6375142335891724,
+        0.6156615018844604
+      ],
+      "front_world": [
+        [
+          4.466862678527832,
+          1.158052921295166,
+          1.3296231031417847
+        ],
+        [
+          8.336787223815918,
+          -1.9163808822631836,
+          1.0575274229049683
+        ],
+        [
+          8.876441955566406,
+          -1.9907355308532715,
+          1.3865323066711426
+        ],
+        [
+          10.327812194824219,
+          -0.40572574734687805,
+          4.119711875915527
+        ],
+        [
+          10.163844108581543,
+          0.0789075717329979,
+          4.4981889724731445
+        ],
+        [
+          6.739546775817871,
+          2.7993156909942627,
+          4.73895263671875
+        ],
+        [
+          5.64155912399292,
+          3.104612350463867,
+          4.229035377502441
+        ],
+        [
+          4.302894592285156,
+          1.642686367034912,
+          1.7081003189086914
+        ]
+      ]
+    }
+  ],
+  "departures": [
+    "Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.",
+    "Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.",
+    "Hidden band undersides, pod cavity walls, flush pod bases and deep control surrounds close the open massing.",
+    "Weapon keys retain their exact visible tops; their surrounding wells provide real depth.",
+    "Thin inlaid key chevrons and launch lettering added as required moving legends.",
+    "Camera uses old console AUTO sensor, 36 x 24 mm and 33 mm lens: vertical FOV 34.113931 degrees.",
+    "Ship, selector and launch well floors are -.125 in their local frames to clear existing press travel.",
+    "Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.",
+    "Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.",
+    "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.",
+    "Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.",
+    "Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.",
+    "Two dim header strips replace the six spotlights and seven structural dashes; named lenses provide exporter lamp anchors.",
+    "Header strip troughs replace the four central underside vents and cut through the retained cassettes.",
+    "Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain."
+  ]
+}

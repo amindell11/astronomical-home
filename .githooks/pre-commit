@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#
+# Warn (do NOT block) when Editor-churn-prone TRACKED files are staged.
+#
+# These files are legitimately committed on purpose sometimes, but they also get
+# modified as a side effect of running the Unity Editor:
+#   - ProjectSettings/EditorSettings.asset : EnterPlayModeOptions toggling, etc.
+#   - *.renderTexture                       : runtime RT writes (e.g. Minimap)
+# Accidentally committing that churn has bitten this repo before. Warn-only so
+# intentional changes are never blocked; the commit always proceeds.
+#
+# Install: scripts/install_hooks.sh (sets core.hooksPath -> .githooks)
+
+set -euo pipefail
+
+staged="$(git diff --cached --name-only --diff-filter=ACM)"
+[ -z "$staged" ] && exit 0
+
+flagged=""
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    ProjectSettings/EditorSettings.asset|*/ProjectSettings/EditorSettings.asset) flagged="$flagged|$f" ;;
+    *.renderTexture) flagged="$flagged|$f" ;;
+  esac
+done <<EOF
+$staged
+EOF
+
+if [ -n "$flagged" ]; then
+  echo "WARNING: pre-commit: Editor-churn-prone file(s) staged:" >&2
+  IFS='|'
+  for f in $flagged; do
+    [ -z "$f" ] && continue
+    echo "    $f" >&2
+  done
+  unset IFS
+  echo "  If this is accidental Editor runtime churn, unstage before committing:" >&2
+  echo "    git restore --staged <file>" >&2
+  echo "  (warning only -- the commit will proceed)" >&2
+fi
+
+exit 0

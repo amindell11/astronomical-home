@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3777d449c154c4bb988d364d23c15cc, type: 3}
+  m_Name: BastionMinionTemper
+  m_EditorClassIdentifier: 
+  exposureCone: 60
+  laneWidth: 4
+  home: 0
+  attackRunMargin: 0
+  circlesWreck: 1
+  hitWithin: 2
+  nerveShield: 0
+  standOffMargin: 5
+  minimumHold: 2
+  holdsLine: 1
+  lineSpacing: 8
+  ambushes: 0
+  ambushAhead: 15
+  ambushHold: 4
+  wounded: 4
+  woundedBy: 1
+  woundedBelow: 70
+  woundedEnds: 0
+  shieldBack: 80
+  woundedSeconds: 5
+  commits: 0
+  retreats: 1
+  fallBackMargin: 1
+  chargeRange: 6
+  jumpsBeyond: 70

@@ -1,0 +1,63 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-06T13:00:23.308002-07:00",
+  "status": "exploration",
+  "approval": "Pending owner paint-concept approval.",
+  "prompt": "Use case: precise-object-edit.\nAsset type: Nightshade spacecraft paint-concept review sheet, surface paint only.\nImage 1 is the EXACT edit target: a 2x2 sheet of actual renders of the approved current model. Preserve the entire layout and every ship silhouette, camera, projection, panel boundary, opening, fin, tail, canopy frame and overlap exactly. Top left is upper isometric, top right is nose-up top, bottom left is side with nose left, bottom right is underside.\nImages 2 and 3 are approved art-direction references ONLY for PALETTE and painted surface treatment. Their older different geometry is NOT to be copied.\n\nPaint directly over all four views of Image 1, retaining the same consistent finish across views. Dark cool slate/navy-violet armor, slightly lighter slate broad inset panel faces, charcoal structural edges and recesses, luminous blue-violet cockpit glazing, saturated magenta only on the already-magenta outer wing tips and compact fin tip markings. Strengthen the hard-surface mechanical read using controlled planar cel shadows, thin dark ink in existing seams, restrained cool lavender-gray edge glints and a few subtle painted brush streaks aligned to each long panel. Keep large fields of calm dark slate; avoid dense greebles, scratches, bolts, logos, numbers, white decals, generic warning stripes, gradients or photoreal metal. Aim for the crisp illustrated painted language of Images 2 and 3, slightly more mechanically precise, not weathered.\nThe elongated glass pod is seated in its metal cradle. Its inset raised rail divides separate panes and stays metal, visibly higher on the glass with gradually thickening rear ends. Preserve the exposed outer glass band. Use simple blue-violet glass value shapes and one restrained pale cool reflection without obscuring that rail.\nThe forks must remain the exact STRAIGHT tapered pair from Image 1, including chunky root mounts and their existing planar details. No bowed tail redesign. Keep the pitched narrow fuselage, rounded nose and small sharp stacked upper/lower fins exactly as rendered.\nAll paint should be plausibly reproducible later as independently recolourable base regions plus grayscale shadow, light and ink masks. This is a concept picture, not an atlas or finished texture asset.\nKeep the neutral gray background, framing and scale from Image 1. No extra views, no labels, no captions, no swatches, no border. Do not redraw the model or change any geometry; only enrich its surface paint and glass.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "exact current-model edit target",
+      "path": "https://github.com/amindell11/astronomical-home/tree/e91ef73a98432bba960b72e98790a0db8688e35e/paint/round-01/flat-contact-sheet.png",
+      "sha256": "e65f4cf743f9d6add05684c901fa6f5c3d6e645bcd07ad290d3e350818c5d300"
+    },
+    {
+      "role": "palette and surface-style reference only",
+      "path": "art/ships/nightshade/concepts/nightshade-turnaround.png",
+      "sha256": "400b627ae2eb46d7c05318ee3ed0919c75a68c8ce32f463069217e2cee59fdcb"
+    },
+    {
+      "role": "palette and surface-style reference only",
+      "path": "art/ships/nightshade/concepts/nightshade-top.png",
+      "sha256": "3bfb6d86805f97a71b97c5a57125c11e6d96d772c36085dd57636f67965693d1"
+    }
+  ],
+  "output": {
+    "path": "concept-01.png",
+    "sha256": "254feefffda9372a89eab3fe69ccfef2cd7d334c7a2efb34d1b5f41afdb819c4",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "source_commit": "c1fdb2746421408761f4202dfdef32422c554fdc",
+  "source_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "prerequisites": {
+    "detail_model_approved": true,
+    "flight_approved": false,
+    "geometry_lock_written": false,
+    "uv_approved": false,
+    "paint_concept_approved": false
+  },
+  "review_thumbnails": {
+    "crop_xyxy": [
+      681,
+      27,
+      1203,
+      600
+    ],
+    "ship_lengths_px": [
+      32,
+      48,
+      64,
+      96
+    ],
+    "reduction": "Lanczos",
+    "enlargement": "nearest",
+    "not_in_game": true
+  },
+  "source_geometry_or_materials_changed": false,
+  "final_masks_generated": false,
+  "evidence_url": "https://github.com/amindell11/astronomical-home/tree/e91ef73a98432bba960b72e98790a0db8688e35e/paint/round-01"
+}

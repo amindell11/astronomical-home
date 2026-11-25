@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "stage": "final",
+  "width": 2048,
+  "height": 2048,
+  "palette": {
+    "base": [
+      0.006,
+      0.005,
+      0.003
+    ],
+    "primary": [
+      0.2,
+      0.075,
+      0.012
+    ],
+    "secondary": [
+      0.32,
+      0.15,
+      0.035
+    ],
+    "accent": [
+      0.6,
+      0.3,
+      0.09
+    ]
+  },
+  "provenance": {
+    "blender_version": "5.1.2",
+    "generator": "4D torus clouds v1",
+    "samples": 8,
+    "render_seconds": 1.8226371000055224,
+    "preset": {
+      "schema_version": 2,
+      "nebula": {
+        "variation": 113,
+        "scale": 1.1,
+        "stretch": [
+          0.5,
+          2.0,
+          0.7
+        ],
+        "rotation": [
+          -0.1,
+          0.3,
+          1.6
+        ],
+        "coverage": -0.06,
+        "core_emission": 0.7,
+        "palette": [
+          [
+            0.006,
+            0.005,
+            0.003
+          ],
+          [
+            0.2,
+            0.075,
+            0.012
+          ],
+          [
+            0.32,
+            0.15,
+            0.035
+          ],
+          [
+            0.6,
+            0.3,
+            0.09
+          ]
+        ]
+      }
+    },
+    "migration": []
+  }
+}
