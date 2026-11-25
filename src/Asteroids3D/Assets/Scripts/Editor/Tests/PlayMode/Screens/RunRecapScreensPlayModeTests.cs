@@ -149,7 +149,7 @@ namespace Tests.PlayMode.Screens
                 : RecapOutcomeContext.Defeat(kills, cleared, 3, board, Vector2.zero));
             var details = screen.transform.Find("Panels").GetComponent<CanvasGroup>();
             var intro = screen.transform.Find("OutcomeIntro");
-            var headline = intro.Find("Body/Outcome").GetComponent<Text>();
+            var headline = intro.Find("Outcome").GetComponent<Text>();
             var button = screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
             Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", headline.text);
             Assert.That(headline.fontSize, Is.GreaterThan(TextAt("Recap/Body/Outcome").fontSize * 2));

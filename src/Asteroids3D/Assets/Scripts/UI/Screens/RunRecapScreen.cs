@@ -15,7 +15,7 @@ namespace UI.Screens
     /// The recap's uGUI, built at rest for a <see cref="RecapOutcomeContext"/>: the sector window, or for
     /// a run outcome its banner, the Flight Recorder window and the scoreboard window that opens in
     /// front of it on request. It draws whatever <see cref="RecapState"/> it is handed, so playback or
-    /// animation inspection drives every window but the scoreboard, whose opening is the player's own
+    /// animation inspection drives everything but the scoreboard, whose opening is the player's own
     /// and runs on the unscaled clock here.
     /// The look was settled on https://github.com/amindell11/astronomical-home/issues/1694
     /// </summary>
@@ -45,7 +45,7 @@ namespace UI.Screens
         private ScreenWindow recap;
         private ScreenWindow board;
         private Button continueButton;
-        private ScreenWindow banner;
+        private CanvasGroup banner;
         private GameObject prompt;
         private bool interactable;
         private InputAction boardKey;
@@ -91,8 +91,7 @@ namespace UI.Screens
             if (state.BreakdownInteractable && !interactable) continueButton.Select();
             interactable = state.BreakdownInteractable;
             if (!banner) return;
-            banner.Alpha = state.BannerAlpha > 0f ? 1f : 0f;
-            banner.Open = state.BannerAlpha;
+            banner.alpha = state.BannerAlpha;
             prompt.SetActive(state.BannerPrompt);
             banner.gameObject.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
         }
@@ -205,22 +204,20 @@ namespace UI.Screens
             return shown;
         }
 
+        // Bare text on the ink canvas, like the HUD, so it fades in through the canopy with no window.
         private void BuildBanner(string title, Color outcomeColor)
         {
             const float width = 760f;
-            const float height = 190f;
-            banner = ScreenWindow.Create(transform, layers, "OutcomeIntro", 0f, 0f, width, height,
-                "FLIGHT RECORDER", fonts.Label);
-            var intro = (RectTransform)banner.transform;
+            var intro = ScreenKit.Box(transform, "OutcomeIntro", 0f, 0f, width, 150f);
             intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
             intro.anchoredPosition = Vector2.zero;
-            WindowKit.Label(banner.Body, "Outcome", title, 0f, 8f, width, 118f, 96, outcomeColor, fonts.Heading,
+            WindowKit.Label(intro, "Outcome", title, 0f, 0f, width, 118f, 96, outcomeColor, fonts.Heading,
                 TextAnchor.MiddleCenter);
-            prompt = WindowKit.Label(banner.Body, "ContinueHint", "PRESS ANY KEY", 0f, 130f, width, 20f, 14,
+            prompt = WindowKit.Label(intro, "ContinueHint", "PRESS ANY KEY", 0f, 122f, width, 20f, 14,
                 WindowKit.Dim, fonts.Label, TextAnchor.MiddleCenter).gameObject;
             prompt.SetActive(false);
-            banner.Alpha = 0f;
-            banner.Open = 0f;
+            banner = intro.gameObject.AddComponent<CanvasGroup>();
+            banner.alpha = 0f;
         }
 
         private void Stat(RectTransform body, string name, string caption, string value, float x, float y)
