@@ -10,6 +10,6 @@ namespace Ships
 
         public static readonly string[] HullModels = { };
 
-        public static readonly string[] SavedColliderMeshes = { "Crimson" };
+        public static readonly string[] SavedColliderMeshes = { "Crimson", "Vanguard" };
     }
 }
