@@ -15,5 +15,6 @@ MonoBehaviour:
   minLineIntervalSeconds: 10
   staleSeconds: 3
   holdSeconds: 4
+  readingCharactersPerSecond: 12
   fadeSeconds: 0.4
   replyChance: 0.6

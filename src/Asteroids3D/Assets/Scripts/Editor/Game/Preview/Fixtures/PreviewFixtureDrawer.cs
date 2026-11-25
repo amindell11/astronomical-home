@@ -14,7 +14,7 @@ namespace Game.Preview.Fixtures
             (PreviewFixtureOwn.Faction, "Faction", new[] { nameof(SectorEntry.faction) }),
             (PreviewFixtureOwn.Elite, "Elite", new[] { nameof(SectorEntry.elite) }),
             (PreviewFixtureOwn.Waves, "Waves", new[] { nameof(SectorEntry.phases) }),
-            (PreviewFixtureOwn.WaveCap, "Wave cap", new[] { nameof(SectorEntry.waveCap) }),
+            (PreviewFixtureOwn.WaveCap, "Caps", new[] { nameof(SectorEntry.rivalCap), nameof(SectorEntry.minionCap) }),
             (PreviewFixtureOwn.Patrols, "Patrols", new[] { nameof(SectorEntry.patrols) }),
             (PreviewFixtureOwn.SearchSeconds, "Search", new[] { nameof(SectorEntry.searchSeconds) }),
             (PreviewFixtureOwn.RepairStations, "Repairs", new[] { nameof(SectorEntry.repairStations) }),

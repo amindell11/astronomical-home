@@ -49,11 +49,17 @@ namespace Ships.Keystones.Tells
             [Tooltip("Seconds of fade before Ends At, or after the live window ends when Ends With Live is set.")]
             public float fadeOut;
 
-            [Tooltip("What starts this layer: the kit's press, the kit going live, or the kit's hit.")]
+            [Tooltip("What starts this layer: the kit's press, the kit going live, the kit's hit, or the kit's live window ending.")]
             public KeystoneFlipbookStart startsOn;
 
             [Tooltip("Ends when the kit stops being live, fading over Fade Out.")]
             public bool endsWithLive;
+
+            [Tooltip("Repeats from Loop From after the last frame, until the live window ends. Needs Ends With Live.")]
+            public bool loops;
+
+            [Tooltip("First frame of the repeat. Frames before it play once, as an intro.")]
+            public int loopFrom;
 
             [Header("Baked with the sheet")]
             public Material material;
@@ -78,6 +84,9 @@ namespace Ships.Keystones.Tells
 
             [Tooltip("Left in the world where it started, instead of following the ship.")]
             public bool staysAtLaunch;
+
+            [Tooltip("Left where the ship was on the frame before this layer started. Needs Stays At Launch.")]
+            public bool startsBehind;
         }
     }
 }

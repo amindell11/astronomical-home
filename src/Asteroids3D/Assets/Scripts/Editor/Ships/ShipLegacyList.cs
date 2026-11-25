@@ -8,8 +8,8 @@ namespace Ships
     {
         public static readonly string[] Chassis = { "Junker_1" };
 
-        public static readonly string[] HullModels = { "Valis" };
+        public static readonly string[] HullModels = { };
 
-        public static readonly string[] SavedColliderMeshes = { "Crimson", "Vanguard", "Valis" };
+        public static readonly string[] SavedColliderMeshes = { "Crimson", "Vanguard" };
     }
 }

@@ -13,14 +13,14 @@ namespace Tests.EditMode.Ships
         private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         [Test]
-        public void Resolve_WithAScale_ScalesMassForcesTorquesAndHull_AndLeavesTheRestAuthored()
+        public void Resolve_WithAScale_ScalesMassForcesTorquesHullAndShield_AndLeavesTheRestAuthored()
         {
             var ship = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
             Assert.IsNotNull(ship, "Vanguard prefab loads");
 
             var authored = ship.ResolveStats();
             var scaled = ResolvedShipStats.Resolve(ship, ship.Engine, ship.Shield, ShipMods.None,
-                new ShipScale(size: 2f, mass: 3f, thrust: 4f, torque: 5f, hull: 6f));
+                new ShipScale(size: 2f, mass: 3f, thrust: 4f, torque: 5f, hull: 6f, shield: 7f));
 
             Assert.AreEqual(authored.mass * 3f, scaled.mass, 1e-3f);
             Assert.AreEqual(authored.forwardForce * 4f, scaled.forwardForce, 1e-3f);
@@ -31,13 +31,13 @@ namespace Tests.EditMode.Ships
             Assert.AreEqual(authored.bankTorque * 5f, scaled.bankTorque, 1e-3f);
             Assert.AreEqual(authored.bankDamping * 5f, scaled.bankDamping, 1e-3f);
             Assert.AreEqual(authored.maxHealth * 6f, scaled.maxHealth, 1e-3f);
+            Assert.AreEqual(authored.maxShield * 7f, scaled.maxShield, 1e-3f);
 
             Assert.AreEqual(authored.maxSpeed, scaled.maxSpeed, 1e-4f, "top speed is the engine's, not the size's");
             Assert.AreEqual(authored.maxYawRate, scaled.maxYawRate, 1e-4f, "the turn-rate cap stays authored");
             Assert.AreEqual(authored.angularDrag, scaled.angularDrag, 1e-4f);
             Assert.AreEqual(authored.linearDrag, scaled.linearDrag, 1e-4f);
             Assert.AreEqual(authored.maxBankAngle, scaled.maxBankAngle, 1e-4f);
-            Assert.AreEqual(authored.maxShield, scaled.maxShield, 1e-4f);
             Assert.AreEqual(authored.shieldRegenRate, scaled.shieldRegenRate, 1e-4f);
             Assert.AreEqual(authored.shieldRegenDelay, scaled.shieldRegenDelay, 1e-4f);
             Assert.AreEqual(authored.startingLives, scaled.startingLives);

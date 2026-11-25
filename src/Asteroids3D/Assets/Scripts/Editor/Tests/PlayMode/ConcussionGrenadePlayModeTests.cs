@@ -233,6 +233,28 @@ namespace Tests.PlayMode
             Assert.IsNotNull(FindActiveWave(), "Arrival spawns the wave.");
         }
 
+        [UnityTest]
+        public IEnumerator Charge_CoastsAtLaunchSpeed_ThenBurnsToRest()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 1f) * 100f, Projectiles) as Grenade;
+            var body = grenade.GetComponent<Rigidbody>();
+            var coastSteps = Mathf.FloorToInt((grenade.MaxDistance - grenade.BurnDistance) / grenade.LaunchSpeed / Time.fixedDeltaTime) - 1;
+
+            for (var i = 0; i < coastSteps; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                Assert.IsFalse(grenade.Burning, $"Still coasting at step {i}.");
+                Assert.AreEqual(grenade.LaunchSpeed, body.linearVelocity.magnitude, 0.01f, "A coasting charge keeps its launch speed.");
+            }
+
+            for (var i = 0; i < 4 && !grenade.Burning; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsTrue(grenade.Burning, "The burn lights at the burn distance.");
+            yield return new WaitForFixedUpdate();
+            Assert.Less(body.linearVelocity.magnitude, grenade.LaunchSpeed, "The burn slows the charge.");
+        }
+
         [Test]
         public void TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires()
         {
@@ -287,15 +309,16 @@ namespace Tests.PlayMode
             for (var i = 0; i <= StepsToArm(grenade); i++)
                 yield return new WaitForFixedUpdate();
 
-            var ahead = grenade.TargetPoint - grenade.transform.position;
-            Assume.That(ahead.magnitude, Is.GreaterThan(3f), "The armed charge is still in flight.");
-            var rock = CreateRock(grenade.transform.position + ahead.normalized * 1.5f);
+            var target = grenade.TargetPoint;
+            var ahead = target - grenade.transform.position;
+            Assume.That(ahead.magnitude, Is.GreaterThan(2f), "The armed charge is still in flight.");
+            var rock = CreateRock(grenade.transform.position + ahead * 0.5f);
             var flight = new Flight();
             yield return FlyUntilGone(grenade, flight, 60);
 
             Assert.IsTrue(flight.DetonatedAt.HasValue, "Contact detonated the armed charge.");
-            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, rock.transform.position), 1.5f,
-                "It blew on the rock, short of its target point.");
+            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, rock.transform.position),
+                Vector3.Distance(flight.DetonatedAt.Value, target), "It blew on the rock, short of its target point.");
         }
 
         [UnityTest]
@@ -357,9 +380,9 @@ namespace Tests.PlayMode
             var bolt = lasers.Fire(weapon.firePoint.position + heading * 20f, Projectiles);
             Assert.IsNotNull(bolt, "The owner's laser fired.");
 
-            // Park the owner's own bolt in the charge's path; a closing bolt would tunnel past it between steps.
+            // Park the owner's own bolt where the coasting charge ends a step; anywhere else it can tunnel past.
             var boltBody = bolt.GetComponent<Rigidbody>();
-            var boltSpot = grenade.transform.position + heading * 2f;
+            var boltSpot = grenade.transform.position + heading * (2f * grenade.LaunchSpeed * Time.fixedDeltaTime);
             bolt.transform.position = boltSpot;
             boltBody.position = boltSpot;
             boltBody.linearVelocity = Vector3.zero;

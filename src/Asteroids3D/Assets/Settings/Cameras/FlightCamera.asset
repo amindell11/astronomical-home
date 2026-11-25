@@ -31,6 +31,9 @@ MonoBehaviour:
   cursorLead: 6
   cursorDeadZone: 0.4
   cursorLeadSmoothTime: 0.4
+  overspeedRange: 0.3
+  overspeedZoomOut: 6
+  overspeedLead: 6
   traumaPerHit: 0.75
   deathTrauma: 1
   traumaDecay: 1.2

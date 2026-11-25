@@ -38,6 +38,8 @@ namespace Ships.Damage
             OnValueChanged?.Invoke(CurrentValue, prev, MaxValue);
         }
 
+        public void Restore(float amount) => Set(Mathf.Min(CurrentValue + amount, MaxValue));
+
         public void RestoreFraction(float fraction) =>
             Set(Mathf.Min(CurrentValue + fraction * MaxValue, MaxValue));
 

@@ -157,7 +157,7 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(row.faction.Minion.ship, "A patrol flies its faction's minion chassis.");
             Assert.AreEqual(row.faction.Minion.ship != row.faction.Rival.ship ? 1f : 0.75f, row.faction.Minion.scale.Size, 1e-4f,
                 "A minion on its own chassis takes its size from the mesh.");
-            Assert.AreEqual(0.7f, row.faction.Minion.scale.Hull, 1e-4f);
+            Assert.AreEqual(SectorTempersEditModeTests.MinionHull(row.faction.name), row.faction.Minion.scale.Hull, 1e-4f);
             Assert.IsNull(serialized.FindProperty("patrolPilot"), "The hunt names no patrol pilot of its own.");
             Assert.IsTrue(serialized.FindProperty("sightWedge").objectReferenceValue, "Patrols draw their sight wedge.");
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
