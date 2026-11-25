@@ -63,6 +63,7 @@ namespace Cameras
         private float lockedZoomVelocity;
         private bool kitWasLive;
         private bool kitReturning;
+        private bool kitBleeding;
         private Vector2? manualCenter;
         private float? manualZoom;
         private float zoomScale = 1f;
@@ -251,11 +252,11 @@ namespace Cameras
                 lockedZoomVelocity = zoomVelocity / AppliedZoomScale;
             }
 
-            if (!live && kitWasLive) kitReturning = true;
+            if (!live && kitWasLive) kitReturning = kitBleeding = true;
             kitWasLive = live;
             // After the window, residual overspeed must not hold the view wide while it bleeds off.
-            if (kitReturning && Overspeed <= 0f) kitReturning = false;
-            var overspeed = live ? 1f : kitReturning ? 0f : Overspeed;
+            if (kitBleeding && Overspeed <= 0f) kitBleeding = false;
+            var overspeed = live ? 1f : kitBleeding ? 0f : Overspeed;
             var headroom = feel.overspeedZoomOut * overspeed;
             var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, BaseZoom, BaseZoom + feel.maxWiden + headroom),
                 FightZoom(center)), feel.maxZoomOut + headroom);
@@ -268,6 +269,7 @@ namespace Cameras
             {
                 lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                     feel.widenTime, kitReturning ? feel.kitReturnTime : feel.narrowTime, Time.unscaledDeltaTime);
+                if (kitReturning && Mathf.Abs(lockedZoom - target) < 0.01f) kitReturning = false;
             }
 
             return lockedZoom;
@@ -416,6 +418,7 @@ namespace Cameras
             hull = newHull;
             kitWasLive = false;
             kitReturning = false;
+            kitBleeding = false;
 
             if (newSubject)
                 secondarySubjects.Add(newSubject);

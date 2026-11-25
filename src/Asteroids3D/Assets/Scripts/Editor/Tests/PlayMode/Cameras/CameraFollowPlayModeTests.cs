@@ -264,6 +264,21 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator Locked_LiveKitEnding_ComesBackWithinTheReturnTime_AtRest()
+    {
+        var stub = LiveKitHull();
+        cam.SetSubject(subject.transform, newHull: stub);
+        yield return ZoomSettlesOn(LiveKitWidth);
+
+        stub.LiveCap = 0f;
+        yield return new WaitForSecondsRealtime(4f * feel.kitReturnTime);
+
+        Assume.That(LiveKitWidth - cam.BaseZoom, Is.GreaterThan(1f),
+            "this tuning never separates the live width from the return");
+        Assert.AreEqual(cam.BaseZoom * cam.AppliedZoomScale, cam.Cam.orthographicSize, 0.25f * cam.AppliedZoomScale);
+    }
+
+    [UnityTest]
     public IEnumerator Locked_LiveKitPop_OvershootsThenSettles()
     {
         var live = LiveKitHull();
