@@ -187,6 +187,11 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
+  script-suite <base_ref>
+      run-script-tests on this checkout's HEAD with no slot, selecting files
+      by the base_ref..HEAD diff. Run by .github/workflows/script-suite.yml,
+      which posts merge-proof/scripts.
+
   run-script-tests <slot>
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
       (powershell.exe) in that slot's worktree: the .sh files in one lane,
@@ -395,22 +400,22 @@ Commands:
       trailer). Exit: 0 merged; 1 refused, or a usage error.
 
   land-check <pr>
-      The check GitHub auto-merge waits on: land's preflight, proof and
-      authorize rules applied to PR <pr>'s head as the landing commit, with
-      no slot, no merge turn and no merge. Run by
-      .github/workflows/land-check.yml from main's copy of this script,
-      which posts the verdict as the land-check commit status on that head.
-      The head must already contain origin/main (GitHub's up-to-date rule
-      then makes it the landing tree). A landing diff touching .github/,
-      scripts/ or .githooks/ always fails: land those with 'land' or
-      'merge <slot>', which run the script suite. Passing via the auto-merge
-      class writes the auto-merged label, as land does before its merge.
-      Trailers: SHA=<head> first, CLASS= when the class
-      decided, then STATE=success|pending|failure (the commit status to
-      post; pending means a later event can still pass it) and
-      CHECK=<instruction|class|reason>, the reason one of land's preflight
-      reasons, behind, github, scripts, hosted (a merge-proof status is
-      not green on the head or stamps another tree), unauthorized, or gh.
+      The check GitHub auto-merge waits on, run by
+      .github/workflows/land-check.yml from main's copy of this script, which
+      posts the verdict as the land-check commit status on PR <pr>'s head. It
+      passes an open, non-draft PR against main from this repository's own
+      branch when: no review thread is unresolved, no '## Merge order' PR is
+      still open, merge-proof/headless, merge-proof/resharper and
+      merge-proof/scripts are green and stamp the head's tree, and the owed
+      checklist is absent, none or discharged. An unticked owed item passes
+      only on a recorded instruction for the head or an inert delta from it.
+      The head need not contain main.
+      Trailers: SHA=<head> first, then STATE=success|pending|failure (the
+      commit status to post; pending means a later event can still pass it)
+      and CHECK=<green|instruction|reason>, the reason one of not-open, base,
+      fork, draft, facts, unresolved, after:<pr>, merge-order-malformed,
+      hosted (a merge-proof status is not green on the head or stamps another
+      tree), owed-open, owed-malformed, or gh.
       No STATE line means no verdict: post nothing. Exit: 0 pass; 1 not.
 
   land-docs
@@ -3184,61 +3189,70 @@ land_check_verdict() {
   [[ "$state" == success ]]
 }
 
+REMOTE_SCRIPTS_CONTEXT="merge-proof/scripts"
+
 cmd_land_check() {
   local pr="${1:-}"
   [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land-check requires <pr>" >&2; return 1; }
   require_gh || return 1
-  local sha tree base_tree rule rc proof_rc=0 class
+  local sha view state base draft branch cross facts owed instruction unresolved after tree context proof_rc=0
   sha="$(gh pr view "$pr" --json headRefOid --jq .headRefOid)" && [[ "$sha" =~ ^[0-9a-f]{40}$ ]] \
     || { echo "land-check: could not read PR #$pr's head from GitHub." >&2; return 1; }
   echo "SHA=$sha"
-  if ! land_preflight "$pr"; then
-    case "$LAND_REASON" in
-      gh|facts|unresolved|after:*|slot:*) land_check_verdict pending "$LAND_REASON" ;;
-      *) land_check_verdict failure "$LAND_REASON" ;;
-    esac
-    return 1
-  fi
-  if ! git -C "$ROOT" fetch -q origin "+refs/heads/main:refs/remotes/origin/main" \
-    "+refs/heads/$LAND_BRANCH:refs/land-check/head"; then
-    echo "land-check: could not fetch main and $LAND_BRANCH." >&2
-    return 1
-  fi
-  if [[ "$(git -C "$ROOT" rev-parse refs/land-check/head)" != "$sha" ]]; then
-    echo "land-check: $LAND_BRANCH moved past ${sha:0:7}; its push starts a fresh check." >&2
-    return 1
-  fi
-  if ! git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
-    land_check_verdict pending behind
-    return 1
-  fi
-  for rule in github:.github/ scripts:scripts/ scripts:.githooks/; do
-    landing_diff_touches "$ROOT" origin/main "$sha" "${rule#*:}" && rc=0 || rc=$?
-    [[ "$rc" -ne 0 ]] || { land_check_verdict failure "${rule%%:*}"; return 1; }
-    [[ "$rc" -eq 1 ]] || return 1
-  done
-  tree="$(git -C "$ROOT" rev-parse "$sha^{tree}")"
-  base_tree="$(git -C "$ROOT" rev-parse 'origin/main^{tree}')"
-  verified_remote_status "$sha" "$REMOTE_PROOF_CONTEXT" "tree=$tree" >&2 || proof_rc=1
-  verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" "tree=$tree" "baseTree=$base_tree" >&2 || proof_rc=1
-  if [[ "$proof_rc" -ne 0 ]]; then
-    land_check_verdict pending hosted
-    return 1
-  fi
-  if ! gate_authorize "$ROOT" "$sha" "$pr" origin/main >&2; then
-    land_check_verdict pending "$GATE_REASON"
-    return 1
-  fi
-  [[ "$AUTHORIZED_BY" == class ]] || { land_check_verdict success instruction; return; }
-  class="$(class_verdict "$CLASS_OWED" 1 1 1 "$CLASS_REVIEW")"
-  echo "CLASS=$class"
-  [[ "$class" == in ]] || { land_check_verdict pending unauthorized; return 1; }
-  if ! gh pr edit "$pr" --add-label "$AUTO_MERGED_LABEL" >/dev/null; then
-    echo "land-check: could not label PR #$pr $AUTO_MERGED_LABEL, which a class merge needs." >&2
+  if ! view="$(gh pr view "$pr" --json state,baseRefName,headRefName,isDraft,isCrossRepository \
+    --jq '[.state, .baseRefName, .headRefName, .isDraft, .isCrossRepository] | @tsv')"; then
     land_check_verdict pending gh
     return 1
   fi
-  land_check_verdict success class
+  IFS=$'\t' read -r state base branch draft cross <<< "$view"
+  [[ "$state" == OPEN ]] || { land_check_verdict failure not-open; return 1; }
+  [[ "$cross" == false ]] || { land_check_verdict failure fork; return 1; }
+  [[ "$base" == main ]] || { land_check_verdict failure base; return 1; }
+  [[ "$draft" == false ]] || { land_check_verdict failure draft; return 1; }
+  if ! facts="$(GITHUB_REPOSITORY="$(repo_slug)" bash "$SCRIPT_DIR/drain_pick.sh" land-facts "$pr")"; then
+    land_check_verdict pending facts
+    return 1
+  fi
+  owed="$(trailer_value OWED "$facts")"
+  instruction="$(trailer_value INSTRUCTION "$facts")"
+  unresolved="$(trailer_value UNRESOLVED "$facts")"
+  after="$(trailer_value AFTER "$facts")"
+  [[ "$unresolved" =~ ^[0-9]+$ ]] || { land_check_verdict pending facts; return 1; }
+  [[ "$unresolved" -eq 0 ]] || { land_check_verdict pending unresolved; return 1; }
+  case "$after" in
+    none) ;;
+    malformed) land_check_verdict failure merge-order-malformed; return 1 ;;
+    *[!0-9,]*|'') land_check_verdict pending facts; return 1 ;;
+    *) land_check_verdict pending "after:${after%%,*}"; return 1 ;;
+  esac
+  if ! git -C "$ROOT" fetch -q origin "+refs/heads/$branch:refs/land-check/head"; then
+    echo "land-check: could not fetch $branch." >&2
+    return 1
+  fi
+  if [[ "$(git -C "$ROOT" rev-parse refs/land-check/head)" != "$sha" ]]; then
+    echo "land-check: $branch moved past ${sha:0:7}; its push starts a fresh check." >&2
+    return 1
+  fi
+  tree="$(git -C "$ROOT" rev-parse "$sha^{tree}")"
+  for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT" "$REMOTE_SCRIPTS_CONTEXT"; do
+    verified_remote_status "$sha" "$context" "tree=$tree" >&2 || proof_rc=1
+  done
+  [[ "$proof_rc" -eq 0 ]] || { land_check_verdict pending hosted; return 1; }
+  case "$owed" in
+    absent|none|discharged) ;;
+    open)
+      # An unticked owed item lands on the user's recorded "merge" for this head or an inert delta from it.
+      if [[ "$instruction" =~ ^[0-9a-f]{40}$ ]] && git -C "$ROOT" cat-file -e "$instruction^{commit}" 2>/dev/null \
+        && [[ "$(classify_diff_since_proof "$ROOT" "$instruction^{tree}" "$tree")" =~ ^(doc|comment)$ ]]; then
+        land_check_verdict success instruction
+        return
+      fi
+      land_check_verdict pending owed-open
+      return 1 ;;
+    malformed) land_check_verdict failure owed-malformed; return 1 ;;
+    *) land_check_verdict pending facts; return 1 ;;
+  esac
+  land_check_verdict success green
 }
 
 # ---- Docs-only landing -----------------------------------------------------
@@ -3717,6 +3731,10 @@ main() {
       require_slot_arg "run-script-tests requires <slot>" "$#"
       path="$(slot_path "$1")" || { echo "run-script-tests: unknown slot '$1'" >&2; exit 1; }
       cmd_run_script_tests "$path"
+      ;;
+    script-suite)
+      [[ $# -eq 1 ]] || { echo "script-suite requires <base_ref>" >&2; exit 1; }
+      cmd_run_script_tests "$ROOT" "$1" HEAD
       ;;
     create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
     submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
