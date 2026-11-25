@@ -18,7 +18,6 @@ import ship_source
 
 TOLERANCE = 1e-5
 NGON_TOLERANCE = 1e-4
-COLLIDER_TRIANGLES = 255
 SUPPORTED_MODIFIERS = set(ship_source.GEOMETRY_PARAMETERS)
 
 
@@ -104,8 +103,7 @@ def check(scene, ship):
         origin_world = ship_source.stored_world(origin)
 
     evaluation = ship_source.Evaluation(scene)
-    collider_triangles = 0
-    collider_heights = []
+    hull_heights = []
     for name, obj in objects.items():
         if name in roles.ignored or obj is origin:
             continue
@@ -141,17 +139,13 @@ def check(scene, ship):
         try:
             if _inward(mesh):
                 find("normals", name, "Closed mesh with inward normals")
-            if in_collider:
-                mesh.calc_loop_triangles()
-                collider_triangles += len(mesh.loop_triangles)
+            if name in roles.members.get("hull", ()):
                 space = evaluation.to_space(name)
-                collider_heights += [(space @ v.co).z for v in mesh.vertices]
+                hull_heights += [(space @ v.co).z for v in mesh.vertices]
         finally:
             bpy.data.meshes.remove(mesh)
-    if collider_triangles > COLLIDER_TRIANGLES:
-        find("collider", "role.collider", f"{collider_triangles} triangles; at most {COLLIDER_TRIANGLES}")
-    if collider_heights and not min(collider_heights) < 0 < max(collider_heights):
-        find("collider", "role.collider", "Does not cross the play plane (z = 0), so shots and rams pass through")
+    if hull_heights and not min(hull_heights) < 0 < max(hull_heights):
+        find("collider", "role.hull", "Does not cross the play plane (z = 0), so shots and rams pass beside the drawn hull")
     for block, path in _missing_files():
         find("missing_file", block, f"Missing external file {path}")
     if scene.unit_settings.scale_length != 1.0:

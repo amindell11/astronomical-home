@@ -23,7 +23,7 @@ parser.add_argument("--out", required=True)
 folder = Path(parser.parse_args(sys.argv[sys.argv.index("--") + 1:]).out).resolve()
 folder.mkdir(parents=True, exist_ok=True)
 spec = {"schema_version": 1, "name": "Fixture", "source": "Fixture.blend", "texture_size": 256,
-        "uv_density_max_ratio": 2., "contour_roles": ["hull"], "exemptions": []}
+        "uv_density_max_ratio": 2., "contour_roles": ["hull"], "collider_thickness": 0.47, "exemptions": []}
 ship_json = folder / "ship.json"
 ship_json.write_text(json.dumps(spec))
 source = fixture_ship.build(ship_json, folder / "new")

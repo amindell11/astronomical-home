@@ -80,7 +80,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase(Vanguard)]
         [TestCase(Crimson)]
         [TestCase(Nightshade)]
-        public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
+        public void ShipColliderBounds_CoverThePaintedHullFromAbove(string path)
         {
             var ship = LoadShip(path);
             var colliders = ship.GetComponentsInChildren<MeshCollider>(true)
@@ -103,6 +103,8 @@ namespace Tests.EditMode.Rendering.Illustrated
                 foreach (var vertex in vertices)
                 {
                     var point = matrix.MultiplyPoint3x4(vertex);
+                    // Depth is the bank-dodge thickness, not the hull's: only the top-down footprint must match.
+                    point.z = colliderBounds.center.z;
                     Assert.That(colliderBounds.Contains(point), Is.True,
                         $"{ship.name} collider excludes {surface.name} vertex {point}: collider {colliderBounds}.");
                 }

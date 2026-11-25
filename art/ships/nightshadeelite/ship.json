@@ -7,5 +7,6 @@
   "contour_roles": [
     "hull"
   ],
+  "collider_thickness": 0.47,
   "exemptions": []
 }

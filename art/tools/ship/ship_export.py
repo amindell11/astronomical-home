@@ -2,8 +2,8 @@
 
 CLI: blender -b --factory-startup --python-exit-code 1 -P ship_export.py -- --ship SHIP_JSON --out DIR
 FBX: root empty <Name> in symmetry-origin space (-Z forward, Y up); one triangulated mesh per
-present visual role (Hull, Canopy, Cores, Ink) with material slots sorted by name, Collider
-without materials, and socket empties verbatim under Sockets. Roles in contour_roles carry a
+present visual role (Hull, Canopy, Cores, Ink) with material slots sorted by name, a generated
+Collider slab without materials (export_collider), and socket empties verbatim under Sockets. Roles in contour_roles carry a
 contour: a separate vertex range with joined normals, in a last slot named Contour.
 --debris requires a matching geometry lock and exports <Name>Breakup instead. Visual parts
 need one whole role.debris.<id> or matching .L/.R groups; paired triangles partition by
@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ship_contract as contract
 import ship_source
 
+COLLIDER_TRIANGLES = 255
 
 class Part:
     """One part's evaluated, triangulated corners in part-local space; `placed` maps them to symmetry-origin space."""
@@ -150,14 +151,45 @@ def ranges(names, pieces, vertex, corner):
     return record
 
 
-def export_collider(evaluation, names):
-    pieces = []
-    for name in names:
-        part = Part(evaluation, name, [])
-        co, normals = part.placed(part.normals)
-        pieces.append((co, part.corners, normals, np.zeros(len(part.material_index), np.int32), {}))
-    mesh = build_mesh("Collider", pieces, [], 0)
-    return mesh, {"parts": list(names), "triangles": len(mesh.polygons)}
+def outline(points):
+    """Counter-clockwise convex hull of 2D points (monotone chain)."""
+    points = sorted(set(map(tuple, np.round(points, 5))))
+    chains = []
+    for sweep in (points, points[::-1]):
+        chain = []
+        for p in sweep:
+            while len(chain) >= 2 and ((chain[-1][0] - chain[-2][0]) * (p[1] - chain[-2][1]) -
+                                       (chain[-1][1] - chain[-2][1]) * (p[0] - chain[-2][0])) <= 0:
+                chain.pop()
+            chain.append(p)
+        chains.append(chain[:-1])
+    return np.array(chains[0] + chains[1])
+
+
+def export_collider(evaluation, names, thickness):
+    """The top-down convex outline of `names`, extruded across the play plane.
+
+    Banking rolls the collider with the ship and shots test only its slice at z = 0, so the
+    half-thickness (`thickness` x the outline's half-width) sets how far a roll narrows that slice.
+    """
+    parts = [Part(evaluation, name, []) for name in names]
+    co = np.concatenate([part.placed(part.normals)[0] for part in parts])
+    ring = outline(co[:, :2])
+    while 4 * len(ring) - 4 > COLLIDER_TRIANGLES:
+        a, b = ring - np.roll(ring, 1, axis=0), np.roll(ring, -1, axis=0) - np.roll(ring, 1, axis=0)
+        area = np.abs(a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0])
+        ring = np.delete(ring, np.argmin(area), axis=0)
+    half = thickness * np.abs(ring[:, 0]).max()
+    n = len(ring)
+    vertices = np.concatenate([np.c_[ring, np.full(n, -half)], np.c_[ring, np.full(n, half)]]).astype(np.float32)
+    sides = [t for i in range(n) for t in ((i, (i + 1) % n, n + (i + 1) % n), (i, n + (i + 1) % n, n + i))]
+    caps = [t for i in range(1, n - 1) for t in ((n, n + i, n + i + 1), (0, i + 1, i))]
+    corners = np.array(sides + caps, np.int32).ravel()
+    piece = (vertices, corners, np.zeros((len(corners), 3), np.float32), np.zeros(len(corners) // 3, np.int32), {})
+    mesh = build_mesh("Collider", [piece], [], 0)
+    mesh.attributes.remove(mesh.attributes["custom_normal"])
+    return mesh, {"parts": list(names), "outline_points": n, "half_thickness": float(half),
+                  "triangles": len(mesh.polygons)}
 
 
 def main(argv):
@@ -226,10 +258,9 @@ def main(argv):
                                            meshes[role] if role in ship["contour_roles"] else ())
                 built.append((role_name, mesh))
                 sidecar_roles[role_name] = record
-        if meshes["collider"]:
-            mesh, record = export_collider(evaluation, meshes["collider"])
-            built.append(("Collider", mesh))
-            sidecar_roles["Collider"] = record
+        mesh, record = export_collider(evaluation, visual + meshes["collider"], ship["collider_thickness"])
+        built.append(("Collider", mesh))
+        sidecar_roles["Collider"] = record
         sockets = {name: evaluation.to_space(name) for name in sorted(roles.members.get("sockets", ()))
                    if scene.objects[name].type == "EMPTY"}
 

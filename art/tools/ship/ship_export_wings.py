@@ -3,7 +3,8 @@
 CLI: python ship_export_wings.py --ship SHIP_JSON --out DIR [--blender EXE]
 ship_export refuses role.move.*, so this builds temporary copies of the source, one per output,
 and exports each with the standard tools:
-  <Name>.fbx         intact export with every role.move part left out: Hull, Collider, Sockets.
+  <Name>.fbx         intact export with every role.move part left out of the drawn roles: Hull,
+                     Sockets, and a Collider whose outline spans the wings in both thrust and idle pose.
   <Name>Wings.fbx    one mesh per role.move.<id> group, exported through debris mode (paint and
                      contour kept), in the source pose, which is the thrust pose.
   <Name>Breakup.fbx  the source's own role.debris groups, when it has them.
@@ -26,7 +27,9 @@ DEFAULT_BLENDER = r"C:\Program Files\Blender Foundation\Blender 5.1\blender.exe"
 
 def prepare(mode, target, wings_name):
     """Inside Blender: reshape the opened source's role collections for one output, save as target."""
+    import bmesh
     import bpy
+    from mathutils import Matrix
     moves = {c.name[len("role.move."):]: c for c in bpy.data.collections if c.name.startswith("role.move.")}
     if not moves:
         raise SystemExit("No role.move collections: nothing swings")
@@ -40,6 +43,32 @@ def prepare(mode, target, wings_name):
         for c in visual:
             for o in [o for o in c.objects if o in moving]:
                 c.objects.unlink(o)
+        collider = bpy.data.collections.get("role.collider")
+        if collider is None:
+            collider = bpy.data.collections.new("role.collider")
+            bpy.context.scene.collection.children.link(collider)
+        origin = bpy.data.objects["SymmetryOrigin"].matrix_world.inverted()
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        for gid, c in moves.items():
+            hinge = bpy.data.objects[f"Hinge.{gid}"]
+            unturned = Matrix.LocRotScale(hinge.location, None, hinge.scale)
+            rest = hinge.matrix_world @ hinge.matrix_basis.inverted() @ unturned
+            idle = hinge.matrix_world @ rest.inverted()
+            side = 1 if (origin @ hinge.matrix_world.translation).x >= 0 else -1
+            for o in c.objects:
+                if o.name not in collider.objects:
+                    collider.objects.link(o)
+                # A mirrored part spans both hinge groups; only this group's half swings about this hinge.
+                mesh = bpy.data.meshes.new_from_object(o.evaluated_get(depsgraph), depsgraph=depsgraph)
+                mesh.transform(origin @ idle @ o.matrix_world)
+                work = bmesh.new()
+                work.from_mesh(mesh)
+                bmesh.ops.delete(work, geom=[v for v in work.verts if v.co.x * side < 0], context="VERTS")
+                work.to_mesh(mesh)
+                work.free()
+                pose = bpy.data.objects.new(f"{o.name} idle {gid}", mesh)
+                pose.matrix_world = origin.inverted()
+                collider.objects.link(pose)
     elif mode == "wings":
         for c in visual:
             for o in [o for o in c.objects if o not in moving]:
