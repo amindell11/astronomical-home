@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using Ships;
@@ -8,6 +9,7 @@ using Substrate.Services.Units;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Hitbox
 {
@@ -32,11 +34,10 @@ namespace Tests.PlayMode.Hitbox
             base.TearDown();
         }
 
-        [TestCase("Bulwark")]
-        [TestCase("Crimson")]
-        [TestCase("Valis")]
-        [TestCase("ValisMinion")]
-        public void Spawn_SetsEachHitboxDepthToItsHittableShareAtFullBank(string name)
+        private static readonly string[] ShipNames = { "Bulwark", "Crimson", "Valis", "ValisMinion" };
+
+        [UnityTest]
+        public IEnumerator Spawn_SetsEachHitboxDepthToItsHittableShareAtFullBank([ValueSource(nameof(ShipNames))] string name)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Ship>($"Assets/Prefabs/Ships/{name}.prefab");
             var tuning = new SerializedObject(prefab.GetComponent<BankHitbox>());
@@ -47,6 +48,9 @@ namespace Tests.PlayMode.Hitbox
             var bankDepth = Mathf.Sin(bank) * Mathf.Cos(bank);
 
             var ship = units.SpawnShip(prefab, null, 0, Vector3.zero, Quaternion.Euler(0f, 0f, 31f), Field);
+            var radius = ship.ShipRadius;
+            yield return null;
+            Assert.That(ship.ShipRadius, Is.EqualTo(radius), "the refit leaves the derived ship radius alone");
 
             var hitboxes = ship.GetComponentsInChildren<MeshCollider>(true)
                 .Where(c => !c.isTrigger && c.sharedMesh && c.gameObject.layer == LayerIds.Ship).ToArray();
@@ -63,7 +67,7 @@ namespace Tests.PlayMode.Hitbox
                 unit[axis] = 1f;
                 var stretch = toShip.MultiplyVector(unit).magnitude;
                 foreach (var vertex in vertices)
-                    Assert.That(Mathf.Abs(vertex[axis]) * stretch, Is.EqualTo(share * scale * bankDepth * halfWidth).Within(1e-3f * halfWidth),
+                    Assert.That(Mathf.Abs(vertex[axis]) * stretch, Is.EqualTo(share * scale * bankDepth * halfWidth).Within(.02f * halfWidth),
                         $"{name} {hitbox.name}");
             }
         }

@@ -11,6 +11,8 @@ namespace Ships.Hitbox
     /// at full bank: the shared share times this ship's body or wing scale. Hitboxes are the exported
     /// outline slabs on the Ship layer, each refit along the mesh axis it was extruded on, so a
     /// swinging wing's hitbox keeps its tilt.
+    /// It runs in Start, after Ship.Initialize has derived the ship radius from the exported outlines,
+    /// so tuning depth never moves AI spacing or ram reach.
     /// </summary>
     [RequireComponent(typeof(Ship))]
     public sealed class BankHitbox : MonoBehaviour
@@ -29,7 +31,7 @@ namespace Ships.Hitbox
 
         private readonly List<Mesh> fitted = new();
 
-        private void Awake()
+        private void Start()
         {
             if (!feel)
                 throw new InvalidOperationException($"{name}: BankHitbox has no HitboxFeelProfile.");
