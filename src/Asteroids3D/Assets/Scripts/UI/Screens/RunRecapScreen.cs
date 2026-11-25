@@ -15,7 +15,7 @@ namespace UI.Screens
     /// The recap's uGUI, built at rest for a <see cref="RecapOutcomeContext"/>: the sector window, or for
     /// a run outcome its banner, the Flight Recorder window and the scoreboard window that opens in
     /// front of it on request. It draws whatever <see cref="RecapState"/> it is handed, so playback or
-    /// animation inspection drives every window but the scoreboard, whose opening is the player's own
+    /// animation inspection drives everything but the scoreboard, whose opening is the player's own
     /// and runs on the unscaled clock here.
     /// The look was settled on https://github.com/amindell11/astronomical-home/issues/1694
     /// </summary>
@@ -33,6 +33,11 @@ namespace UI.Screens
         private static readonly Color Cleared = new(1f, 1f, 1f, .55f);
         private static readonly Color Ahead = new(1f, 1f, 1f, .13f);
         private static readonly Color OnCleared = new(.004f, .02f, .04f);
+        private const int BannerSize = 96;
+        private const float BannerLineHeight = 118f;
+        private static readonly Vector2 BannerCentre = new(0f, 16f);
+        private const int HeadlineSize = 47;
+        private static readonly Rect HeadlineRest = new(20f, 10f, 560f, 56f);
 
         private readonly List<GameObject> rows = new();
         private ScreenFonts fonts;
@@ -45,8 +50,9 @@ namespace UI.Screens
         private ScreenWindow recap;
         private ScreenWindow board;
         private Button continueButton;
-        private ScreenWindow banner;
+        private CanvasGroup banner;
         private GameObject prompt;
+        private Text headline;
         private bool interactable;
         private InputAction boardKey;
         private float boardProgress;
@@ -91,11 +97,60 @@ namespace UI.Screens
             if (state.BreakdownInteractable && !interactable) continueButton.Select();
             interactable = state.BreakdownInteractable;
             if (!banner) return;
-            banner.Alpha = state.BannerAlpha > 0f ? 1f : 0f;
-            banner.Open = state.BannerAlpha;
-            prompt.SetActive(state.BannerPrompt);
+            banner.alpha = state.BannerAlpha;
+            prompt.SetActive(state.BannerPrompt || state.Phase == RecapPhase.BannerOut);
             banner.gameObject.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
+            PlaceHeadline(state);
         }
+
+        // One text is the banner, then travels into the opening recorder and becomes its headline.
+        private void PlaceHeadline(RecapState state)
+        {
+            var travel = state.Phase < RecapPhase.BreakdownIn ? 0f
+                : state.Phase == RecapPhase.BreakdownIn ? state.BreakdownAlpha : 1f;
+            var rect = headline.rectTransform;
+            if (travel >= 1f)
+            {
+                if (rect.parent == recap.Body) return;
+                rect.SetParent(recap.Body, false);
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
+                rect.anchoredPosition = new Vector2(HeadlineRest.x, -HeadlineRest.y);
+                rect.sizeDelta = HeadlineRest.size;
+                rect.localScale = Vector3.one;
+                headline.fontSize = HeadlineSize;
+                headline.alignment = TextAnchor.MiddleLeft;
+                headline.color = Opaque(headline.color);
+                return;
+            }
+
+            if (rect.parent != transform)
+            {
+                rect.SetParent(transform, false);
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, .5f);
+                headline.fontSize = BannerSize;
+                headline.alignment = TextAnchor.MiddleCenter;
+            }
+            rect.sizeDelta = new Vector2(headline.preferredWidth, BannerLineHeight);
+            var restWidth = RestWidth();
+            // Scaled by width, not font size: glyph metrics don't scale linearly, and the line lands exactly.
+            var shrink = restWidth / headline.preferredWidth;
+            var rest = (Vector2)transform.InverseTransformPoint(recap.Body.TransformPoint(new Vector3(
+                HeadlineRest.x + restWidth * .5f, -HeadlineRest.center.y)));
+            rect.localPosition = Vector2.Lerp(BannerCentre, rest, travel);
+            rect.localScale = Vector3.one * Mathf.Lerp(1f, shrink, travel);
+            var alpha = state.Phase < RecapPhase.BannerOut ? state.BannerAlpha : 1f;
+            headline.color = new Color(headline.color.r, headline.color.g, headline.color.b, alpha);
+        }
+
+        private float RestWidth()
+        {
+            var settings = headline.GetGenerationSettings(Vector2.zero);
+            settings.fontSize = HeadlineSize;
+            return headline.cachedTextGeneratorForLayout.GetPreferredWidth(headline.text, settings) /
+                   headline.pixelsPerUnit;
+        }
+
+        private static Color Opaque(Color color) => new(color.r, color.g, color.b, 1f);
 
         /// <summary>Opens or closes the scoreboard window; the Flight Recorder slides aside for it.</summary>
         public void ToggleScoreboard()
@@ -162,7 +217,8 @@ namespace UI.Screens
             recap = ScreenWindow.Create(group, layers, "Recap", RecorderCentred.x, -RecorderCentred.y, 600f, 240f,
                 "FLIGHT RECORDER", fonts.Label);
             var body = recap.Body;
-            WindowKit.Label(body, "Outcome", title, 20f, 10f, 560f, 56f, 47, outcomeColor, fonts.Heading);
+            headline = WindowKit.Label(body, "Outcome", title, HeadlineRest.x, HeadlineRest.y, HeadlineRest.width,
+                HeadlineRest.height, HeadlineSize, outcomeColor, fonts.Heading);
             WindowKit.Captioned(body, "Kills", "KILLS", context.Kills.Count.ToString(), 20f, 83f, 271f, 14,
                 fonts.Label);
             AddTrophies(body, context.Kills, 20f, 107f, 31f, 9f);
@@ -180,7 +236,7 @@ namespace UI.Screens
             boardKey.AddBinding("<Gamepad>/buttonNorth");
             boardKey.performed += _ => ToggleScoreboard();
             boardKey.Enable();
-            BuildBanner(title, outcomeColor);
+            BuildBanner();
         }
 
         private RectTransform BuildStage(float strength, float width, float height, Vector2 anchor, Vector2 pivot)
@@ -205,22 +261,18 @@ namespace UI.Screens
             return shown;
         }
 
-        private void BuildBanner(string title, Color outcomeColor)
+        // The banner's prompt; its text is the recorder's headline, placed by PlaceHeadline.
+        private void BuildBanner()
         {
             const float width = 760f;
-            const float height = 190f;
-            banner = ScreenWindow.Create(transform, layers, "OutcomeIntro", 0f, 0f, width, height,
-                "FLIGHT RECORDER", fonts.Label);
-            var intro = (RectTransform)banner.transform;
+            var intro = ScreenKit.Box(transform, "OutcomeIntro", 0f, 0f, width, 150f);
             intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
             intro.anchoredPosition = Vector2.zero;
-            WindowKit.Label(banner.Body, "Outcome", title, 0f, 8f, width, 118f, 96, outcomeColor, fonts.Heading,
-                TextAnchor.MiddleCenter);
-            prompt = WindowKit.Label(banner.Body, "ContinueHint", "PRESS ANY KEY", 0f, 130f, width, 20f, 14,
+            prompt = WindowKit.Label(intro, "ContinueHint", "PRESS ANY KEY", 0f, 122f, width, 20f, 14,
                 WindowKit.Dim, fonts.Label, TextAnchor.MiddleCenter).gameObject;
             prompt.SetActive(false);
-            banner.Alpha = 0f;
-            banner.Open = 0f;
+            banner = intro.gameObject.AddComponent<CanvasGroup>();
+            banner.alpha = 0f;
         }
 
         private void Stat(RectTransform body, string name, string caption, string value, float x, float y)

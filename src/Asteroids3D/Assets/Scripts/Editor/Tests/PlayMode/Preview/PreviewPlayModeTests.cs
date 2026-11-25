@@ -615,7 +615,7 @@ namespace Tests.PlayMode.Preview
         private IEnumerator WaitForBanner() => AsyncAssert.WaitUntil(() =>
         {
             var screen = host.Playtest.GetComponentInChildren<RunRecapScreen>();
-            return screen && screen.transform.Find("OutcomeIntro/Body/ContinueHint").gameObject.activeInHierarchy;
+            return screen && screen.transform.Find("OutcomeIntro/ContinueHint").gameObject.activeInHierarchy;
         }, 30f, "the recap waits for a fresh press");
 
         private IEnumerator AdvanceToBreakdown(RunRecapScreen screen)
