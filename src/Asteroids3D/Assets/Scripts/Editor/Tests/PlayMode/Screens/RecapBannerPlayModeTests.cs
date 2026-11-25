@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Screens
 {
-    [Category("UI")]
+    [Category("UI"), Category("RequiresLfsPng")]
     public class RecapBannerPlayModeTests
     {
         private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
