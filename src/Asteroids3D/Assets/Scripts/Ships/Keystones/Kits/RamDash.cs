@@ -119,11 +119,13 @@ namespace Ships.Keystones.Kits
             var atLaunch = offset + (context.Target.vel - context.Self.vel * 0.5f) * brake;
             var reach = atLaunch.magnitude;
             if (reach < 1e-3f) return true;
+            // The ram lands when the hulls touch, short of the centres meeting.
+            var gap = reach - Host.Radius - context.TargetRadius;
             var launchSpeed = Mathf.Min(Impulse / context.SelfMass, context.SelfMaxSpeed * surgeSpeedScale);
             var travel = Mathf.Min(launchSpeed * window + 0.5f * surgeAcceleration * window * window,
                 context.SelfMaxSpeed * surgeSpeedScale * window);
             toward = atLaunch / reach;
-            return reach <= Vector2.Dot(context.Self.Forward, toward) * travel - Vector2.Dot(context.Target.vel, toward) * window;
+            return gap <= Vector2.Dot(context.Self.Forward, toward) * travel - Vector2.Dot(context.Target.vel, toward) * window;
         }
 
         public override void OnContact(in KeystoneContact contact)

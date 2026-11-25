@@ -188,8 +188,10 @@ namespace Tests.EditMode.Ships
             return ram;
         }
 
-        private static KeystoneContext Sight(Vector2 targetPos, Vector2 targetVel = default, Vector2 selfVel = default) =>
-            new(new Kinematics(Vector2.zero, selfVel, 0f, 0f, 0f), 1200f, 21f, new Kinematics(targetPos, targetVel, 0f, 0f, 0f));
+        private static KeystoneContext Sight(Vector2 targetPos, Vector2 targetVel = default, Vector2 selfVel = default,
+            float targetRadius = 0f) =>
+            new(new Kinematics(Vector2.zero, selfVel, 0f, 0f, 0f), 1200f, 21f, new Kinematics(targetPos, targetVel, 0f, 0f, 0f),
+                targetRadius: targetRadius);
 
         [Test]
         public void RamSight_FiresOnlyWhenAlignedAndInReachAfterTheBrake()
@@ -203,6 +205,16 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), selfVel: new Vector2(0f, -6f))), Is.True, "sliding away no longer spoils the ram: the brake stops it first");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 6f), targetVel: new Vector2(0f, 21f), selfVel: new Vector2(0f, 21f))), Is.False,
                 "a target fleeing at the cap outruns a launch from rest");
+        }
+
+        [Test]
+        public void RamSight_ReachesTheTargetsHull_NotItsCentre()
+        {
+            var ram = NewRam();
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 8.5f))), Is.False,
+                "7.5 u of gap past Bulwark's 1 u hull, beyond the 6.75 u a launch from rest covers");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 8.5f), targetRadius: 1.5f)), Is.True,
+                "the target's 1.5 u hull closes the gap to 6 u");
         }
 
         [Test]
