@@ -77,7 +77,7 @@ namespace Tests.PlayMode.Screens
             return node.GetComponent<Text>().text;
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator Create_BuildsOneWindowPerOffer_ShowingTheModsEachOfferUses()
         {
             screen = Open(missiles);
