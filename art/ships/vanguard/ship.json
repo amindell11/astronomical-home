@@ -7,6 +7,10 @@
   "contour_roles": [
     "hull"
   ],
-  "collider_half_thickness": 0.305,
+  "collider_skip": [
+    "MVP wing_tail",
+    "MVP Tail",
+    "MVP Sparrow Tail"
+  ],
   "exemptions": []
 }

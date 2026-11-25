@@ -7,7 +7,12 @@
   "contour_roles": [
     "hull"
   ],
-  "collider_half_thickness": 0.472,
+  "collider_skip": [
+    "Upper Outer swept fin",
+    "Lower Outer swept fin",
+    "Upper Aft swept fin",
+    "Lower Aft swept fin"
+  ],
   "exemptions": [
     {
       "rule": "name",

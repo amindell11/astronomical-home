@@ -1002,6 +1002,41 @@ PrefabInstance:
       propertyPath: 'poseSources.Array.data[3]'
       value: 
       objectReference: {fileID: 609752602799697970}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: bodyScale
+      value: 1.3333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: wingScale
+      value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: wings.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'wings.Array.data[0]'
+      value:
+      objectReference: {fileID: 7986555960853156089}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'wings.Array.data[1]'
+      value:
+      objectReference: {fileID: 3357696966440363297}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'wings.Array.data[2]'
+      value:
+      objectReference: {fileID: 2758297547234626245}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'wings.Array.data[3]'
+      value:
+      objectReference: {fileID: 1852498008913436334}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

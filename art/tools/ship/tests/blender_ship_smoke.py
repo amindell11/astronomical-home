@@ -43,7 +43,7 @@ def ship(name, variant=None, **overrides):
     folder = out / name
     folder.mkdir()
     spec = {"schema_version": 1, "name": "Fixture", "source": "Fixture.blend", "texture_size": 1024,
-            "uv_density_max_ratio": 2.0, "contour_roles": ["hull", "canopy"], "collider_half_thickness": 0.47, "exemptions": [], **overrides}
+            "uv_density_max_ratio": 2.0, "contour_roles": ["hull", "canopy"], "collider_skip": [], "exemptions": [], **overrides}
     path = folder / "ship.json"
     path.write_text(json.dumps(spec), encoding="utf-8")
     if variant is not False:
@@ -232,7 +232,7 @@ hull = np.array([v.co for v in objects["Hull"].data.vertices])
 assert abs(hull[:, 2].max() - 0.5) < 1e-5, "hidden Fin missing from Hull"
 collider = np.array([v.co for v in objects["Collider"].data.vertices])
 assert abs(np.abs(collider[:, 0]).max() - 1) < 1e-5, "Collider outline misses the Hitbox contributor"
-assert np.abs(np.abs(collider[:, 2]) - 0.47).max() < 1e-5, "Collider is not a slab of half-thickness collider_half_thickness"
+assert np.abs(np.abs(collider[:, 2]) - np.sin(np.radians(35)) * np.cos(np.radians(35))).max() < 1e-5, "Collider is not a slab of the 35° bank depth"
 everything = np.concatenate([[v.co for v in objects[n].data.vertices] for n in meshes])
 assert "Scratch" not in objects and everything[:, 0].max() < 4, "ignored Scratch exported"
 
