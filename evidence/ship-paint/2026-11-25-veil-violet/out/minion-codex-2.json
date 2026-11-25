@@ -1,0 +1,23 @@
+{
+  "tool": "codex exec (built-in image_generation tool)",
+  "codex_version": "codex-cli 0.159.2",
+  "agent_model": "gpt-6-astra",
+  "image_model": "not exposed by codex",
+  "size": [
+    2172,
+    724
+  ],
+  "prompt_file": "prompts/minion.txt",
+  "codex_wrapper": "Use your image generation tool to generate ONE image from the brief below. The attached images, in order, are image 1 (refs/minion-top.png), image 2 (refs/minion-side.png), image 3 (refs/minion-back.png), image 4 (refs/minion-front.png), image 5 (refs/minion-turn045.png), image 6 (refs/minion-turn225.png), image 7 (../2026-11-25-bastion-red/out/r4-rival-dark-1.png), Wide (landscape, the widest offered) aspect, the largest size offered. Save the generated image as out/minion-codex-2.png in the current folder. Do not edit any other file. Report the saved path and the image model/size used.",
+  "references": [
+    "refs/minion-top.png",
+    "refs/minion-side.png",
+    "refs/minion-back.png",
+    "refs/minion-front.png",
+    "refs/minion-turn045.png",
+    "refs/minion-turn225.png",
+    "../2026-11-25-bastion-red/out/r4-rival-dark-1.png"
+  ],
+  "references_source": "committed refs at 35adf31",
+  "codex_session_id": "01a212cf-35ab-7783-a44c-e1eabf281fa2"
+}
