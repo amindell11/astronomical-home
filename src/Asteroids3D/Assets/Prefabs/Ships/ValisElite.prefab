@@ -1015,7 +1015,7 @@ PrefabInstance:
     - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: bodyScale
-      value: 1.3333334
+      value: 1.6666666
       objectReference: {fileID: 0}
     - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
