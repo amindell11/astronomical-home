@@ -182,7 +182,7 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
-        public IEnumerator Recaps_PauseBeforeUnloading_AndFinalExtractionShowsVictoryDirectly()
+        public IEnumerator SectorRecapPausesBeforeUnloading_AndVictoryPlaysOnBehindItsRecap()
         {
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true);
@@ -204,7 +204,9 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(1f, Time.timeScale);
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => File.Exists(recordPath), "victory is recorded");
-            Assert.AreEqual(0f, Time.timeScale, "victory freezes combat before fading the HUD");
+            Assert.AreEqual(1f, Time.timeScale, "the fight plays on behind victory, as it does behind defeat");
+            Assert.IsFalse(rig.Player.Commander.enabled, "the winner stops taking input under the recap");
+            Assert.IsTrue(rig.Player.Damage.IsInvulnerable, "nothing left in the sector can shoot the winner down");
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "final recap appears");
             recap = hostGo.GetComponentInChildren<RunRecapScreen>();
             Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Body/Outcome").GetComponent<Text>().text);
