@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 21040,
-      "vertices": 11174,
+      "triangles": 21632,
+      "vertices": 11494,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4098.837449988888,
+      "volume": 4098.852795176915,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -296,7 +296,7 @@
     },
     {
       "name": "Deck | Left status 1 green lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp1",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -310,7 +310,7 @@
     },
     {
       "name": "Deck | Left status 2 green lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp2",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -324,7 +324,7 @@
     },
     {
       "name": "Deck | Left status 3 amber lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp3",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -338,7 +338,7 @@
     },
     {
       "name": "Deck | Right status 1 green lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp4",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -352,7 +352,7 @@
     },
     {
       "name": "Deck | Right status 2 green lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp5",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -366,7 +366,7 @@
     },
     {
       "name": "Deck | Right status 3 amber lens",
-      "role": "ConsoleBody",
+      "role": "StatusLamp6",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -433,9 +433,65 @@
       "volume": 0.018954101286216815,
       "planar_screen": false,
       "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006375000680796826,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006375000680796826,
+      "planar_screen": false,
+      "zero_area_faces": 0
     }
   ],
-  "triangles": 24296,
+  "triangles": 25000,
   "lamps": [
     {
       "name": "Deck | Left status 1 green lens",
@@ -636,6 +692,86 @@
         0.47999998927116394
       ],
       "downlight": true
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "anchor": "Left header corner cold strip lens",
+      "position": [
+        -11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "anchor": "Right header corner cold strip lens",
+      "position": [
+        11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "anchor": "Left header gusset warm lens",
+      "position": [
+        -6.539999961853027,
+        3.2919998168945312,
+        10.239999771118164
+      ],
+      "size": [
+        0.30000001192092896,
+        0.07500000298023224,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.8199999928474426,
+        0.6200000047683716
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "anchor": "Right header gusset warm lens",
+      "position": [
+        6.539999961853027,
+        3.2919998168945312,
+        10.239999771118164
+      ],
+      "size": [
+        0.30000001192092896,
+        0.07500000298023224,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.8199999928474426,
+        0.6200000047683716
+      ],
+      "downlight": false
     }
   ],
   "parts": {
@@ -659,6 +795,12 @@
     "OrdnanceNextButton": "30 | Ordnance Next key",
     "OrdnanceNextLegend": "30 | Ordnance Next ivory inlay",
     "ProjectorLens": "09 | Projector lens",
+    "StatusLamp1": "Deck | Left status 1 green lens",
+    "StatusLamp2": "Deck | Left status 2 green lens",
+    "StatusLamp3": "Deck | Left status 3 amber lens",
+    "StatusLamp4": "Deck | Right status 1 green lens",
+    "StatusLamp5": "Deck | Right status 2 green lens",
+    "StatusLamp6": "Deck | Right status 3 amber lens",
     "LaunchLampLeft": "Deck | Left Launch armed red lens",
     "LaunchLampRight": "Deck | Right Launch armed red lens"
   },

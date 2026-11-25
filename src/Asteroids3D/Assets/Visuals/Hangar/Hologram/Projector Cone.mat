@@ -43,7 +43,7 @@ Material:
     - _Rays: 0.8
     - _Reach: 1
     - _Softness: 0.18
-    - _SourceGlow: 0.45
+    - _SourceGlow: 0.22
     - _SourceRadius: 0.32
     - _Spread: 0.2867454
     - _Streaks: 0.55

@@ -35,7 +35,7 @@
     2048
   ],
   "mask_maximum": 0.18039216101169586,
-  "nonzero_mask_fraction": 0.003188014030456543,
+  "nonzero_mask_fraction": 0.0024312734603881836,
   "hologram_samples": 8000,
   "hologram_mask_maximum": 0.0,
   "coverage": {
