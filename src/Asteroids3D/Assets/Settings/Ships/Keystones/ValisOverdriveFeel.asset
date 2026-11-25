@@ -113,12 +113,12 @@ MonoBehaviour:
     loops: 1
     loopFrom: 0
     material: {fileID: 2100000, guid: a0d812ee2c1333a44a0b16072d854ae9, type: 2}
-    columns: 10
-    rows: 6
-    frames: 60
-    width: 0.9836
-    length: 3.1475
-    centreAhead: -1.5082
+    columns: 8
+    rows: 5
+    frames: 40
+    width: 1.1803
+    length: 3.7377
+    centreAhead: -0.4918
     anchorAhead: 0
     depth: 0.45
     staysAtLaunch: 0

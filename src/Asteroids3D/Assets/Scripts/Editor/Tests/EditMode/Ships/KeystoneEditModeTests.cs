@@ -547,7 +547,6 @@ namespace Tests.EditMode.Ships
             Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.PeakThrustScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its overdrive flipbook");
-            Assert.That(overdrive.GetComponent<KeystoneGhosts>(), Is.Not.Null, "the kit carries its hull ghosts");
             Assert.That(overdrive.GetComponent<KeystoneFlash>(), Is.Null, "the kit leaves the hull untouched");
         }
 

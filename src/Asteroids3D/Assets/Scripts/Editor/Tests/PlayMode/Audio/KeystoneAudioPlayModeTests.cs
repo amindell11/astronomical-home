@@ -49,13 +49,22 @@ namespace Tests.PlayMode.Audio
             base.TearDown();
         }
 
-        private Keystone Kit(string prefabPath)
+        // A live kit's flipbook reads its ship's body, so every kit here rides one.
+        private Keystone Kit(string prefabPath, Rigidbody body = null)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             Assert.IsNotNull(prefab, prefabPath);
             kitHost = Object.Instantiate(prefab);
             var kit = kitHost.GetComponent<Keystone>();
             Assert.IsNotNull(kit, "the kit prefab carries a Keystone");
+            if (!body)
+            {
+                ship = new GameObject("Ship");
+                body = ship.AddComponent<Rigidbody>();
+                body.useGravity = false;
+            }
+
+            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
             return kit;
         }
 
@@ -150,8 +159,7 @@ namespace Tests.PlayMode.Audio
             body.useGravity = false;
             body.linearVelocity = ShipVelocity;
 
-            var kit = Kit(KitPrefabPath);
-            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            var kit = Kit(KitPrefabPath, body);
             Activate(kit);
             yield return null;
             yield return Flush();
