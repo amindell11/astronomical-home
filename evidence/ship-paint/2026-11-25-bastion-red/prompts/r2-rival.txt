@@ -1,0 +1,13 @@
+Images 1 to 6 are orthographic and turnaround renders of one spaceship model, the Bastion rival, in flat colour blocks: image 1 top-down (nose up), image 2 side, image 3 back, image 4 front, image 5 three-quarter front, image 6 three-quarter rear. They are the object reference: the 3D form, silhouette, proportions and panel boundaries in every view come from them and must not change. Image 7 is a painted top view from an earlier pass: it is the STYLE and livery reference (paint handling, ink lines, wear level, markings). Its rear section misread the geometry, so do not copy its shapes; take shapes only from images 1 to 6.
+
+Geometry notes that the top view hides: the two engine pods are separate with a gap between them; the bone tail fins are tall plates that stand up at the rear of each pod; the bone side guards hang off the flanks below the top plate; the darker red shoulder blocks sit lower than the top plate.
+
+Colours: image 1 is the colour authority. Armour plates deep oxblood red #8a2a3c; recessed and second plates #561a26; frame, side wings/skirts and undercarriage near-black slate #241f22; trim, guards, fins and clan markings bone #ebcb9e; engine pods and nozzles warm steel grey #8c7f7c (images 2 to 6 show the engine pods near-black only because of a render limit: paint the engine pods steel grey, keep the side wings and frame near-black); canopy dark glass #1c2a35 with no glow. No cyan, teal, blue, orange, yellow, green or magenta, and no glowing lights.
+
+Middle rank: exactly ONE bone chevron across the top plate and exactly ONE oxblood band on each bone tail fin.
+
+Paint a finished paint-concept sheet of this one ship in the hand-painted illustrated style of image 7: solid colour regions, confident dark ink panel lines, one lighter brushed highlight pass, one darker shadow pass. Every view must show the SAME paint job: a seam, marking or panel that appears in one view sits in the matching place in the others.
+
+HARD RULE FOR ALL ADDED DETAIL: value-only. Every line, scuff, chip, shadow and highlight is a darker or lighter tone of the colour underneath it. No new hues, no rust, no coloured grime, no paint chips showing a different colour, no decals, text, numbers or logos. Markings that need their own colour are clean flat bone shapes with hard edges.
+
+Output: one wide sheet on a flat mid-grey background with four views of the ship, no labels or text: on the left, large, the top-down view with nose up, matching image 1's framing; to its right the side view (image 2's angle), the three-quarter rear view (image 6's angle) and the back view (image 3's angle). No flames, no shield, no background objects.
