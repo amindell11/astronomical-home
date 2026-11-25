@@ -5,7 +5,8 @@ FBX: root empty <Name> in symmetry-origin space (-Z forward, Y up); one triangul
 present visual role (Hull, Canopy, Cores, Ink) with material slots sorted by name, a generated
 Collider slab without materials (export_collider), and socket empties verbatim under Sockets. Roles in contour_roles carry a
 contour: a separate vertex range with joined normals, in a last slot named Contour.
---debris requires a matching geometry lock and exports <Name>Breakup instead. Visual parts
+--debris requires a matching geometry lock and exports <Name>Breakup instead; --group-colliders
+adds a '<group> Collider' slab per group. Visual parts
 need one whole role.debris.<id> or matching .L/.R groups; paired triangles partition by
 negative/nonnegative symmetry-space X centroid. Each group retains source paint and contours.
 The sidecar records set (intact/debris), parts, slots, ranges, sockets and the fingerprint.
@@ -166,27 +167,28 @@ def outline(points):
     return np.array(chains[0] + chains[1])
 
 
-def export_collider(evaluation, names, thickness):
-    """The top-down convex outline of `names`, extruded across the play plane.
+def export_collider(evaluation, names, half, name="Collider", side=None):
+    """The top-down convex outline of `names`, extruded `half` either side of the play plane.
 
     Banking rolls the collider with the ship and shots test only its slice at z = 0, so the
-    half-thickness (`thickness` x the outline's half-width) sets how far a roll narrows that slice.
+    half-thickness sets how far a roll narrows that slice. `side` keeps one mirrored half (L: x < 0).
     """
-    parts = [Part(evaluation, name, []) for name in names]
+    parts = [Part(evaluation, part_name, []) for part_name in names]
     co = np.concatenate([part.placed(part.normals)[0] for part in parts])
+    if side:
+        co = co[(co[:, 0] < 0) == (side == "L")]
     ring = outline(co[:, :2])
     while 4 * len(ring) - 4 > COLLIDER_TRIANGLES:
         a, b = ring - np.roll(ring, 1, axis=0), np.roll(ring, -1, axis=0) - np.roll(ring, 1, axis=0)
         area = np.abs(a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0])
         ring = np.delete(ring, np.argmin(area), axis=0)
-    half = thickness * np.abs(ring[:, 0]).max()
     n = len(ring)
     vertices = np.concatenate([np.c_[ring, np.full(n, -half)], np.c_[ring, np.full(n, half)]]).astype(np.float32)
     sides = [t for i in range(n) for t in ((i, (i + 1) % n, n + (i + 1) % n), (i, n + (i + 1) % n, n + i))]
     caps = [t for i in range(1, n - 1) for t in ((n, n + i, n + i + 1), (0, i + 1, i))]
     corners = np.array(sides + caps, np.int32).ravel()
     piece = (vertices, corners, np.zeros((len(corners), 3), np.float32), np.zeros(len(corners) // 3, np.int32), {})
-    mesh = build_mesh("Collider", [piece], [], 0)
+    mesh = build_mesh(name, [piece], [], 0)
     mesh.attributes.remove(mesh.attributes["custom_normal"])
     return mesh, {"parts": list(names), "outline_points": n, "half_thickness": float(half),
                   "triangles": len(mesh.polygons)}
@@ -195,6 +197,8 @@ def export_collider(evaluation, names, thickness):
 def main(argv):
     parser = contract.tool_parser("Export a ship's role collections to FBX.")
     parser.add_argument("--debris", action="store_true", help="Export locked source debris groups instead of intact roles.")
+    parser.add_argument("--group-colliders", action="store_true",
+                        help="With --debris, also export '<group> Collider' for each group, for parts that move.")
     args = parser.parse_args(argv)
     ship, source = contract.load_ship(args.ship)
     out = Path(args.out).resolve()
@@ -251,6 +255,11 @@ def main(argv):
             mesh, record = export_role(evaluation, report, group, names, contours, side)
             built.append((group, mesh))
             sidecar_roles[group] = record
+            if args.group_colliders:
+                collider = f"{group} Collider"
+                mesh, record = export_collider(evaluation, names, ship["collider_half_thickness"], collider, side)
+                built.append((collider, mesh))
+                sidecar_roles[collider] = record
     else:
         for role, role_name in contract.VISUAL_ROLES.items():
             if meshes[role]:
@@ -258,7 +267,7 @@ def main(argv):
                                            meshes[role] if role in ship["contour_roles"] else ())
                 built.append((role_name, mesh))
                 sidecar_roles[role_name] = record
-        mesh, record = export_collider(evaluation, visual + meshes["collider"], ship["collider_thickness"])
+        mesh, record = export_collider(evaluation, visual + meshes["collider"], ship["collider_half_thickness"])
         built.append(("Collider", mesh))
         sidecar_roles["Collider"] = record
         sockets = {name: evaluation.to_space(name) for name in sorted(roles.members.get("sockets", ()))

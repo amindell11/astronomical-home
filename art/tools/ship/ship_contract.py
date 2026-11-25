@@ -33,7 +33,7 @@ RULES = ("roles", "origin", "mirror", "modifier_order", "modifier_type", "scale"
          "name", "visual_role", "collider", "missing_file", "unit_scale", "uv_layer", "uv_density")
 INVALIDATED_BY_GEOMETRY = ("uv", "masks", "breakup")
 SHIP_FIELDS = ("schema_version", "name", "source", "texture_size", "uv_density_max_ratio",
-               "contour_roles", "collider_thickness", "exemptions")
+               "contour_roles", "collider_half_thickness", "exemptions")
 EXEMPTION_FIELDS = ("rule", "parts", "reason")
 _RESERVED_ID = re.compile(r"[A-Za-z0-9_]+(\.[LR])?")
 
@@ -116,7 +116,7 @@ def parse_ship(value):
     roles = value["contour_roles"]
     if not isinstance(roles, list) or len(set(roles)) != len(roles) or not set(roles) <= set(VISUAL_ROLES):
         raise ValueError(f"contour_roles: expected distinct names from {', '.join(VISUAL_ROLES)}")
-    _number(value["collider_thickness"], "collider_thickness", 0, 1, exclusive_low=True)
+    _number(value["collider_half_thickness"], "collider_half_thickness", 0, exclusive_low=True)
     if not isinstance(value["exemptions"], list):
         raise ValueError("exemptions: expected a list")
     for index, exemption in enumerate(value["exemptions"]):

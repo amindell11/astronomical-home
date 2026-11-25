@@ -7,7 +7,7 @@
   "contour_roles": [
     "hull"
   ],
-  "collider_thickness": 0.15,
+  "collider_half_thickness": 0.612,
   "exemptions": [
     {
       "rule": "uv_density",

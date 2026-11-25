@@ -25,10 +25,11 @@ fails loudly if it changed.
 
 Only `role.hull` is required. `ship_export` always generates `Collider`: the top-down convex
 outline of every visual and `role.collider` part, extruded across the play plane (z = 0) to a
-half-thickness of `collider_thickness` x the outline's half-width. Ships bank by rolling, and
-shots test only the collider's slice at the plane, so the thickness sets how much a roll narrows
-the target: 0.47 (sin 35° x cos 35°) keeps that slice at the visible width at full bank; a
-thinner slab makes rolling a dodge. The hull itself must cross the plane (`ship_check` rule
+half-thickness of `collider_half_thickness` source units. Ships bank by rolling, and shots test
+only the collider's slice at the plane, so the thickness sets how much a roll narrows the target:
+0.47 (sin 35° x cos 35°) x the ship's half-width keeps that slice at the visible width at full
+bank; a thinner slab makes rolling a dodge. `ship_export_wings` gives each swinging wing group its
+own `<id> Collider` in `<Name>Wings.fbx`, which the chassis prefab mounts on the wing. The hull itself must cross the plane (`ship_check` rule
 `collider`). Any other `role.*` name is an error. Visual roles exclude each
 other. Objects in the `ignore` collection are fingerprinted and never exported. Visibility
 never matters: hidden and excluded parts are checked, fingerprinted and exported.
@@ -43,13 +44,13 @@ share a name with a linked one; every tool fails (exit 1) on such a source.
 
 ```json
 {"schema_version": 1, "name": "Crimson", "source": "Crimson.blend", "texture_size": 2048,
- "uv_density_max_ratio": 2.0, "contour_roles": ["hull"], "collider_thickness": 0.47,
+ "uv_density_max_ratio": 2.0, "contour_roles": ["hull"], "collider_half_thickness": 0.47,
  "exemptions": [{"rule": "scale", "parts": ["Wing root beam"], "reason": "Why this is accepted."}]}
 ```
 
 Every field is required and unknown fields are rejected. `source` resolves against the
 ship.json folder. `texture_size` is a power of two; `uv_density_max_ratio` is above 1;
-`contour_roles` names visual roles; `collider_thickness` is in (0, 1]. An exemption silences one rule for the listed parts — a real
+`contour_roles` names visual roles; `collider_half_thickness` is above 0. An exemption silences one rule for the listed parts — a real
 ship that fails a check records it here; nothing is fixed by applying transforms or modifiers.
 Rules: `roles`, `origin`, `mirror`, `modifier_order`, `modifier_type`, `scale`, `ngon`,
 `normals`, `name`, `visual_role`, `collider`, `missing_file`, `unit_scale`, `uv_layer`,

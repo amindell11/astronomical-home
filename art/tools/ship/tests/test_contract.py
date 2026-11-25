@@ -11,7 +11,7 @@ sys.path.insert(0, str(TOOLS))
 import ship_contract as contract
 
 VALID = {"schema_version": 1, "name": "Fixture", "source": "Fixture.blend", "texture_size": 1024,
-         "uv_density_max_ratio": 2.0, "contour_roles": ["hull"], "collider_thickness": 0.47,
+         "uv_density_max_ratio": 2.0, "contour_roles": ["hull"], "collider_half_thickness": 0.47,
          "exemptions": [{"rule": "scale", "parts": ["Wing"], "reason": "Owner-approved stretch."}]}
 VALID_PALETTES = {"color_space": "linear-sRGB", "default": "test",
                   "palettes": {"test": {"Zinc": [0.7, 0.7, 0.72, 1], "Glass": [0.03, 0.04, 0.06, 1]},
@@ -61,8 +61,8 @@ class ShipJsonTests(unittest.TestCase):
             "texture bool": lambda v: v.update(texture_size=True),
             "ratio not above 1": lambda v: v.update(uv_density_max_ratio=1),
             "ratio nan": lambda v: v.update(uv_density_max_ratio=float("nan")),
-            "collider flat": lambda v: v.update(collider_thickness=0),
-            "collider thicker than wide": lambda v: v.update(collider_thickness=1.5),
+            "collider flat": lambda v: v.update(collider_half_thickness=0),
+            "collider nan": lambda v: v.update(collider_half_thickness=float("nan")),
             "contour collider": lambda v: v.update(contour_roles=["collider"]),
             "contour duplicate": lambda v: v.update(contour_roles=["hull", "hull"]),
             "exemption unknown rule": lambda v: v["exemptions"][0].update(rule="looks_wrong"),
