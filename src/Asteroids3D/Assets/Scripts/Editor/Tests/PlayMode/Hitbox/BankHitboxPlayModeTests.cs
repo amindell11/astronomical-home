@@ -56,10 +56,14 @@ namespace Tests.PlayMode.Hitbox
             {
                 var scale = tuning.FindProperty(wings.Contains(hitbox.name) ? "wingScale" : "bodyScale").floatValue;
                 var toShip = ship.transform.worldToLocalMatrix * hitbox.transform.localToWorldMatrix;
-                var points = hitbox.sharedMesh.vertices.Select(v => toShip.MultiplyPoint3x4(v)).ToArray();
-                var halfWidth = points.Max(p => Mathf.Abs(p.x));
-                foreach (var point in points)
-                    Assert.That(Mathf.Abs(point.z), Is.EqualTo(share * scale * bankDepth * halfWidth).Within(1e-3f * halfWidth),
+                var vertices = hitbox.sharedMesh.vertices;
+                var halfWidth = vertices.Max(v => Mathf.Abs(toShip.MultiplyPoint3x4(v).x));
+                var axis = Enumerable.Range(0, 3).OrderBy(a => vertices.Max(v => Mathf.Abs(v[a])) - vertices.Min(v => Mathf.Abs(v[a]))).First();
+                var unit = Vector3.zero;
+                unit[axis] = 1f;
+                var stretch = toShip.MultiplyVector(unit).magnitude;
+                foreach (var vertex in vertices)
+                    Assert.That(Mathf.Abs(vertex[axis]) * stretch, Is.EqualTo(share * scale * bankDepth * halfWidth).Within(1e-3f * halfWidth),
                         $"{name} {hitbox.name}");
             }
         }

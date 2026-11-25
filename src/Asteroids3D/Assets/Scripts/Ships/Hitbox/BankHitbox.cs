@@ -9,7 +9,8 @@ namespace Ships.Hitbox
     /// Sets the depth of each hitbox slab at spawn. Ships roll up to their bank angle and shots test
     /// only the slab's slice at the play plane, so depth decides how much of the width stays hittable
     /// at full bank: the shared share times this ship's body or wing scale. Hitboxes are the exported
-    /// outline slabs on the Ship layer; the depth axis is the ship's local z, the plane normal.
+    /// outline slabs on the Ship layer, each refit along the mesh axis it was extruded on, so a
+    /// swinging wing's hitbox keeps its tilt.
     /// </summary>
     [RequireComponent(typeof(Ship))]
     public sealed class BankHitbox : MonoBehaviour
@@ -52,31 +53,39 @@ namespace Ships.Hitbox
         private void Fit(MeshCollider hitbox, float depthPerHalfWidth)
         {
             var toShip = transform.worldToLocalMatrix * hitbox.transform.localToWorldMatrix;
-            var fromShip = toShip.inverse;
             var vertices = hitbox.sharedMesh.vertices;
+            var axis = SlabAxis(vertices);
+            if (axis < 0)
+                throw new InvalidOperationException(
+                    $"{name}: hitbox {hitbox.name} is not a slab across the play plane; re-export it with ship_export.");
             var halfWidth = 0f;
-            var slab = 0f;
+            foreach (var vertex in vertices)
+                halfWidth = Mathf.Max(halfWidth, Mathf.Abs(toShip.MultiplyPoint3x4(vertex).x));
+            var unit = Vector3.zero;
+            unit[axis] = 1f;
+            var depth = depthPerHalfWidth * halfWidth / toShip.MultiplyVector(unit).magnitude;
             for (var i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] = toShip.MultiplyPoint3x4(vertices[i]);
-                halfWidth = Mathf.Max(halfWidth, Mathf.Abs(vertices[i].x));
-                slab = Mathf.Max(slab, Mathf.Abs(vertices[i].z));
-            }
-            var depth = depthPerHalfWidth * halfWidth;
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                if (Mathf.Abs(Mathf.Abs(vertices[i].z) - slab) > slab * .01f)
-                    throw new InvalidOperationException(
-                        $"{name}: hitbox {hitbox.name} is not a slab across the play plane; re-export it with ship_export.");
-                vertices[i].z = Mathf.Sign(vertices[i].z) * depth;
-                vertices[i] = fromShip.MultiplyPoint3x4(vertices[i]);
-            }
+                vertices[i][axis] = Mathf.Sign(vertices[i][axis]) * depth;
             var mesh = Instantiate(hitbox.sharedMesh);
             mesh.name = hitbox.sharedMesh.name;
             mesh.vertices = vertices;
             mesh.RecalculateBounds();
             hitbox.sharedMesh = mesh;
             fitted.Add(mesh);
+        }
+
+        private static int SlabAxis(Vector3[] vertices)
+        {
+            for (var axis = 0; axis < 3; axis++)
+            {
+                var slab = Mathf.Abs(vertices[0][axis]);
+                if (slab <= 0f) continue;
+                var flat = true;
+                foreach (var vertex in vertices)
+                    flat &= Mathf.Abs(Mathf.Abs(vertex[axis]) - slab) <= slab * .01f;
+                if (flat) return axis;
+            }
+            return -1;
         }
     }
 }
