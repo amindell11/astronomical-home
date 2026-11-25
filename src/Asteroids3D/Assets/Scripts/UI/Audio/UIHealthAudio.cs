@@ -1,6 +1,7 @@
 using FMOD.Studio;
 using FMODUnity;
 using Ships.Damage;
+using UI.PlayerState.Alerts;
 using UnityEngine;
 using STOP_MODE = FMOD.Studio.STOP_MODE;
 
@@ -15,17 +16,8 @@ namespace UI.Audio
         [Tooltip("FMOD one-shot played when the player's shield reaches zero.")]
         [SerializeField] private EventReference shieldDepletedEvent;
 
-        [Header("Settings")]
-        [Tooltip("Health percentage threshold below which the alarm will play (0.0 to 1.0).")]
-        [SerializeField, Range(0f, 1f)] private float criticalHealthThreshold = 0.25f;
-        [Tooltip("Shield percentage threshold below which the alarm will play (0.0 to 1.0).")]
-        [SerializeField, Range(0f, 1f)] private float criticalShieldThreshold = 0.1f;
-
         private IDamageEvents damage;
         private EventInstance alarm;
-
-        private float currentHealthPercentage = 1.0f;
-        private float currentShieldPercentage = 1.0f;
 
         public void Initialize(IDamageEvents damageEvents)
         {
@@ -34,7 +26,6 @@ namespace UI.Audio
             StopAlarm();
             damage = damageEvents;
             SubscribeToEvents();
-            InitializeCurrentValues();
         }
 
         private void OnDisable()
@@ -44,15 +35,10 @@ namespace UI.Audio
         }
 
         /* ----------------- Event Handlers ----------------- */
-        private void OnHealthChanged(float current, float previous, float max)
-        {
-            currentHealthPercentage = max > 0f ? current / max : 0f;
-            CheckAlarmCondition();
-        }
+        private void OnHealthChanged(float current, float previous, float max) => CheckAlarmCondition();
 
         private void OnShieldChanged(float current, float previous, float max)
         {
-            currentShieldPercentage = max > 0f ? current / max : 0f;
             if (previous > 0f && current <= 0f)
                 RuntimeManager.PlayOneShot(shieldDepletedEvent);
             CheckAlarmCondition();
@@ -71,24 +57,10 @@ namespace UI.Audio
             damage.OnDeath += OnPlayerDeath;
         }
 
-        private void InitializeCurrentValues()
-        {
-            if (damage == null) return;
-            currentHealthPercentage = damage.Health.MaxValue > 0f
-                ? damage.Health.CurrentValue / damage.Health.MaxValue
-                : 0f;
-            currentShieldPercentage = damage.Shield.MaxValue > 0f
-                ? damage.Shield.CurrentValue / damage.Shield.MaxValue
-                : 0f;
-        }
-
         /* ----------------- Alarm Logic ----------------- */
         private void CheckAlarmCondition()
         {
-            // Alarm triggers when BOTH health AND shield are below their critical thresholds
-            var healthCritical = currentHealthPercentage <= criticalHealthThreshold && currentHealthPercentage > 0f;
-            var shieldCritical = currentShieldPercentage <= criticalShieldThreshold;
-            var shouldPlayAlarm = healthCritical && shieldCritical;
+            var shouldPlayAlarm = HullCritical.Holds(damage);
 
             if (shouldPlayAlarm && !alarm.isValid())
             {
