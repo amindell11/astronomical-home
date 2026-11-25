@@ -18,7 +18,7 @@ namespace Game.Player.Recorders
     /// Kills and time survived for one run — consumer-side recorder beside the damage ledger,
     /// never sim state. Hooks the death event of every ship the unit service spawns and counts
     /// deaths whose killing blow came from the current player, only between the host's
-    /// <see cref="Begin"/> and <see cref="End"/>, raising <see cref="Killed"/> with the victim on each counted kill.
+    /// <see cref="Begin"/> and <see cref="End"/>, raising <see cref="Killed"/> with the victim and where it died on each counted kill.
     /// The player id is read at event time because the hangar can rebuild the player.
     /// </summary>
     public sealed class RunTally : IRunTally
@@ -30,7 +30,7 @@ namespace Game.Player.Recorders
         private bool running;
         private bool ended;
 
-        public event Action<ShipId> Killed;
+        public event Action<ShipId, Vector3> Killed;
 
         public int Kills { get; private set; }
 
@@ -76,17 +76,18 @@ namespace Game.Player.Recorders
             return $"{whole / 60}:{whole % 60:00}";
         }
 
-        internal void Watch(IDamageEvents damage) => damage.OnDeath += Record;
+        internal void Watch(IDamageEvents damage, Transform body) =>
+            damage.OnDeath += (victim, killingBlow) => Record(victim, killingBlow, body.position);
 
-        private void OnShipSpawned(Ship ship) => Watch(ship.Damage);
+        private void OnShipSpawned(Ship ship) => Watch(ship.Damage, ship.transform);
 
-        private void Record(ShipId victim, DamageInfo killingBlow)
+        private void Record(ShipId victim, DamageInfo killingBlow, Vector3 diedAt)
         {
             if (!running) return;
             var player = playerId();
             if (killingBlow.AttackerId != player || victim == player) return;
             Kills++;
-            Killed?.Invoke(victim);
+            Killed?.Invoke(victim, diedAt);
         }
     }
 }

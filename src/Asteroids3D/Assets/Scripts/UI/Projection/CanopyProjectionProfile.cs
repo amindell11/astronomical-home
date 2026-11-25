@@ -31,6 +31,11 @@ namespace UI.Projection
         [Min(0f)] public float barsFadeInSeconds = .15f;
         [Tooltip("Seconds an enemy's bars take to fade out once nothing keeps them shown.")]
         [Min(0f)] public float barsFadeOutSeconds = .4f;
+        [Header("Screen windows")]
+        [Tooltip("How deep a screen window's ink dips as it opens, as a share of the canopy's flicker.")]
+        [Range(0f, 1f)] public float windowFlicker = .35f;
+        [Tooltip("Strength of the canopy tear when a screen window opens.")]
+        [Range(0f, 1f)] public float windowGlitch = .15f;
 
         public CanopySettings Resolve(CanopyState state) => state == CanopyState.Base
             ? baseSettings : OverrideFor(state).Apply(baseSettings);

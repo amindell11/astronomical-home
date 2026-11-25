@@ -116,6 +116,9 @@ namespace UI
             if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
         }
 
+        public void ShowHullGain(float amount, Vector3 worldPoint) =>
+            shipStatus.ShowHullGain(amount, worldPoint, labelFont, textMaterial);
+
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
             shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, lockReticle, projection);
 
