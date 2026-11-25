@@ -1,4 +1,5 @@
 using System;
+using Cameras;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -97,7 +98,7 @@ namespace UI.Projection
             if (GlitchAge < 0f && tearAge < TearSeconds)
             {
                 GlitchAge = tearAge;
-                GlitchStrength = tearStrength;
+                GlitchStrength = tearStrength * CameraSettings.ShakeScale;
             }
             TransitionAge = frame.TransitionAge;
             blend.Tick(frame.State, Time.unscaledDeltaTime);

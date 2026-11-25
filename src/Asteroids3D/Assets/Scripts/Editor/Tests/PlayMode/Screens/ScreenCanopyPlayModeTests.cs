@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections;
+using Cameras;
 using Combat.Weapons;
 using Loot;
 using NUnit.Framework;
@@ -30,10 +31,13 @@ namespace Tests.PlayMode.Screens
         private CanopyProjection projection;
         private CanopyProjectionProfile profile;
         private ScreenCameras cameras;
+        private float previousShakeScale;
 
         [SetUp]
         public void SetUp()
         {
+            previousShakeScale = CameraSettings.ShakeScale;
+            CameraSettings.ShakeScale = 1f;
             root = new GameObject("Screen canopy");
             sceneCamera = new GameObject("Scene camera", typeof(Camera), typeof(UniversalAdditionalCameraData))
                 .GetComponent<Camera>();
@@ -60,6 +64,7 @@ namespace Tests.PlayMode.Screens
         {
             Object.DestroyImmediate(root);
             Object.DestroyImmediate(profile);
+            CameraSettings.ShakeScale = previousShakeScale;
         }
 
         private static WeaponComponent Weapon(string name) =>
@@ -133,6 +138,19 @@ namespace Tests.PlayMode.Screens
             group.alpha = 0f;
             yield return null;
             Assert.IsFalse(shape.enabled, "a hidden group's window has no body");
+        }
+
+        [UnityTest]
+        public IEnumerator AWindowTear_FollowsTheScreenShakeSetting_LikeTheCanopysOtherGlitches()
+        {
+            foreach (var scale in new[] { .5f, 0f })
+            {
+                CameraSettings.ShakeScale = scale;
+                projection.Tear(profile.windowGlitch);
+                yield return null;
+                Assert.That(projection.GlitchAge, Is.GreaterThanOrEqualTo(0f));
+                Assert.That(projection.GlitchStrength, Is.EqualTo(profile.windowGlitch * scale).Within(1e-5f));
+            }
         }
 
         [UnityTest]
