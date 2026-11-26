@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly each rank's chassis on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve their own chassis with that rank's kit, pilot, scale and hull, and each throws naming the faction when its kit or pilot is missing.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly each rank's chassis on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve their own chassis with that rank's kit, pilot, scale and hull, and each throws naming the faction when its kit or pilot is missing. Each shipped livery is empty or paints every hull slot of its chassis.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -161,6 +161,25 @@ namespace Tests.EditMode.Factions
                 if (name == "Shoal")
                     Assert.AreSame(valis, unlocked);
             }
+        }
+
+        [Test]
+        public void EachFactionLivery_IsEmpty_OrPaintsEverySlotOfItsChassis()
+        {
+            foreach (var name in new[] { "Shoal", "Bastion", "Veil" })
+            {
+                var faction = AssetDatabase.LoadAssetAtPath<Faction>($"Assets/Settings/Factions/{name}.asset");
+                AssertPaints(faction.signature.ship, faction.signature.hull, $"{name} rival");
+                AssertPaints(faction.minion.ship, faction.minion.hull, $"{name} minion");
+                AssertPaints(faction.elite.ship, faction.elite.hull, $"{name} elite");
+            }
+        }
+
+        private static void AssertPaints(Ship chassis, Material[] hull, string rank)
+        {
+            if (hull == null || hull.Length == 0) return;
+            var slots = chassis.VisualRig.Silhouette.Sum(surface => surface.sharedMaterials.Length);
+            Assert.AreEqual(slots, hull.Length, $"{rank}: '{chassis.name}' has {slots} hull material slots");
         }
 
         private static SectorEntry[] Rows()

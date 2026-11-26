@@ -455,7 +455,7 @@ namespace Substrate.Sectors.Elements
                 var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
                 if (ClearPoint.IsClear(field, ahead, clearanceRadius))
                 {
-                    rival = Spawn(rivalRank, ahead, center);
+                    rival = Spawn(rivalRank, ahead, center, asRival: true);
                     rival.Keystone.ActivateOnArrival(rival.Kinematics);
                 }
             }
@@ -464,10 +464,9 @@ namespace Substrate.Sectors.Elements
             for (var i = 0; i < count; i++)
             {
                 if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
-                else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
+                else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center, asRival: true);
             }
             rival = spawned[centreIndex];
-            rivals.Add(rival);
 
             for (var i = 0; i < count; i++)
             {
@@ -539,14 +538,16 @@ namespace Substrate.Sectors.Elements
             ((AICommander)minion.Commander).FollowLeader(rival, place);
         }
 
-        private Ship Spawn(FactionRank rank, Vector2 planePoint, Vector2 center)
+        private Ship Spawn(FactionRank rank, Vector2 planePoint, Vector2 center, bool asRival = false)
         {
             var outward = (planePoint - center).normalized;
             var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
             var ship = units.SpawnShip(rank.ship, rank.pilot, team, GamePlane.PlanePointToWorld(planePoint),
                 facingHero, field, rank.Loadout, rank.scale);
-            faction.Faction.Dress(ship, rank);
+            // Counted before dressing, so a dressing throw cannot leave a live ship outside the caps.
             Track(ship);
+            if (asRival) rivals.Add(ship);
+            faction.Faction.Dress(ship, rank);
             return ship;
         }
 
