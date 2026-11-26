@@ -311,8 +311,20 @@ namespace Ships
                     var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, normal)) : 0f;
                     Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
                         other, body, other.ClosestPoint(Rigidbody.worldCenterOfMass), closing, relative.magnitude));
+                    if (body) Collide(body, Vector3.ProjectOnPlane(normal, Substrate.GamePlane.Normal).normalized);
                 }
             }
+        }
+
+        // The bumpers would have met a step later; land that collision here so the knockback isn't
+        // followed by the rammer catching the target and pushing it along.
+        private void Collide(Rigidbody other, Vector3 normal)
+        {
+            var closing = Vector3.Dot(Rigidbody.linearVelocity - other.linearVelocity, normal);
+            if (closing >= 0f) return;
+            var impulse = -closing * Rigidbody.mass * other.mass / (Rigidbody.mass + other.mass) * normal;
+            Rigidbody.AddForce(impulse, ForceMode.Impulse);
+            other.AddForce(-impulse, ForceMode.Impulse);
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.
