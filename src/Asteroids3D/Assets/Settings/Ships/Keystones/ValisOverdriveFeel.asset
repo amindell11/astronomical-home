@@ -33,9 +33,9 @@ MonoBehaviour:
     rows: 3
     frames: 27
     width: 0.7869
-    length: 2.3607
-    centreAhead: -1.1842
-    anchorAhead: -0.31
+    length: 1.4164
+    centreAhead: -0.929
+    anchorAhead: -0.405
     depth: 0.4
     staysAtLaunch: 0
     startsBehind: 0
@@ -44,7 +44,7 @@ MonoBehaviour:
     fullAtSpeed: 0
     lengthAtRest: 0.4
     lengthFullAtSpeed: 40
-    turnLag: 0.12
+    turnLag: 0
   - name: Subside
     show: 1
     size: 1
@@ -61,9 +61,9 @@ MonoBehaviour:
     rows: 1
     frames: 5
     width: 0.7869
-    length: 2.3607
-    centreAhead: -1.1842
-    anchorAhead: -0.31
+    length: 1.4164
+    centreAhead: -0.929
+    anchorAhead: -0.405
     depth: 0.4
     staysAtLaunch: 0
     startsBehind: 0
@@ -72,7 +72,7 @@ MonoBehaviour:
     fullAtSpeed: 0
     lengthAtRest: 0.4
     lengthFullAtSpeed: 40
-    turnLag: 0.12
+    turnLag: 0
   - name: BowShock
     show: 1
     size: 1
@@ -96,8 +96,8 @@ MonoBehaviour:
     staysAtLaunch: 0
     startsBehind: 0
     followsTravel: 1
-    goneAtSpeed: 24
-    fullAtSpeed: 40
+    goneAtSpeed: 16
+    fullAtSpeed: 32
     lengthAtRest: 0
     lengthFullAtSpeed: 0
     turnLag: 0
@@ -148,7 +148,7 @@ MonoBehaviour:
     length: 0.7213
     centreAhead: -0.3317
     anchorAhead: 0
-    depth: 0.5
+    depth: -0.5
     staysAtLaunch: 1
     startsBehind: 0
     followsTravel: 0
