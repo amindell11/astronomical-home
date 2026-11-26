@@ -30,18 +30,26 @@ namespace Ships.Hitbox
         [SerializeField] private MeshCollider[] wings = Array.Empty<MeshCollider>();
 
         private readonly List<Mesh> fitted = new();
+        private Ship ship;
+        private MeshCollider[] hitboxes;
+
+        private void Awake()
+        {
+            ship = GetComponent<Ship>();
+            hitboxes = GetComponentsInChildren<MeshCollider>(true);
+        }
 
         private void Start()
         {
             if (!feel)
                 throw new InvalidOperationException($"{name}: BankHitbox has no HitboxFeelProfile.");
-            var bank = GetComponent<Ship>().maxBankAngle * Mathf.Deg2Rad;
+            var bank = ship.maxBankAngle * Mathf.Deg2Rad;
             var bankDepth = Mathf.Sin(bank) * Mathf.Cos(bank);
             if (bankDepth <= 0f)
                 throw new InvalidOperationException($"{name}: a ship that never banks needs no BankHitbox.");
-            var body = GetComponent<Ship>().Rigidbody;
+            var body = ship.Rigidbody;
             var centerOfMass = body.centerOfMass;
-            foreach (var hitbox in GetComponentsInChildren<MeshCollider>(true))
+            foreach (var hitbox in hitboxes)
             {
                 if (hitbox.isTrigger || !hitbox.sharedMesh || hitbox.gameObject.layer != LayerIds.Ship) continue;
                 var scale = Array.IndexOf(wings, hitbox) >= 0 ? wingScale : bodyScale;
