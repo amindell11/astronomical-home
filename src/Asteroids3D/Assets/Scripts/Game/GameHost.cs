@@ -336,13 +336,13 @@ namespace Game
 
                 playerDied = false;
                 moments = new RunMomentStream();
-                if (voice) voice.Initialize(moments);
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
                 var draw = new System.Random();
                 runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
                 runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
+                if (voice) voice.Initialize(moments, runFactions);
                 while (true)
                 {
                     if (!transferred)

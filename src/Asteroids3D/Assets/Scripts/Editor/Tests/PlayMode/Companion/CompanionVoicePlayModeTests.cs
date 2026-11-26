@@ -9,6 +9,7 @@ using Game.Companion;
 using Game.Moments;
 using Game.Runs;
 using NUnit.Framework;
+using Substrate.Sectors.Factions;
 using Tests.PlayMode.Common;
 using UI.Comms;
 using UnityEditor;
@@ -30,6 +31,7 @@ namespace Tests.PlayMode.Companion
         private CommLine display;
         private CompanionVoice voice;
         private RunMomentStream moments;
+        private Faction faction;
         private string dir;
 
         [SetUp]
@@ -39,6 +41,9 @@ namespace Tests.PlayMode.Companion
             hud = new GameObject("Companion HUD", typeof(RectTransform), typeof(Canvas));
             feel = ScriptableObject.CreateInstance<CompanionFeelProfile>();
             display = CommLine.Create(hud.transform, TestAssets.Load<Font>(FontPath), null);
+            faction = ScriptableObject.CreateInstance<Faction>();
+            faction.id = "veil";
+            faction.color = Color.cyan;
             dir = Path.Combine(Path.GetTempPath(), "companion-voice-" + Guid.NewGuid().ToString("N"));
         }
 
@@ -48,6 +53,7 @@ namespace Tests.PlayMode.Companion
             DestroyTestObject(voice);
             DestroyTestObject(hud);
             Object.Destroy(feel);
+            Object.Destroy(faction);
             if (sheet) Object.Destroy(sheet);
             if (lineFile) Object.Destroy(lineFile);
             base.TearDown();
@@ -88,7 +94,7 @@ namespace Tests.PlayMode.Companion
 
             voice = CompanionVoice.Create(hud.transform, sheet, feel, display, () => true, debugLabels);
             moments = new RunMomentStream();
-            voice.Initialize(moments);
+            voice.Initialize(moments, new[] { faction });
         }
 
         [UnityTest]
