@@ -51,6 +51,9 @@ namespace Ships.Keystones
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
 
+        /// <summary>True while other ships' hulls touching this hull count as contacts, not only bumper hits.</summary>
+        public virtual bool ContactsByHull => false;
+
         /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
         public virtual bool FliesNavigatorHeading => false;
 

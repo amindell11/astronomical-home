@@ -91,6 +91,7 @@ namespace Ships.Keystones.Kits
         public bool RamLive => launched && SinceLaunch < window && (!resolved || SinceLaunch == resolvedAt);
         public override bool Active => RamLive;
         public override bool SeeksContact => Braking || RamLive;
+        public override bool ContactsByHull => RamLive;
         // The servo aims the nose everywhere except the live ram, which holds its launch line.
         public override bool FliesNavigatorHeading => RamLive;
         public override bool HoldsThrottle => Braking;
