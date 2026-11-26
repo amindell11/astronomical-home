@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "marks": [
+    {
+      "parts": [
+        "Hull - Main deck"
+      ],
+      "region": "Rank Chevron",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.55,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            0.7899999999999999
+          ],
+          [
+            2.9,
+            1.805
+          ],
+          [
+            2.9,
+            2.105
+          ],
+          [
+            0,
+            1.0899999999999999
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Hull - Main deck"
+      ],
+      "region": "Rank Chevron",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.55,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            0.12000000000000002
+          ],
+          [
+            2.9,
+            1.135
+          ],
+          [
+            2.9,
+            1.4349999999999998
+          ],
+          [
+            0,
+            0.42000000000000004
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Upper flaps - Fins"
+      ],
+      "region": "Rank Fin Band",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.45,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            -4.6659999999999995
+          ],
+          [
+            4,
+            -3.3859999999999992
+          ],
+          [
+            4,
+            -3.105999999999999
+          ],
+          [
+            0,
+            -4.385999999999999
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Upper flaps - Fins"
+      ],
+      "region": "Rank Fin Band",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.45,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            -5.265999999999999
+          ],
+          [
+            4,
+            -3.985999999999999
+          ],
+          [
+            4,
+            -3.7059999999999986
+          ],
+          [
+            0,
+            -4.985999999999999
+          ]
+        ]
+      },
+      "opacity": 1
+    }
+  ]
+}
