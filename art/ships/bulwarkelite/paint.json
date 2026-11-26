@@ -61,8 +61,8 @@
       "ink_walls": false
     },
     "Engine Steel": {
-      "plate": false,
-      "sweep": false,
+      "plate": true,
+      "sweep": true,
       "ink_walls": false
     },
     "Glass": {
