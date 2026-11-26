@@ -294,6 +294,7 @@ namespace Ships
         private void ReportHullContacts()
         {
             var overlaps = PhysicsBuffers.GetColliderBuffer();
+            var struck = new HashSet<Rigidbody>();
             foreach (var hull in hulls)
             {
                 var bounds = hull.bounds;
@@ -311,7 +312,7 @@ namespace Ships
                     var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, normal)) : 0f;
                     Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
                         other, body, other.ClosestPoint(Rigidbody.worldCenterOfMass), closing, relative.magnitude));
-                    if (body) Collide(body, Vector3.ProjectOnPlane(normal, Substrate.GamePlane.Normal).normalized);
+                    if (body && struck.Add(body)) Collide(body, Vector3.ProjectOnPlane(normal, Substrate.GamePlane.Normal).normalized);
                 }
             }
         }
