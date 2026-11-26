@@ -37,6 +37,8 @@ namespace UI.Screens
         private const float BannerLineHeight = 118f;
         private static readonly Vector2 BannerCentre = new(0f, 16f);
         private const int HeadlineSize = 47;
+        private const float FlickerFrom = .2f;
+        private const float FlickerTo = .6f;
         private static readonly Rect HeadlineRest = new(20f, 10f, 560f, 56f);
 
         private readonly List<GameObject> rows = new();
@@ -138,8 +140,24 @@ namespace UI.Screens
                 HeadlineRest.x + restWidth * .5f, -HeadlineRest.center.y)));
             rect.localPosition = Vector2.Lerp(BannerCentre, rest, travel);
             rect.localScale = Vector3.one * Mathf.Lerp(1f, shrink, travel);
-            var alpha = state.Phase < RecapPhase.BannerOut ? state.BannerAlpha : 1f;
+            var alpha = state.Phase < RecapPhase.BannerOut ? FlickerIn(state.BannerAlpha, FlickerStrength()) : 1f;
             headline.color = new Color(headline.color.r, headline.color.g, headline.color.b, alpha);
+        }
+
+        private float FlickerStrength()
+        {
+            var projection = layers.Projection;
+            return projection && projection.EffectsEnabled
+                ? Mathf.Clamp01(projection.Settings.flicker * projection.Profile.bannerFlicker) : 0f;
+        }
+
+        // Nothing until the banner's old fade would have read, then a stutter that settles; scrubbable.
+        internal static float FlickerIn(float bannerAlpha, float strength)
+        {
+            var settle = Mathf.InverseLerp(FlickerFrom, FlickerTo, bannerAlpha);
+            if (settle <= 0f) return 0f;
+            var stutter = settle < .15f ? 1f : settle < .3f ? .1f : settle < .5f ? .9f : settle < .65f ? .25f : 1f;
+            return Mathf.Lerp(1f, stutter, strength);
         }
 
         private float RestWidth()
