@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "marks": [
+    {
+      "parts": [
+        "Hull - Ram nose"
+      ],
+      "region": "Bone",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.4,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            4.08
+          ],
+          [
+            0.77,
+            4.08
+          ],
+          [
+            0.85,
+            4.25
+          ],
+          [
+            0,
+            4.25
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Hull - Ram nose"
+      ],
+      "region": "Bone",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.4,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0.74,
+            4.11
+          ],
+          [
+            1.85,
+            2.73
+          ],
+          [
+            2.03,
+            2.73
+          ],
+          [
+            0.87,
+            4.24
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Hull - Main deck"
+      ],
+      "region": "Bone",
+      "mirror_x": false,
+      "where": {
+        "x": [
+          -1.72,
+          -1.21
+        ],
+        "y": [
+          2.04,
+          2.28
+        ],
+        "nz": [
+          0.5,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "box"
+      },
+      "opacity": 1
+    }
+  ]
+}

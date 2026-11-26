@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "texture_size": 2048,
+  "masks": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "Region_Bone",
+    "Region_Engine Steel",
+    "Region_Glass",
+    "Region_Oxblood",
+    "Region_Oxblood Secondary",
+    "Region_Rank Chevron",
+    "Region_Rank Fin Band",
+    "Region_Slate"
+  ],
+  "geometry": "7b19766e1cfdbf6235a7812f66f40c2a5dca00daa21057fa309786708fd04953",
+  "uv": "a1b2fa0953f0049bb84377b2449c8008280b01491c1a791b14d1580217e55c0b",
+  "blender_version": "5.1.2"
+}
