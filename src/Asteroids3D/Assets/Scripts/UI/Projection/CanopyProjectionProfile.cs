@@ -36,6 +36,13 @@ namespace UI.Projection
         [Range(0f, 1f)] public float windowFlicker = .35f;
         [Tooltip("Strength of the canopy tear when a screen window opens.")]
         [Range(0f, 1f)] public float windowGlitch = .15f;
+        [Header("Hull critical")]
+        [Tooltip("Peak brightness of the coral glow and corner brackets at the screen edges while the hull is critical.")]
+        [Range(0f, 1f)] public float hullCriticalEdgeIntensity = .35f;
+        [Tooltip("Peak brightness of the HULL CRITICAL band above the player's ship.")]
+        [Range(0f, 1f)] public float hullCriticalBandIntensity = .6f;
+        [Tooltip("Seconds per slow breath of the hull critical alert. The screen-shake setting scales how deep it breathes.")]
+        [Range(.5f, 4f)] public float hullCriticalPulseSeconds = 1.75f;
 
         public CanopySettings Resolve(CanopyState state) => state == CanopyState.Base
             ? baseSettings : OverrideFor(state).Apply(baseSettings);

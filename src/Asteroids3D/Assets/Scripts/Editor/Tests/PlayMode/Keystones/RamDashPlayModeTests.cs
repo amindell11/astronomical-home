@@ -109,6 +109,23 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
+        public IEnumerator Ram_LandsWhenTheHullsTouch_BeforeTheBumpersMeet()
+        {
+            yield return SpawnBulwark();
+            target = Object.Instantiate(TestAssets.Load<Ship>(VanguardPath), Nose * 4.5f, GamePlane.PlanePose(GamePlane.Normal, -Nose));
+            target.Initialize(1, 0, Projectiles);
+            float? gapAtHit = null;
+            target.Damage.OnDamaged += _ => gapAtHit ??= Vector3.Distance(bulwark.Rigidbody.position, target.Rigidbody.position);
+            yield return new WaitForFixedUpdate();
+
+            yield return RamUntilResolved();
+
+            Assert.That(gapAtHit, Is.Not.Null, "the ram landed");
+            Assert.That(gapAtHit.Value, Is.GreaterThan(BumperRadius(bulwark) + BumperRadius(target)),
+                "the hit lands on hull contact, before the bumpers touch");
+        }
+
+        [UnityTest]
         public IEnumerator Brace_HalvesAFrontalHit_DuringTheBrake()
         {
             yield return SpawnBulwark();

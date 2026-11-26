@@ -5,6 +5,7 @@ using UI.Comms;
 using UI.Elites;
 using UI.Markers;
 using UI.PlayerState;
+using UI.PlayerState.Alerts;
 using UI.Weapons;
 using Combat.Weapons.Conditions;
 using Game.Player;
@@ -59,6 +60,7 @@ namespace UI
         private EliteReadout eliteReadout;
         private HeldModsReadout heldMods;
         private HullShieldReadout hullShield;
+        private HullCriticalAlert hullCritical;
 
         public CommLine CommLine { get; private set; }
         public Camera WorldCamera => canvases[0].worldCamera;
@@ -164,6 +166,9 @@ namespace UI
             if (!hullShield)
                 hullShield = HullShieldReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
             hullShield.Initialize(binding.Damage);
+            if (!hullCritical)
+                hullCritical = HullCriticalAlert.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
+            hullCritical.Initialize(binding.Damage, binding.Status.Transform, gameplayCamera);
             if (!heldMods)
                 heldMods = HeldModsReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
             heldMods.Initialize(binding.Mods);

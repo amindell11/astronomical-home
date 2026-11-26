@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.3.0",
+  "source_sha256": "e3e165b3ca4c8336dc43a7f2e9708dca0ba58f5b55d099da07a80befcba3166b",
+  "name": "BulwarkMinion",
+  "geometry": "0f08fc996260c00a258c349117835ee2b80a463277d20ef41f10fa52e8550406",
+  "parts": {
+    "Cockpit - Canopy": "87914835bbc4ec64a1ecc4c64ce975689b6ddc7f3d60b6ca15755e17eb8f6564",
+    "Engine - Recessed nozzles": "2cdb5d0bfbc11e66b78bf6fb115232781ad7382e792919c09db95a7058b3d2da",
+    "Engine - Shoulder booms": "8f0c5958118929331b784e33b1cb25e414a239f93e71edc25c582bd6890d53a5",
+    "Engine - Shrouds": "021297066ef572725b35683cb83aec800b1b602a1a94618554bd90485cbe35a6",
+    "Exhaust.L": "3507edbf8e3481f7f8423f4031d2d7ed1daa444df1ad528a4a07d0730aa8160b",
+    "Exhaust.R": "3507edbf8e3481f7f8423f4031d2d7ed1daa444df1ad528a4a07d0730aa8160b",
+    "Hull - Aft bridge": "d37a1abb830fa7509e1f6cd8050b7630ae06157a43d55628f147019548bd5f31",
+    "Hull - Dorsal spine": "d4955b3b492d8797e5c8c47d0ff3021b80e8e365b3f52253b087de1e33ab4b70",
+    "Hull - Lower keel": "5a5229a2d56e59b4e498f01b83a5602467914ba322242ef1379d7c8bff7a2f65",
+    "Hull - Main deck": "33d000418da2680e454bb26990fdde8be670406b6ac252c13994b846c0ea38ac",
+    "Hull - Ram nose": "276c9b176c218a01fc4c21c0a22e385e2ebc57d26cebfef9e23372225a6eb336",
+    "Lower flaps - Fins": "41a155ec341258662f938199a8dd3cd83eb3ab3f3f5da3f6ee468899bf3d0bb0",
+    "Lower flaps - Fixed brackets": "f2a746b1fc2bd0a172bc5fb745b410b0da47f51e7add8a96fbe39e1d7156994e",
+    "Lower flaps - Moving leaves": "00f9b15d7ab6970a572ffca8ab1ca432114650601703638feed2b00b8182ca5d",
+    "Primary": "3507edbf8e3481f7f8423f4031d2d7ed1daa444df1ad528a4a07d0730aa8160b",
+    "Secondary": "3507edbf8e3481f7f8423f4031d2d7ed1daa444df1ad528a4a07d0730aa8160b",
+    "SymmetryOrigin": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+    "Upper flaps - Fins": "1c843a71dd28e6b6990802f1ed9139835b936b53f52f91855f3cb0a4caca3a01",
+    "Upper flaps - Fixed brackets": "3ae5124093b8b98242f1ef26f5feab83482a6b7a97d20035e3bd07fa1329bece",
+    "Upper flaps - Moving leaves": "ca55f49c4c9de9904963cc64c6d2079303fe71e36922745d90a772f5b04a0625"
+  }
+}

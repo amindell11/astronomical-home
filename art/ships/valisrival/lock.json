@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "recipe": "ship-fp-1",
-  "blender_version": "5.1.2",
-  "source_sha256": "5bdb4046b96fab2cb8e3fc1ba98ebffae56cfa71ea4451725944d74b9ceb7539",
+  "blender_version": "5.3.0",
+  "source_sha256": "c6fab201d4b9c2cb53692e604db0b15452d4dacc02ebf891d56cb9db10c8ec5e",
   "name": "ValisRival",
-  "geometry": "801fb034f2b9ec0775a780152a21f6f764353393aa0253629f177fc0538e0120",
+  "geometry": "ffaf61fc3b4444c5034d9e0bdaaac12c0cbf0c93ab913ddddaac01e0ec8ed24f",
   "parts": {
     "01 central fuselage": "cf218f42234728ab3608638b401608dccbd2ae72c7522403c1f028589f4e5ab6",
     "02 black canopy": "3b531a2fe0f13d93b46aa2b5b90eb323cb64a1f4b187c88787f620c0cca135e9",
@@ -48,7 +48,6 @@
     "SymmetryOrigin": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
     "Trailing spars": "b1dbd9c2db588ec182eec3c1cef3f65adde95c933a9270748f21e85fdf9319da",
     "Upper wings": "b85b3aa592ce48f989757d0de9a5df63e18ce58fdef1f4954aef0e8b2e9383a3",
-    "Valis collider": "7b49b33686921d267d5f9e720b6433101deabb36c03be04abcd53001ada2ce83",
     "Valis symmetry origin": "6e468a1e4997393ad44c4c9c08e7702db88b138bf4fde1838522db1bdb1107dd",
     "Wing panels": "b1dbd9c2db588ec182eec3c1cef3f65adde95c933a9270748f21e85fdf9319da"
   }

@@ -28,10 +28,18 @@ namespace Game.Companion
         [Tooltip("Chance that an opening line with a possible reply is followed by one.")]
         [SerializeField, Range(0f, 1f)] private float replyChance = .6f;
 
+        [Tooltip("Colour of the companion's name on the comm line.")]
+        [SerializeField] private Color companionColor = new Color(.78f, .62f, 1f);
+
+        [Tooltip("Colour of a station crew's name, and of an enemy's when the moment names no faction.")]
+        [SerializeField] private Color neutralSpeakerColor = new Color(.75f, .75f, .75f);
+
         public float MinLineIntervalSeconds => minLineIntervalSeconds;
         public float StaleSeconds => staleSeconds;
         public float HoldFor(string line) => Mathf.Max(holdSeconds, line.Length / readingCharactersPerSecond);
         public float FadeSeconds => fadeSeconds;
         public float ReplyChance => replyChance;
+        public Color CompanionColor => companionColor;
+        public Color NeutralSpeakerColor => neutralSpeakerColor;
     }
 }

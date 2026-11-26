@@ -46,6 +46,29 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void AppendFeedback_WritesBesideTheRecords_PairedByTheRunsEndTime()
+        {
+            var store = new RunRecordStore(Path.Combine(dir, "nested", "run-records.jsonl"));
+            var run = new RunRecord
+            {
+                endedUtc = "2026-11-25T08:00:00Z", outcome = RunRecord.Died, sector = "Sector 2",
+                buildIdentity = new BuildIdentity { commit = "abc", playtest = true },
+            };
+
+            Assert.IsTrue(store.AppendFeedback(RunFeedback.Of(run, new DateTime(2026, 11, 25, 8, 1, 0), "too dark")));
+
+            Assert.AreEqual(Path.Combine(dir, "nested", RunRecordStore.FeedbackFileName), store.FeedbackPath);
+            Assert.IsFalse(File.Exists(store.Path), "feedback never lands in the run-record file");
+            var read = JsonUtility.FromJson<RunFeedback>(File.ReadAllLines(store.FeedbackPath)[0]);
+            Assert.AreEqual(RunFeedback.SchemaId, read.schema);
+            Assert.AreEqual(run.endedUtc, read.runEndedUtc);
+            Assert.AreEqual("2026-11-25T08:01:00Z", read.writtenUtc);
+            Assert.AreEqual("Sector 2", read.sector);
+            Assert.IsTrue(read.buildIdentity.playtest);
+            Assert.AreEqual("too dark", read.note);
+        }
+
+        [Test]
         public void DefaultPath_IsTheBalanceFileUnderTheResultsRoot()
         {
             var path = new RunRecordStore().Path.Replace('\\', '/');

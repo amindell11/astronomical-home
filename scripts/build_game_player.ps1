@@ -17,8 +17,9 @@
                                        no stale exe. The exe is PlayerSettings.productName + ".exe".
       <worktree>/build/game-build.log  Unity log.
       <worktree>/build/game-build.json Config for the RunBatch child, UTF-8 without BOM, with
-                                       projectPath, buildDir, logPath, and buildLabel when
-                                       -BuildLabel was passed. The child is build_game_player_batch.ps1.
+                                       projectPath, buildDir, logPath, buildLabel when
+                                       -BuildLabel was passed, and playtest: true when
+                                       -Playtest was passed. The child is build_game_player_batch.ps1.
 
     MACHINE CHANNEL
       Success writes exactly one compressed JSON line on stdout:
@@ -41,6 +42,10 @@
     -gameBuildLabel. Omitted leaves the label empty. Unity fails the build when
     the text is not 1 to 32 characters of A-Z, a-z, 0-9, dot, underscore or hyphen.
 
+.PARAMETER Playtest
+    Stamps playtest into the build identity, forwarded to Unity as -gamePlaytest. A playtest
+    build asks for a feedback note after each death and saves it beside the run records.
+
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1
 
@@ -49,11 +54,15 @@
 
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1 -BuildLabel friends-1
+
+.EXAMPLE
+    powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1 -Playtest
 #>
 param(
     [int]$WaitSeconds = 300,
     [switch]$AllowLowMemory,
-    [string]$BuildLabel
+    [string]$BuildLabel,
+    [switch]$Playtest
 )
 
 Set-StrictMode -Version Latest
@@ -77,6 +86,9 @@ New-Item -ItemType Directory -Force -Path $buildRoot | Out-Null
 $config = [ordered]@{ projectPath = $project; buildDir = $buildDir; logPath = $log }
 if ($PSBoundParameters.ContainsKey("BuildLabel")) {
     $config.Add("buildLabel", $BuildLabel)
+}
+if ($Playtest) {
+    $config.Add("playtest", $true)
 }
 [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
 

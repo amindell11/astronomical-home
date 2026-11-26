@@ -336,13 +336,13 @@ namespace Game
 
                 playerDied = false;
                 moments = new RunMomentStream();
-                if (voice) voice.Initialize(moments);
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
                 var draw = new System.Random();
                 runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
                 runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
+                if (voice) voice.Initialize(moments, runFactions);
                 while (true)
                 {
                     if (!transferred)
@@ -460,7 +460,8 @@ namespace Game
                     if (!playerDied) EndRun();
                     runOpen = false;
                     var board = AppendRunRecord(runLoadoutHash, index,
-                        quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, runLocales, quitRun);
+                        quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, runLocales, quitRun,
+                        out var record);
                     if (!quitRun)
                     {
                         // Victory has no cue of its own in Studio, so the sector's cue plays on under it.
@@ -470,6 +471,8 @@ namespace Game
                             if (!playerDied) StandDown(true);
                             yield return RunRecap(OutcomeContext(board, index));
                             if (!playerDied) StandDown(false);
+                            if (playerDied && record is { buildIdentity: { playtest: true } } run)
+                                yield return AskFeedback(run);
                         }
                     }
                 }
@@ -883,7 +886,7 @@ namespace Game
             var endedIn = course.Sectors.Count > 0
                 ? course.Sectors[course.Sectors.Count - 1].sector - 1
                 : activeSectorIndex;
-            AppendRunRecord(runLoadoutHash, endedIn, null, runLocales, true);
+            AppendRunRecord(runLoadoutHash, endedIn, null, runLocales, true, out _);
         }
 
         private void OpenSector(int index)
@@ -906,8 +909,9 @@ namespace Game
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
         private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow,
-            LocaleSky[] locales, bool abandoned)
+            LocaleSky[] locales, bool abandoned, out RunRecord? appended)
         {
+            appended = null;
             if (!buildIdentity(out var identity, out var failure))
             {
                 Debug.LogError($"Run record skipped, build identity unreadable: {failure}", this);
@@ -928,7 +932,9 @@ namespace Game
             }
 
             var board = Scoreboard.Read(runRecords.Path, record);
-            return runRecords.Append(record) ? board : Scoreboard.Read(runRecords.Path, null);
+            if (!runRecords.Append(record)) return Scoreboard.Read(runRecords.Path, null);
+            appended = record;
+            return board;
         }
 
         private EndPhaseRow ReadEndPhase()
@@ -1050,6 +1056,18 @@ namespace Game
                 recapStop = null;
                 presenter.Restore();
             }
+        }
+
+        private IEnumerator AskFeedback(RunRecord run)
+        {
+            var screen = RunFeedbackScreen.Create(ui, rigInstance.Screens);
+            try
+            {
+                while (screen.Note == null && !shutdownRequested) yield return null;
+                if (!string.IsNullOrEmpty(screen.Note))
+                    runRecords.AppendFeedback(RunFeedback.Of(run, DateTime.UtcNow, screen.Note));
+            }
+            finally { Destroy(screen.gameObject); }
         }
 
         // The world plays on behind the victory recap: the winner can't fly out of the held view or be shot down.

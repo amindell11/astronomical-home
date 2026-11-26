@@ -5,7 +5,8 @@ ship_export refuses role.move.*, so this builds temporary copies of the source, 
 and exports each with the standard tools:
   <Name>.fbx         intact export with every role.move part left out: Hull, Collider, Sockets.
   <Name>Wings.fbx    one mesh per role.move.<id> group, exported through debris mode (paint and
-                     contour kept), in the source pose, which is the thrust pose.
+                     contour kept), in the source pose, which is the thrust pose, plus a
+                     '<id> Collider' slab per group that rides the swinging wing.
   <Name>Breakup.fbx  the source's own role.debris groups, when it has them.
 Each move group <id> has a socket Hinge.<id>: the pivot the group turns about. Its rotation is
 the idle pose, so a wing at thrust sits as modelled and idles at the socket's rotation.
@@ -101,6 +102,8 @@ def main():
             blender(args.blender, "--python-exit-code", "1", "-P", str(TOOLS / "ship_lock.py"), "--",
                     "--ship", str(folder / "ship.json"), "--mode", "lock", "--out", str(folder / "lock"))
         flags = ["--debris"] if debris else []
+        if mode == "wings":
+            flags.append("--group-colliders")
         log = blender(args.blender, "--python-exit-code", "1", "-P", str(TOOLS / "ship_export.py"), "--",
                       "--ship", str(folder / "ship.json"), "--out", str(folder / "export"), *flags)
         produced = export_name + ("Breakup" if debris else "")

@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "recipe": "ship-fp-1",
-  "blender_version": "5.1.2",
-  "source_sha256": "30da15e0ce3cc977c3830f213a3ad3633f5ccdd35a8b6df3097d8bf1cdf836e8",
+  "blender_version": "5.3.0",
+  "source_sha256": "584e4cae0b9fd24b7aed4377f269bd9540edc16382c2a53fbe81f1868ebe4426",
   "name": "Nightshade",
-  "geometry": "f9867aaac76da2e6701f11d1f5faa04aee74c67507d6676874a778cbd0d30d2e",
+  "geometry": "0e090c4fd5d2000612d914ec42bfaa40959120586636f990316bc594e7a6d6a2",
   "parts": {
     "Aft engine collar": "01fd716236405d18143e993398a76aa9622de29d78e1d82277ced067e4e76576",
     "Aft spine armor": "3233713fc5b0803201d461a974efdd28532fa789ab20a6a30a68903c06b50b1f",
@@ -25,7 +25,6 @@
     "Dorsal shield cap": "543babace3891688c4192ee1c5710fde655094ebc5db05bfbfb35b78f9494cb9",
     "Dorsal shield inset": "ccb9883a5bdca6062e80c44fd369ccefb8a2c23733a2a498525dcfafbc56b521",
     "Engine.Main": "95b4137d6d999db1736df7a265beb793748f71dea4037d32d33963b2dd7590fb",
-    "Flight collision hull": "e4d1da191ed57eb491269bb1e39b5df6cbad7d5abab228294a23858efcb609da",
     "Lower canopy glazing": "d5aaf1b5dac4f392cd808267eaf739299058b727a5c3f19b1eb7e0527783a07f",
     "Lower canopy metal bezel": "4b45917a46c1e7de65a1a5aa35deb1dc777091df0e16a3a11848ad2cf46b7ce1",
     "Lower fin armor": "616fc54045301835dd4630f29f41805abbcc96d39eee1a6684762d30289c9a9a",

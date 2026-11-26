@@ -411,6 +411,11 @@ PrefabInstance:
       propertyPath: poseSources.Array.size
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5823019476510238811, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: bodyScale
+      value: 0.6666667
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

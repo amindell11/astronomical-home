@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Ships;
+using Ships.Hitbox;
 using Ships.Loadout;
 using Ships.Presentation;
 using Ships.Visuals;
@@ -38,6 +39,7 @@ namespace Tests.EditMode.Ships
         {
             ("", typeof(Transform), "m_LocalScale"),
             ("", typeof(Ship), ""),
+            ("", typeof(BankHitbox), ""),
             ("", typeof(WeaponsController), "primaryMount"),
             ("", typeof(Rigidbody), "m_Mass"),
             ("", typeof(Rigidbody), "m_InertiaTensor"),
@@ -101,6 +103,18 @@ namespace Tests.EditMode.Ships
             Assert.That(AssetDatabase.GetAssetPath(source), Is.EqualTo(BasePath), "Every chassis is a variant of ShipBase, never of another ship.");
             Assert.That(root.GetComponentsInChildren<ShipVisualRig>(true), Has.Length.EqualTo(1));
             Assert.That(root.GetComponentsInChildren<HullVisuals>(true), Has.Length.EqualTo(1));
+        }
+
+        [TestCaseSource(nameof(MigratedChassis))]
+        public void Chassis_HitboxMeshesStayReadable_ForBankHitboxInPlayerBuilds(string path)
+        {
+            var root = Load(path);
+            var hitboxes = root.GetComponentsInChildren<MeshCollider>(true)
+                .Where(c => !c.isTrigger && c.sharedMesh && c.gameObject.layer == LayerIds.Ship).ToArray();
+            Assert.That(hitboxes, Is.Not.Empty);
+            foreach (var hitbox in hitboxes)
+                Assert.That(hitbox.sharedMesh.isReadable, Is.True,
+                    $"{root.name} {hitbox.name}: enable Read/Write on {AssetDatabase.GetAssetPath(hitbox.sharedMesh)}.");
         }
 
         [TestCaseSource(nameof(MigratedChassis))]

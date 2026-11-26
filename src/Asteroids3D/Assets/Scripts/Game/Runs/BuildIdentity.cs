@@ -10,10 +10,11 @@ namespace Game.Runs
 
     /// <summary>
     /// What a run was played on: the commit, whether the Unity project tree had uncommitted work,
-    /// and the build label when the person starting the build gave one. The editor asks git on every
-    /// read and leaves the label empty; a player build cannot ask git, so its pre-build hook stamps
-    /// a file into StreamingAssets that the player reads once. Informational only: run records are
-    /// grouped by the stat fingerprint and the loadout stat hash, never by this.
+    /// the build label when the person starting the build gave one, and whether it is a playtest build,
+    /// which asks for feedback after each death. The editor asks git on every read, leaves the label
+    /// empty and always plays as a playtest; a player build cannot ask git, so its pre-build hook
+    /// stamps a file into StreamingAssets that the player reads once. Informational only: run records
+    /// are grouped by the stat fingerprint and the loadout stat hash, never by this.
     /// </summary>
     [Serializable]
     public struct BuildIdentity
@@ -21,6 +22,7 @@ namespace Game.Runs
         public string commit;
         public bool dirty;
         public string label;
+        public bool playtest;
 
         public const string FileName = "build-identity.json";
 
@@ -49,7 +51,12 @@ namespace Game.Runs
         public static BuildIdentitySource Source()
         {
 #if UNITY_EDITOR
-            return TryReadGit;
+            return (out BuildIdentity identity, out string failure) =>
+            {
+                if (!TryReadGit(out identity, out failure)) return false;
+                identity.playtest = true;
+                return true;
+            };
 #else
             var stamped = Parse(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, FileName)));
             return (out BuildIdentity identity, out string failure) =>

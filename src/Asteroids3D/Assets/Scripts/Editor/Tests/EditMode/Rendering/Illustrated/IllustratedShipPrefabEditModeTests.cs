@@ -80,7 +80,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase(Vanguard)]
         [TestCase(Crimson)]
         [TestCase(Nightshade)]
-        public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
+        public void ShipColliderBounds_SpanThePaintedHullLengthInsideItsWidth(string path)
         {
             var ship = LoadShip(path);
             var colliders = ship.GetComponentsInChildren<MeshCollider>(true)
@@ -89,10 +89,11 @@ namespace Tests.EditMode.Rendering.Illustrated
             var colliderBounds = BoundsInShip(ship.transform, colliders[0].transform, colliders[0].sharedMesh.bounds);
             foreach (var collider in colliders.Skip(1))
                 colliderBounds.Encapsulate(BoundsInShip(ship.transform, collider.transform, collider.sharedMesh.bounds));
-            colliderBounds.Expand(.002f);
             var surfaces = ship.GetComponentsInChildren<MeshRenderer>(true)
                 .Where(r => UsesShader(r, SurfaceShader)).ToArray();
             Assert.That(surfaces, Is.Not.Empty);
+            var hull = new Bounds();
+            var any = false;
             foreach (var surface in surfaces)
             {
                 var mesh = surface.GetComponent<MeshFilter>().sharedMesh;
@@ -103,10 +104,18 @@ namespace Tests.EditMode.Rendering.Illustrated
                 foreach (var vertex in vertices)
                 {
                     var point = matrix.MultiplyPoint3x4(vertex);
-                    Assert.That(colliderBounds.Contains(point), Is.True,
-                        $"{ship.name} collider excludes {surface.name} vertex {point}: collider {colliderBounds}.");
+                    if (any) hull.Encapsulate(point);
+                    else hull = new Bounds(point, Vector3.zero);
+                    any = true;
                 }
             }
+            // Thin spikes and tails may be trimmed from the width; nose and tail must still match.
+            var tolerance = .01f * hull.size.y + .002f;
+            var context = $"{ship.name}: collider {colliderBounds}, painted hull {hull}.";
+            Assert.That(colliderBounds.min.x, Is.GreaterThanOrEqualTo(hull.min.x - .002f), context);
+            Assert.That(colliderBounds.max.x, Is.LessThanOrEqualTo(hull.max.x + .002f), context);
+            Assert.That(colliderBounds.min.y, Is.EqualTo(hull.min.y).Within(tolerance), context);
+            Assert.That(colliderBounds.max.y, Is.EqualTo(hull.max.y).Within(tolerance), context);
         }
 
         private static bool IsActiveInPrefab(Transform transform)
