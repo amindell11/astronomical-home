@@ -989,6 +989,20 @@ Format: **term** — definition. *(authority)*
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
   Every shipped pilot does, each on its own *temper*; the matrix lane's
   weapon-pair shooters never do. *(TacticRules.Next, TacticsSettings)*
+- **enemy phrase**. A timed enemy behavior pattern the player can read and
+  answer, spanning seconds and sometimes several ships, where a *tactic* is
+  one ship's pick. A phrase has a tell the player can spot at its start, teeth
+  that make it dangerous in a new way while it runs, and a window where the
+  enemy has committed and the player can use that commitment. Coined
+  2026-11-25 as a research direction. No shipped system flies one yet, and
+  how a phrase composes with tactic picks and tempers is unruled.
+  *(doc/design/Design/Gameplay/Combat.md; #1589)*
+- **geometry verb**. A player action that changes positions or angles in a
+  fight, such as a blast that moves ships, a ram, a blink, or a rock knocked
+  into an enemy. The test for a lull mod that claims to change play is a new
+  geometry verb or a changed use of an old one. A larger damage number, a
+  shorter cooldown or a heal on a kill is none. Coined 2026-11-25.
+  *(doc/design/Design/Gameplay/Loot and Rewards/Ship Upgrades.md)*
 - **temper**. One `TacticsSettings` asset per pilot. A faction's ranks fly
   the pilots its `Faction` asset names (`Faction.Rival`, `Faction.Minion`), so a
   temper belongs to a faction and a rank: Shoal's Valis and minion, Veil's

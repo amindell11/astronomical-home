@@ -55,3 +55,22 @@ See also: [[Combat]], [[Flight]], [[Weapons]]
 > Enemy pilots for now, one day wingmen will be in there. Fleet is a far stretch.
 >
 > Nerfing the senses and reflexes is way later. That's not really a problem until we can make it smart with perfect information.
+
+## Update from flying, 2026-11-25
+
+The aim above has been re-ruled since this scaffold was written. On #1589
+(2026-11-16) the owner dropped skill parity as a goal. A ship's competence
+counts only as far as the player can read it, through faction tempers, tells
+and breaking points. The "(c), with (b) as a test" quote no longer states the
+aim, and it stays here as the record of the earlier one.
+
+Flying M1 since then adds a complaint the scaffold does not carry. Enemies
+change little from second to second in response to what the player does, so
+one circling pattern keeps defeating their targeting and combat repeats.
+[[Combat]] records the autopilot loop and its two failure modes in full.
+
+The owner called enemy behavior the single biggest challenge of this game and
+the place where something new and unique is needed. Enemy phrases, defined in
+[[Combat]], are the current research direction for that problem. They are
+unruled. No approach has been picked, and #1589's rulings bind whatever the
+research proposes.

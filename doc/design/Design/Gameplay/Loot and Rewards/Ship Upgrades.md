@@ -42,6 +42,31 @@ sits *on top* of resolved module stats as a modifier pass and doesn't change the
 module model. Deferred until we build that kind of loot; the per-field policy
 (additive vs multiplicative) is an [[Ships#Open questions|open question]].
 
+## Open fork, 2026-11-25: behaviour mods against stat mods
+
+The shipped lull pick hands out stat mods, each a percentage or a round count
+on a field a weapon or ship already has. A proposal dated 2026-11-26 (owner
+session, not yet a tracker record) would replace every stat mod in that pick
+with a mod that changes a behaviour, and upgrade the mod on a second copy
+instead of stacking numbers. Picking from that proposal would replace the
+ruling of 2026-10-28 that loot stays stat modifiers with no new behaviours.
+The owner has not picked any mods, so the proposal is an open fork, not a
+ruling. #335 owns the loot pool.
+
+One test separates the proposal's strong entries from its weak ones. A mod
+earns its place when it gives the player a new geometry verb or changes the
+use of an old one. A geometry verb is an action that changes positions or
+angles in a fight, such as a blast that pulls ships together, a gun whose
+recoil moves the firing ship, or a rock knocked into an enemy. A mod that
+only raises damage, refunds a cooldown or heals on a kill makes the autopilot
+loop in [[Combat]] faster without changing a decision.
+
+A second fork sits under the first. If geometry verbs arrive only as random
+lull picks, the creative play in [[OVERVIEW]] unlocks partway through a run,
+for the right ship, on the right draw. The alternative gives every ship one
+geometry verb in its starting kit and lets mods bend that verb. That choice
+is also open.
+
 ## Run-scoped vs permanent
 
 [[Rogue-like]]: most power gained on a run is **lost on death**, but some rewards
