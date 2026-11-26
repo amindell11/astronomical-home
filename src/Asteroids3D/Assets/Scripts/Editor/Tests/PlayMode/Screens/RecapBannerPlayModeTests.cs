@@ -54,7 +54,7 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
-        public IEnumerator ShipLost_IsBareTextThatFadesIn_OnlyOnceTheDeathRevealIsOver()
+        public IEnumerator ShipLost_IsBareTextThatComesOn_OnlyOnceTheOldFadeWouldHaveRead()
         {
             var sequence = Sequence(false);
             screen = RunRecapScreen.Create(root.transform, sequence.Context, null);
@@ -74,9 +74,26 @@ namespace Tests.PlayMode.Screens
             var headline = Headline();
             Assert.IsNull(headline.GetComponentInParent<ScreenWindow>(), "the banner is HUD text, not a window");
             Assert.AreSame(screen.transform, headline.transform.parent, "bare text on the ink root, no frame or box");
-            Assert.That(headline.color.a, Is.GreaterThan(0f).And.LessThan(.05f), "it fades in rather than arriving whole");
+            Assert.AreEqual(0f, headline.color.a, "still dark where the old fade was too faint to read");
             screen.Apply(sequence.StateAt(1, bannerIn));
             Assert.AreEqual(1f, headline.color.a);
+        }
+
+        [Test]
+        public void TheBannerFlicker_StuttersThenSettles_AndCutsStraightInWithoutStrength()
+        {
+            var at = Enumerable.Range(0, 101).Select(i => i / 100f).ToArray();
+            var flicker = at.Select(a => RunRecapScreen.FlickerIn(a, .6f)).ToArray();
+            var visible = Array.FindIndex(flicker, alpha => alpha > 0f);
+            var settled = Array.FindLastIndex(flicker, alpha => alpha != 1f) + 1;
+            Assert.That(at[visible], Is.GreaterThan(.19f), "dark until the old fade would have read");
+            Assert.That(settled, Is.LessThan(at.Length), "it settles fully on");
+            Assert.That(at[settled], Is.LessThanOrEqualTo(.6f), "settled by the end of the flicker");
+            Assert.That(flicker.Skip(visible).Take(settled - visible).Any(alpha => alpha < .9f), "it stutters on the way");
+
+            var plain = at.Select(a => RunRecapScreen.FlickerIn(a, 0f)).ToArray();
+            Assert.That(plain.Take(visible), Is.All.EqualTo(0f));
+            Assert.That(plain.Skip(visible), Is.All.EqualTo(1f), "no strength cuts straight to full");
         }
 
         [UnityTest]

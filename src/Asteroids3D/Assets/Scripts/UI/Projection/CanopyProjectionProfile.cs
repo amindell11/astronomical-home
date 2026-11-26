@@ -36,6 +36,8 @@ namespace UI.Projection
         [Range(0f, 1f)] public float windowFlicker = .35f;
         [Tooltip("Strength of the canopy tear when a screen window opens.")]
         [Range(0f, 1f)] public float windowGlitch = .15f;
+        [Tooltip("How hard SHIP LOST and VICTORY stutter as they come on, as a share of the canopy's flicker. 0 cuts straight in.")]
+        [Range(0f, 1f)] public float bannerFlicker = 1f;
         [Header("Hull critical")]
         [Tooltip("Peak brightness of the coral glow and corner brackets at the screen edges while the hull is critical.")]
         [Range(0f, 1f)] public float hullCriticalEdgeIntensity = .35f;
