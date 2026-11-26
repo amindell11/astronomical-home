@@ -7,6 +7,7 @@
   "contour_roles": [
     "hull"
   ],
+  "collider_skip": [],
   "exemptions": [
     {
       "rule": "uv_density",

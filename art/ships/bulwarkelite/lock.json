@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "recipe": "ship-fp-1",
-  "blender_version": "5.1.2",
-  "source_sha256": "304a1da29c91fc99e416c5c80bc043edbb1c992d43ba34364abb3fa63bfc86e0",
+  "blender_version": "5.3.0",
+  "source_sha256": "ee3d970d3cb283ae909c2c18f76eb58e17b478a03ebc66f09345d7581551278c",
   "name": "BulwarkElite",
-  "geometry": "b0c4b41fc5d5ed60dd1af3d695d144d176faf5a848ba4c1332663777b8a14d5a",
+  "geometry": "37942185eb6b792edd734d50eeaca282b2afb3c90dca18927d2fbe52a66789a2",
   "parts": {
     "Armor - Front plate": "40c17bbd0ddb06faec9993b4618787dd2b4d62d0b2061bb2fccbafa8a0b10932",
     "Armor - Lower skids": "437f38e4f0657084ba893dab8339cfeb04f63ecdd26198b9549ce3293f76a3c6",
@@ -14,7 +14,6 @@
     "Armor - Upper shoulder guards.002": "505df0fcf7b0dc6476c6312248d020c8637c62c7e326a0f0e558883efb238a9a",
     "Armor - Upper shoulder guards.004": "d52ea69cdf5a9f220543d7bd1baaaa3baa921865cee746c096079543f5725ee1",
     "Armor - Upper shoulder guards.005": "5f7921181cb95a0666ea92911a33705ef02b2958bc0d3b4650cfd7bde7181ee7",
-    "BulwarkElite collider": "0b8babe045fbd17f6440164e2043369d08cd5fe1eb4f81d24bb66c6e25b6ce69",
     "Canisters - Metal side modules": "c88e4ac2126fb1e008abf5ea39526ee4792984520c0d80fd74fac73cd4865ac3",
     "Champion brow": "b63b87ca47bade5241d78550a250ed77856a22a7d6fc36083d3ad6f79da9efde",
     "Champion pauldron": "012fee7088e0d91011480d01eefa4f2b76e60929d51f07092290d559660b67e9",

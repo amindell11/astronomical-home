@@ -1,12 +1,11 @@
 {
   "schema_version": 1,
   "recipe": "ship-fp-1",
-  "blender_version": "5.1.2",
-  "source_sha256": "f5e1fb17d731d0045afd0fb53a9e4b31271a4b725fcf6479d0a30c977c72b1d9",
+  "blender_version": "5.3.0",
+  "source_sha256": "e3e165b3ca4c8336dc43a7f2e9708dca0ba58f5b55d099da07a80befcba3166b",
   "name": "BulwarkMinion",
-  "geometry": "f31d64464737ad7613313753041161d64f003ee885df8a4ec30aee634ae76f21",
+  "geometry": "0f08fc996260c00a258c349117835ee2b80a463277d20ef41f10fa52e8550406",
   "parts": {
-    "BulwarkMinion collider": "8d18610d2fbe6a612f3364328263c8036c0e526bc1c14755d4f40a04d57d013b",
     "Cockpit - Canopy": "87914835bbc4ec64a1ecc4c64ce975689b6ddc7f3d60b6ca15755e17eb8f6564",
     "Engine - Recessed nozzles": "2cdb5d0bfbc11e66b78bf6fb115232781ad7382e792919c09db95a7058b3d2da",
     "Engine - Shoulder booms": "8f0c5958118929331b784e33b1cb25e414a239f93e71edc25c582bd6890d53a5",
