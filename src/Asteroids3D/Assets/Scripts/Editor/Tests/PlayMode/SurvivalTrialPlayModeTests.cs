@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AI;
 using AI.Pilots;
 using AI.Tactics;
@@ -32,7 +33,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product. A product that requests a jump is despawned over the next frames, counts as nothing alive, and records no kill. A killed rival reads as a rival until it despawns. With the rival cap full, a beat's minions reinforce the live rival with the fewest followers at its free places, up to the minion cap.</summary>
+    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product. A product that requests a jump is despawned over the next frames, counts as nothing alive, and records no kill. A killed rival reads as a rival until it despawns, and a rival whose dressing throws still counts against the rival cap. With the rival cap full, a beat's minions reinforce the live rival with the fewest followers at its free places, up to the minion cap.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SurvivalTrialPlayModeTests : PlayModeWorldFixture
@@ -95,7 +96,7 @@ namespace Tests.PlayMode
 
         private WaveDirector NewTrial(Ship template, Ship player, out Sector sector, bool sendsWaves = true,
             int fewest = 0, int most = 0, int rivalCap = 1, int minionCap = 4, Commander rivalPilot = null, Commander minionPilot = null,
-            float? spawnRadius = null, float? groupSpread = null, float waveEvery = 100f)
+            float? spawnRadius = null, float? groupSpread = null, float waveEvery = 100f, Material[] rivalHull = null)
         {
             var sectorGO = TrackGO(new GameObject("TrialSector"));
             sector = sectorGO.AddComponent<Sector>();
@@ -107,7 +108,7 @@ namespace Tests.PlayMode
             var kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab");
             if (!rivalPilot) rivalPilot = TestAssets.LoadTestPilotMpc();
             if (!minionPilot) minionPilot = rivalPilot;
-            faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot };
+            faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot, hull = rivalHull };
             faction.minion = new FactionMinion
             {
                 ship = template,
@@ -506,6 +507,30 @@ namespace Tests.PlayMode
             Assert.AreEqual(4, director.Spawned.Count, "The rival cap is full, so the beat sends one minion.");
             Assert.AreEqual(1, director.Spawned.Count(ship => ((AICommander)ship.Commander).context.Leader == second),
                 "The minion joins the rival left with none.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator RivalThatFailsToDress_StillFillsTheRivalCap()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var paint = new Material(Shader.Find("Hidden/InternalErrorShader"));
+            _assets.Add(paint);
+            var director = NewTrial(template, player, out var sector, rivalCap: 1, minionCap: 0, waveEvery: 10f,
+                rivalHull: new[] { paint, paint });
+
+            LogAssert.Expect(LogType.Exception, new Regex("hull material slots"));
+            yield return sector.Setup();
+            for (var i = 0; i < 10; i++)
+                yield return null;
+            var at = Time.time;
+            for (var i = 0; i < 3; i++)
+                director.Tick(at += 10f);
+
+            Assert.AreEqual(1, director.Spawned.Count, "The undressed rival fills the cap, so no beat sends another.");
 
             yield return sector.Teardown();
         }
