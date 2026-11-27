@@ -442,7 +442,8 @@ namespace Game
                                 tutorial.Tick();
                                 if (tutorial.IntroDue)
                                 {
-                                    yield return RunTutorialIntro(tutorial.Patrol);
+                                    yield return RunTutorialStations(findStations);
+                                    if (!pauseRequested) yield return RunTutorialPatrol(tutorial.Patrol);
                                     tutorial.IntroDone();
                                     spine.Hunt.Resume();
                                     if (pauseRequested) continue;
@@ -1120,9 +1121,56 @@ namespace Game
             sectorIndex == 0 && teachFirstSector && presentation && TutorialSetting.On && rigInstance &&
             rigInstance.Overlay && spine && spine.Hunt;
 
+        private IEnumerator RunTutorialStations(FindStation[] finds)
+        {
+            var labels = new List<(string text, Color tint, Vector3 at)>();
+            var kinds = new List<StationKind>();
+            foreach (var find in finds)
+            {
+                if (!find) continue;
+                foreach (var station in find.Stations)
+                {
+                    if (station.Spent) continue;
+                    labels.Add((find.Kind.ToString().ToUpperInvariant(), FindColours.Of(find.Kind), station.Position));
+                    if (!kinds.Contains(find.Kind)) kinds.Add(find.Kind);
+                }
+            }
+            if (labels.Count == 0) yield break;
+
+            var min = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
+            var max = min;
+            foreach (var label in labels)
+            {
+                var at = GamePlane.WorldPointToPlane(label.at);
+                min = Vector2.Min(min, at);
+                max = Vector2.Max(max, at);
+            }
+            // Fit the stations inside the clear band of the screen, then shift the camera so the band sits on them.
+            var aspect = observer.Cam.aspect;
+            var band = tutorialFeel.stationsBand;
+            var half = (max - min) / 2f + Vector2.one * tutorialFeel.stationsMargin;
+            var size = Mathf.Max(half.y / band.height, half.x / (band.width * aspect));
+            var center = (min + max) / 2f - new Vector2((band.center.x - .5f) * 2f * size * aspect,
+                (band.center.y - .5f) * 2f * size);
+            yield return RunTutorialShot(FirstSectorTutorial.StationsText(kinds), tutorialFeel.stationsZoom, () => center,
+                size, labels);
+        }
+
+        private IEnumerator RunTutorialPatrol(Ship patrol)
+        {
+            var feel = tutorialFeel.introPan;
+            var lift = new Vector2(0f, (.5f - tutorialFeel.patrolScreenHeight) * 2f * feel.closeSize);
+            Func<Vector2?> target = () => patrol && patrol.gameObject.activeInHierarchy
+                ? GamePlane.WorldPointToPlane(patrol.transform.position) + lift
+                : (Vector2?)null;
+            yield return RunTutorialShot(FirstSectorTutorial.IntroText, feel, patrol ? target : null, feel.closeSize,
+                Array.Empty<(string, Color, Vector3)>());
+        }
+
         // Fire skips only after the delay and a release, so held fire never skips.
         // Its own action, because the frozen ship's flight input is disabled.
-        private IEnumerator RunTutorialIntro(Ship patrol)
+        private IEnumerator RunTutorialShot(string text, CloseUpFeel feel, Func<Vector2?> target, float size,
+            IReadOnlyList<(string text, Color tint, Vector3 at)> labels)
         {
             var fire = new InputAction("TutorialSkip", InputActionType.Button, "<Mouse>/leftButton");
             fire.Enable();
@@ -1141,16 +1189,17 @@ namespace Game
                 return skipped || playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested;
             }
 
-            rigInstance.Overlay.ShowTutorialCard(FirstSectorTutorial.IntroText, TutorialCard.Spot.High,
-                () => !showing, Skippable);
+            rigInstance.Overlay.ShowTutorialCard(text, TutorialCard.Spot.High, () => !showing, Skippable);
+            foreach (var label in labels)
+                rigInstance.Overlay.ShowWorldLabel(label.text, label.tint, label.at, () => !showing);
             rigInstance.SetInputEnabled(false);
             try
             {
-                if (patrol)
-                    yield return RivalCloseUp.Run(tutorialFeel.introPan, observer, rigInstance.Player.transform, patrol,
+                if (target != null)
+                    yield return CloseUp.Run(feel, observer, rigInstance.Player.transform, target, size,
                         clock.Slow(1f), Cancelled);
                 else
-                    for (var t = 0f; t < tutorialFeel.introPan.holdSeconds && !Cancelled(); t += Time.unscaledDeltaTime)
+                    for (var t = 0f; t < feel.holdSeconds && !Cancelled(); t += Time.unscaledDeltaTime)
                         yield return null;
             }
             finally
@@ -1166,7 +1215,7 @@ namespace Game
             rigInstance.SetInputEnabled(false);
             try
             {
-                yield return RivalCloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
+                yield return CloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
                     clock.Slow(1f), () => playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested);
             }
             finally

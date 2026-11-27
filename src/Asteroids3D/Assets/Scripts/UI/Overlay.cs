@@ -212,6 +212,9 @@ namespace UI
             FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
                 dismissed, () => CommLine.Speaking);
 
+        public WorldLabel ShowWorldLabel(string text, Color tint, Vector3 worldPoint, Func<bool> ended) =>
+            WorldLabel.Show(canvases[0], gameplayCamera, labelFont, textMaterial, text, tint, worldPoint, ended);
+
         public TutorialCard ShowTutorialCard(string text, TutorialCard.Spot spot, Func<bool> ended,
             Func<bool> skippable = null) =>
             TutorialCard.Show(transform, readoutFont, labelFont, textMaterial, text, spot, ended, skippable);
