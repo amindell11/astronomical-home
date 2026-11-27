@@ -8,9 +8,10 @@ namespace Loot
 {
     /// <summary>
     /// The lull mods a run has picked, in pick order, plus any a sector grants and takes back. Mods
-    /// ride the run, not the part: a mount's view (<see cref="For"/>) and the ship's (<see cref="ForShip"/>)
-    /// are rebuilt on every read, and <see cref="Changed"/> tells the bound ship and the HUD to re-read, so a pick that
-    /// fits nothing carried stays held and idle until a fitting weapon is mounted.
+    /// ride the run, not the part: a mount's view (<see cref="For"/>), the ship's (<see cref="ForShip"/>)
+    /// and the held behaviour keys a part takes (<see cref="Behaviours"/>) are rebuilt on every read, and
+    /// <see cref="Changed"/> tells the bound ship and the HUD to re-read, so a pick that fits nothing
+    /// carried stays held and idle until a fitting part is mounted.
     /// </summary>
     public sealed class LullModStack : IHeldMods
     {
@@ -52,7 +53,7 @@ namespace Loot
         /// <summary>Every held mod, weapon or ship, once each with its copy count, in first-pick order.</summary>
         public IReadOnlyList<HeldMod> All() => Held(_ => true);
 
-        /// <summary>The held weapon mods that fit <paramref name="weapon"/>, a weapon prefab, for a weapon offer's card.</summary>
+        /// <summary>The held weapon and weapon behaviour mods that fit <paramref name="weapon"/>, a weapon prefab, for a weapon offer's card.</summary>
         public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) => Held(mod => Fits(mod, weapon));
 
         /// <summary>The held weapon mods this swap would idle; all three arguments are prefabs, not live mounts.</summary>
@@ -76,6 +77,18 @@ namespace Loot
             return any ? new WeaponMods(bonus, rounds) : WeaponMods.None;
         }
 
+        /// <summary>The held behaviour mods <paramref name="landsOn"/> accepts, once each.</summary>
+        public IReadOnlyList<BehaviourMod> Behaviours(Predicate<BehaviourMod> landsOn)
+        {
+            var held = new List<BehaviourMod>();
+            foreach (var pick in picks)
+            {
+                var mod = pick as BehaviourMod;
+                if (mod && !held.Contains(mod) && landsOn(mod)) held.Add(mod);
+            }
+            return held;
+        }
+
         /// <summary>The ship mod picks, summed per field group, for the ship's own resolve.</summary>
         public ShipMods ForShip()
         {
@@ -93,8 +106,10 @@ namespace Loot
 
         private static bool Fits(LullMod pick, WeaponComponent weapon)
         {
-            var mod = pick as WeaponMod;
-            return mod && mod.Fits(weapon, weapon);
+            var stat = pick as WeaponMod;
+            if (stat) return stat.Fits(weapon, weapon);
+            var behaviour = pick as BehaviourMod;
+            return behaviour && behaviour.LandsOn(weapon);
         }
 
         private List<HeldMod> Held(Func<LullMod, bool> include)

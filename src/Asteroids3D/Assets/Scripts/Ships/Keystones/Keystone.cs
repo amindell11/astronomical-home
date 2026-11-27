@@ -1,6 +1,7 @@
 using System;
 using Balance;
 using Damage;
+using Loot;
 using Movement;
 using UnityEngine;
 
@@ -37,6 +38,9 @@ namespace Ships.Keystones
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
+
+        /// <summary>The held keystone mods that land on this kit.</summary>
+        public HeldBehaviours Behaviours { get; } = new();
         public int PaidActivations { get; private set; }
         public Rigidbody Body => Host.Body;
 

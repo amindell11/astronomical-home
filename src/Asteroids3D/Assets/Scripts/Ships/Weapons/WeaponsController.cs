@@ -10,6 +10,7 @@ using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Status;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 
@@ -44,6 +45,7 @@ namespace Ships.Weapons
 
         private WeaponContext context;
         private LullModStack mods;
+        private StatusEffects status;
 
         private void Awake()
         {
@@ -115,17 +117,32 @@ namespace Ships.Weapons
 
         private void HandMods()
         {
-            if (Primary) Primary.SetMods(mods?.For(Primary, primaryMount) ?? WeaponMods.None);
-            if (Secondary) Secondary.SetMods(mods?.For(Secondary, secondaryMount) ?? WeaponMods.None);
+            if (Primary) HandMods(Primary, primaryMount);
+            if (Secondary) HandMods(Secondary, secondaryMount);
         }
 
-        public bool Fits(WeaponMod mod) => mod.Fits(Primary, primaryMount) || mod.Fits(Secondary, secondaryMount);
+        private void HandMods(WeaponComponent mount, WeaponComponent prefab)
+        {
+            mount.SetMods(mods?.For(mount, prefab) ?? WeaponMods.None);
+            mount.Behaviours.Set(mods?.Behaviours(mod => mod.LandsOn(prefab)) ?? Array.Empty<BehaviourMod>());
+        }
+
+        public bool Fits(WeaponMod mod) => Lands(mod.Fits);
+
+        public bool Fits(WeaponBehaviourMod mod) => Lands((_, prefab) => mod.LandsOn(prefab));
 
         /// <summary>The mounted weapons <paramref name="mod"/> lands on, by display name, for the pick card.</summary>
-        public string LandingNames(WeaponMod mod)
+        public string LandingNames(WeaponMod mod) => LandingNames(mod.Fits);
+
+        public string LandingNames(WeaponBehaviourMod mod) => LandingNames((_, prefab) => mod.LandsOn(prefab));
+
+        private bool Lands(Func<WeaponComponent, WeaponComponent, bool> lands) =>
+            lands(Primary, primaryMount) || lands(Secondary, secondaryMount);
+
+        private string LandingNames(Func<WeaponComponent, WeaponComponent, bool> lands)
         {
-            var primary = mod.Fits(Primary, primaryMount) ? Primary.DisplayName : null;
-            var secondary = mod.Fits(Secondary, secondaryMount) ? Secondary.DisplayName : null;
+            var primary = lands(Primary, primaryMount) ? Primary.DisplayName : null;
+            var secondary = lands(Secondary, secondaryMount) ? Secondary.DisplayName : null;
             if (primary != null && secondary != null)
                 return primary == secondary ? primary : $"{primary} · {secondary}";
             return primary ?? secondary ?? string.Empty;
@@ -148,7 +165,7 @@ namespace Ships.Weapons
 
             public void Fire(WeaponSlot slot, in WeaponCommand cmd)
             {
-                if (!owner || !owner.enabled) return;
+                if (!owner || !owner.enabled || !owner.status.CanFire) return;
                 var mount = owner.Mount(slot);
                 if (!mount) return;
                 if (cmd.reload) mount.Reload();
@@ -183,9 +200,10 @@ namespace Ships.Weapons
             return null;
         }
 
-        /// <summary>Supplies the ship pose used to build each slot's firing solution.</summary>
-        public void Initialize(Func<Kinematics> pose)
+        /// <summary>Supplies the ship pose used to build each slot's firing solution, and the status that gates firing.</summary>
+        public void Initialize(Func<Kinematics> pose, StatusEffects status)
         {
+            this.status = status ?? throw new ArgumentNullException(nameof(status));
             context = new WeaponContext(this, pose);
         }
 

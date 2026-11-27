@@ -11,6 +11,7 @@ using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 
 namespace Combat.Weapons
 {
@@ -63,6 +64,9 @@ namespace Combat.Weapons
 
         /// <summary>The mods in force on this mount; the authored weapon until a controller hands some down.</summary>
         public WeaponMods Mods { get; private set; } = WeaponMods.None;
+
+        /// <summary>The held weapon behaviour mods that land on this mount.</summary>
+        public HeldBehaviours Behaviours { get; } = new();
 
         protected virtual void Awake()
         {

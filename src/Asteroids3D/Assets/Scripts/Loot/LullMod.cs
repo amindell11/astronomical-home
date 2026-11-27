@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Loot
 {
     /// <summary>
-    /// One pick the lull pool can offer, kept for the run: a weapon mod reads through the carried
-    /// mounts, a ship mod folds into the ship's own resolve. Both answer the card the same way, and
-    /// both ride <see cref="LullModStack"/>, which the player rig binds to its ship once.
+    /// One pick kept for the run: a behaviour mod is a key the part it lands on asks about, a weapon
+    /// mod reads through the carried mounts, a ship mod folds into the ship's own resolve. All answer
+    /// the card the same way and ride <see cref="LullModStack"/>, which a ship binds once.
     /// </summary>
     public abstract class LullMod : ScriptableObject
     {
@@ -20,7 +20,6 @@ namespace Loot
 
         public Sprite Icon => icon;
 
-        /// <summary>The card's effect line, read off the data so it cannot drift from it.</summary>
         public abstract string Effect { get; }
 
         /// <summary>Whether a pick would land anywhere on <paramref name="ship"/>.</summary>

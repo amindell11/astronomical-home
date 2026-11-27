@@ -84,7 +84,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | field anchor / subject (the transform an asteroid field streams and LODs against) / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
-| **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
+| **mod** | lull mod (§2 → *lull mod*): a behaviour mod, a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of any kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("behaviour mod", "weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") · shake layer (§2) | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -1096,10 +1096,25 @@ Format: **term** — definition. *(authority)*
   rises and keeps its fraction. Only a bound stack mods a ship, so enemies and
   the hangar read authored. Sibling of a weapon mod; not a ship module.
   *(ShipMod, ShipMods, ResolvedShipStats.Resolve)*
-- **lull mod** — a weapon mod or a ship mod: what the lull pool holds and a
-  lull pick offers. A run's picks ride one stack the player rig binds to its
-  ship once; the ship re-reads it on every resolve and on every change.
-  *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **lull mod** — a behaviour mod, a weapon mod or a ship mod. The lull pool
+  and its offers hold behaviour mods only (arye, 2026-11-27); weapon and ship
+  mods survive as elite tuning. A run's picks ride one stack the player rig
+  binds to its ship once; the ship re-reads it on every resolve and on every
+  change. *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **behaviour mod** — a lull mod that changes how a weapon, an ordnance, a
+  keystone or the whole ship plays, not one of its numbers. The mod asset is
+  only a key: the part that owns the behaviour keeps its tunables and asks its
+  held set whether the key is held, and the set tells it when that changes.
+  Three kinds: a weapon behaviour mod lands on the weapon or ordnance prefabs
+  it lists, a keystone mod on the kits it lists, a passive on any ship. Each is
+  offered only while the player carries a part it lands on, and a swap idles a
+  weapon key the new mount doesn't take. Its card line is authored text.
+  *(BehaviourMod, WeaponBehaviourMod, KeystoneMod, PassiveMod, HeldBehaviours)*
+- **status effect** — a timed effect one ship puts on another: stunned (no
+  thrust, turning, firing, locks or keystone), weapons jammed (no firing or
+  locks), engines out (no thrust or strafe; the ship coasts and can turn).
+  Re-applying keeps the timer that ends later. It runs on the ship's
+  fixed-step clock and clears on respawn. *(StatusEffects, Ship.Status)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
   or a skip, when the player claims a *mod station*; the clock runs on after
   it. *(LullPickScreen, GameHost)*

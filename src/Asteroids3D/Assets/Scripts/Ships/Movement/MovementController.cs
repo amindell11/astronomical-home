@@ -4,6 +4,7 @@ using UnityEngine;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Status;
 using Ships.Weapons;
 using Substrate;
 namespace Ships.Movement
@@ -15,6 +16,7 @@ namespace Ships.Movement
         private Rigidbody  rb;
         private Keystone keystone;
         private WeaponsController weapons;
+        private StatusEffects status;
         internal ResolvedShipStats settings;
         private PilotCommand currentCommand;
         private float speedCap;
@@ -38,8 +40,10 @@ namespace Ships.Movement
         }
 
         /// <param name="weapons">Null on an unarmed ship.</param>
-        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone, WeaponsController weapons)
+        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone, WeaponsController weapons,
+            StatusEffects status)
         {
+            this.status = status ?? throw new ArgumentNullException(nameof(status));
             this.getKinematics = getKinematics;
             this.keystone = keystone;
             this.weapons = weapons;
@@ -77,6 +81,13 @@ namespace Ships.Movement
         {
             if (weapons && weapons.EnginesCut)
                 currentCommand = new PilotCommand { yawTorque = currentCommand.yawTorque, abilityTarget = currentCommand.abilityTarget };
+            if (!status.CanThrust)
+            {
+                currentCommand.thrust = 0f;
+                currentCommand.strafe = 0f;
+            }
+            if (!status.CanTurn) currentCommand.yawTorque = 0f;
+            if (!status.CanKeystone) currentCommand.boost = 0f;
 
             var kinematics = Kinematics;
             var effect = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated,

@@ -101,7 +101,7 @@ namespace Combat.Targeting
 
         private bool CanLock()
         {
-            return weapon && weapon.CanFire();
+            return weapon && weapon.CanFire() && selfShip.Status.CanLock;
         }
 
         private void OnEnable()
@@ -130,6 +130,8 @@ namespace Combat.Targeting
         {
             if (registry == null)
                 return;
+            if (!selfShip.Status.CanLock && State is LockState.Locking or LockState.Locked)
+                targetLock.Cancel();
             targetLock.Update(Time.deltaTime, IsAcquired(CurrentTarget));
         }
 
