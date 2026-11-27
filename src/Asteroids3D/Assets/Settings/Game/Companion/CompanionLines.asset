@@ -80,3 +80,6 @@ MonoBehaviour:
   - moment: rival-introduced
     speaker: 
     mustSay: 1
+  - moment: hangar.tutorial
+    speaker: 
+    mustSay: 1

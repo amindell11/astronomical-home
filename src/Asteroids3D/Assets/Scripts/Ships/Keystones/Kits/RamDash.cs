@@ -9,24 +9,21 @@ using UnityEngine;
 namespace Ships.Keystones.Kits
 {
     /// <summary>
-    /// Bulwark's kit brakes to a full stop on positioning thrusters, bracing hits from ahead, while
-    /// the pilot keeps yaw, then dashes along the nose. While the ram is live the speed cap lifts, a
+    /// Bulwark's kit brakes to a full stop on positioning thrusters while the pilot keeps yaw, then
+    /// dashes along the nose. Through the brake and the live ram the ship braces: every hit from ahead
+    /// is absorbed, while the sides and rear stay open. While the ram is live the speed cap lifts, a
     /// burn drives along the launch line, and the ship is heavier. Damage and knockback follow how
     /// centred the ram's aim is, and speed only adds damage; a lighter rock shatters, a heavier one
-    /// stops the ship, and Battering ram raises that limit. That contact's own step stays immune. A ram
-    /// that makes contact refunds part of its cooldown; one that hits nothing keeps the full cooldown
-    /// and sheds its surge speed.
+    /// stops the ship, and Battering ram raises that limit. A ram that makes contact refunds part of
+    /// its cooldown; one that hits nothing keeps the full cooldown and sheds its surge speed.
     /// </summary>
     public sealed class RamDash : Dash
     {
         [Tooltip("Seconds the positioning thrusters brake the ship to a full stop before the ram launches.")]
         [Stat, SerializeField] private float brake = 0.4f;
 
-        [Tooltip("Degrees off the nose, seen from the ship's centre, inside which a hit is braced.")]
+        [Tooltip("Degrees off the nose, seen from the ship's centre, inside which the brace absorbs a hit.")]
         [Stat, SerializeField] private float braceAngle = 60f;
-
-        [Tooltip("Multiplier on a hit inside the brace.")]
-        [Stat, SerializeField] private float braceScale = 0.5f;
 
         [Tooltip("Seconds after the launch during which the dash is a live ram, until its first contact.")]
         [Stat, SerializeField] private float window = 0.45f;
@@ -94,11 +91,15 @@ namespace Ships.Keystones.Kits
         public override string DisplayName => "Ram";
         public float Window => window;
         public float ShipDamage => shipDamage;
+        public float BraceAngle => braceAngle;
+        public int BracedHits { get; private set; }
+        public Vector3 LastBracedPoint { get; private set; }
         public bool Braking => brakeStepsLeft != -1;
+        public bool Bracing => Braking || RamLive;
         private float SinceLaunch => SinceActivation - launchedAt;
         public bool RamLive => launched && SinceLaunch < window && (!resolved || SinceLaunch == resolvedAt);
         public override bool Active => RamLive;
-        public override bool SeeksContact => Braking || RamLive;
+        public override bool SeeksContact => Bracing;
         public override bool ContactsByHull => RamLive;
         // The servo aims the nose everywhere except the live ram, which holds its launch line.
         public override bool FliesNavigatorHeading => RamLive;
@@ -108,13 +109,18 @@ namespace Ships.Keystones.Kits
         public override float PeakSpeedScale => surgeSpeedScale;
         public override float MassScale => RamLive ? massScale : 1f;
 
-        public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
-
-        public override float DamageScale(in DamageInfo hit)
+        public override bool Blocks(in DamageInfo hit)
         {
-            if (!Braking) return 1f;
+            if (!Bracing) return false;
             var toHit = GamePlane.WorldPointToPlane(hit.HitPoint) - GamePlane.WorldPointToPlane(Body.worldCenterOfMass);
-            return Vector2.Angle(nose, toHit) <= braceAngle ? braceScale : 1f;
+            return Vector2.Angle(nose, toHit) <= braceAngle;
+        }
+
+        public override void NotifyBlocked(DamageInfo hit)
+        {
+            if (!Blocks(in hit)) return;
+            BracedHits++;
+            LastBracedPoint = hit.HitPoint;
         }
 
         public override bool ShouldActivate(in KeystoneContext context)

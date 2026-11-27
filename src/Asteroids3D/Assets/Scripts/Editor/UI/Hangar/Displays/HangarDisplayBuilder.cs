@@ -27,6 +27,8 @@ namespace UI.Hangar.Displays
         private const float BarWidth = Segments * SegmentWidth + (Segments - 1) * SegmentGap;
         private const float ArrowWidth = 48f;
         private const float ArrowHeight = 56f;
+        private const string HintKeys = "\u2039 \u203a  <color=#9FB0BF>or</color>  A / D";
+        private const string HintVerb = "<color=#9FB0BF>to change</color>";
 
         private static readonly Color Amber = new(1f, .80f, .50f, 1f);
         private static readonly Color Ink = new(.84f, .92f, 1f, 1f);
@@ -148,6 +150,10 @@ namespace UI.Hangar.Displays
             var title = Text(layout, "Title", titles, 40, TextAnchor.MiddleCenter, Ink, new Rect(0f, 6f, width, 52f));
             var lockTag = Text(layout, "LockTag", labels, 24, TextAnchor.MiddleCenter, Locked, new Rect(0f, 56f, width, 26f));
             lockTag.text = "LOCKED";
+            var hint = Text(layout, "Hint", labels, 34, TextAnchor.MiddleCenter, Ink, new Rect(0f, 54f, width, 34f));
+            hint.horizontalOverflow = HorizontalWrapMode.Overflow;
+            hint.text = HintKeys + "  " + HintVerb;
+            hint.gameObject.SetActive(false);
             lockTag.gameObject.SetActive(false);
 
             const float silhouetteSize = 280f;
@@ -222,6 +228,7 @@ namespace UI.Hangar.Displays
             Assign(view.FindProperty("bars"), bars);
             view.FindProperty("shipButton").objectReferenceValue = shipButton;
             view.FindProperty("shipBracket").objectReferenceValue = shipBracket;
+            view.FindProperty("hint").objectReferenceValue = hint.gameObject;
             view.FindProperty("previousArrow").objectReferenceValue = previousArrow;
             view.FindProperty("nextArrow").objectReferenceValue = nextArrow;
             view.FindProperty("keystoneIcon").objectReferenceValue = keystoneIcon;
@@ -307,6 +314,12 @@ namespace UI.Hangar.Displays
             var headerText = Text(content, "Header", labels, headerSize, TextAnchor.UpperLeft, Label,
                 new Rect(headerX, headerY, headerWidth, headerHeight));
             headerText.text = header;
+            var hint = Text(content, "Hint", labels, 23, TextAnchor.UpperLeft, Ink,
+                new Rect(headerX, headerY + 24f, dividerX - headerX, 44f));
+            hint.lineSpacing = .9f;
+            hint.horizontalOverflow = HorizontalWrapMode.Overflow;
+            hint.text = HintKeys + "\n" + HintVerb;
+            hint.gameObject.SetActive(false);
             var title = Text(content, "Title", titles, titleSize, TextAnchor.MiddleCenter, Ink,
                 new Rect(titleLeft, titleY, titleRight - titleLeft, titleHeight));
             var previous = Arrow(content, "Previous", new Rect(dividerX, arrowY, arrowWidth, arrowHeight), -1, true);
@@ -371,6 +384,7 @@ namespace UI.Hangar.Displays
             view.FindProperty("damage").objectReferenceValue = damage;
             view.FindProperty("damageCaption").objectReferenceValue = damageCaption;
             view.FindProperty("bracket").objectReferenceValue = bracket;
+            view.FindProperty("hint").objectReferenceValue = hint.gameObject;
             view.FindProperty("select").objectReferenceValue = select;
             view.FindProperty("previous").objectReferenceValue = previous;
             view.FindProperty("next").objectReferenceValue = next;

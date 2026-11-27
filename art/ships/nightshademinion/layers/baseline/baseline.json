@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "texture_size": 4096,
+  "masks": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "Emission",
+    "Region_Nightshade Edge",
+    "Region_Nightshade Glass",
+    "Region_Nightshade Midnight",
+    "Region_Nightshade Recess",
+    "Region_Nightshade Violet"
+  ],
+  "geometry": "d229d6d92718f49ec25231026d0c24c7f888ad23901dcf319585f0e9bac8caac",
+  "uv": "a71716ec5c4e2517e1b65ad2a30272298ce34fe4122fdb1903cc650296988c5d",
+  "blender_version": "5.1.2"
+}

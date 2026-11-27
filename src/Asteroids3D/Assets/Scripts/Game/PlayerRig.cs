@@ -99,7 +99,6 @@ namespace Game
         private SessionFrame frame;
         private CanopyProjection projection;
         private CanopyPersonality personality;
-        private bool firstRunPromptsShown;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -338,14 +337,7 @@ namespace Game
             Spawns.Watch(phase ? phase.Elite : null);
             if (personality) personality.EnterSector(phase);
             if (Overlay) Overlay.BindElite(phase ? phase.Elite : null);
-            if (!phase || firstRunPromptsShown) return;
-            firstRunPromptsShown = true;
-            if (Overlay) Overlay.ShowFirstRunPrompts(() => FirstSectorPhaseOver(phase));
         }
-
-        // A lull's Index names the next sector phase; an unloaded sector has ended the first too.
-        private static bool FirstSectorPhaseOver(PhaseSpineModule spine) =>
-            !spine || spine.Phase.Index >= 1 || spine.Phase.Done;
 
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).
         private HudBinding BuildHudBinding()

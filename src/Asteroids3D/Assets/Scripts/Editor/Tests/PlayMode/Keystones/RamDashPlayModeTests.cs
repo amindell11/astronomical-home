@@ -144,7 +144,7 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
-        public IEnumerator Brace_HalvesAFrontalHit_DuringTheBrake()
+        public IEnumerator Brace_AbsorbsAFrontalHit_DuringTheBrake()
         {
             yield return SpawnBulwark();
             bulwark.Movement.Drive(new PilotCommand { boost = 1f });
@@ -152,7 +152,8 @@ namespace Tests.PlayMode.Keystones
             Assert.That(ram.Braking, Is.True, "the ram is braking");
 
             var centre = bulwark.Rigidbody.worldCenterOfMass;
-            Assert.That(Lost(centre + Nose * 5f), Is.EqualTo(10f).Within(1e-3f), "a hit ahead of the nose is braced");
+            Assert.That(Lost(centre + Nose * 5f), Is.EqualTo(0f).Within(1e-3f), "a hit ahead of the nose is absorbed");
+            Assert.That(ram.BracedHits, Is.EqualTo(1), "the brace's tell hears of it");
             Assert.That(Lost(centre - Nose * 5f), Is.EqualTo(20f).Within(1e-3f), "a hit from behind is not");
 
             float Lost(Vector3 point)

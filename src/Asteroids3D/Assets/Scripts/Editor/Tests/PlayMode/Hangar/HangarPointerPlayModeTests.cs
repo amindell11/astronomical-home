@@ -70,7 +70,7 @@ namespace Tests.PlayMode.Hangar
         {
             var offer = AssetDatabase.LoadAssetAtPath<Game.GameHost>("Assets/Prefabs/Game/GameHost.prefab").hangarOffer;
             console = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
-            console.Show(offer, new ShipLoadout(offer.starter, null, null), _ => true, null);
+            console.Show(offer, new ShipLoadout(offer.starter, null, null), _ => true, tutorial: false, greet: null, null);
             var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
             eventSystemObject = eventSystem.gameObject;
             yield return null;
@@ -109,7 +109,7 @@ namespace Tests.PlayMode.Hangar
         {
             var offer = AssetDatabase.LoadAssetAtPath<Game.GameHost>("Assets/Prefabs/Game/GameHost.prefab").hangarOffer;
             console = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
-            console.Show(offer, new ShipLoadout(offer.starter, null, null), _ => true, null);
+            console.Show(offer, new ShipLoadout(offer.starter, null, null), _ => true, tutorial: false, greet: null, null);
             var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
             eventSystemObject = eventSystem.gameObject;
             yield return null;
