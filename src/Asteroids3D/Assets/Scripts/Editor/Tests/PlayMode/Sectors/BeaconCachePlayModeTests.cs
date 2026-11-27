@@ -17,6 +17,7 @@ using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -24,14 +25,17 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector with a beacon cache beside its spine: each beacon claim adds one rolled bonus to the run's mods and shows it with its seconds left, each bonus runs out on its own clock and is taken back, teardown takes back a running one and leaves the run's picks, the hull patch restores hull at once without touching the mods and wastes what passes full, and a sector whose beacons don't run grants nothing.</summary>
+    /// <summary>A phased sector with a beacon cache beside its spine: each beacon claim adds one rolled bonus to the run's mods and shows it with its seconds left, each bonus runs out on its own clock and is taken back, teardown takes back a running one and leaves the run's picks, the hull patch restores hull at once without touching the mods and wastes what passes full, a sector whose beacons don't run grants nothing, and a shipped shield bonus applies to a live ship and comes off again.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class BeaconCachePlayModeTests : PlayModeWorldFixture
     {
+        private const string ShieldSurgePath = "Assets/Settings/Game/BeaconCache/ShieldSurge.asset";
+
         private UnitService _unitService;
         private ObjectiveService _objectives;
         private readonly List<Object> _created = new();
+        private Ship _shielded;
 
         [SetUp]
         public override void SetUp()
@@ -47,6 +51,7 @@ namespace Tests.PlayMode.Sectors
         public override void TearDown()
         {
             if (_unitService) _unitService.Clear();
+            ShipTestFactory.DestroyShip(_shielded);
             foreach (var item in _created)
                 if (item) Object.DestroyImmediate(item);
             _created.Clear();
@@ -154,6 +159,24 @@ namespace Tests.PlayMode.Sectors
             Assert.AreSame(ShipMods.None, hero.Mods.ForShip());
             Assert.IsEmpty(_objectives.Boosts);
             yield return world.Sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator TheShieldBonus_AppliesToALiveShip_AndComesOffAgain()
+        {
+            _shielded = ShipTestFactory.CreateDefaultShip(Projectiles);
+            yield return null;
+            var authored = _shielded.Stats.shieldRegenRate;
+            Assert.Greater(authored, 0f, "The default ship regenerates its shield.");
+            var stack = new LullModStack();
+            _shielded.BindMods(stack);
+            var bonus = AssetDatabase.LoadAssetAtPath<ShipMod>(ShieldSurgePath);
+            Assert.IsTrue(bonus.Fits(_shielded));
+
+            stack.Add(bonus);
+            Assert.AreEqual(authored * 2f, _shielded.Stats.shieldRegenRate, 1e-3f, "The live ship regenerates twice as fast at once.");
+            stack.Remove(bonus);
+            Assert.AreEqual(authored, _shielded.Stats.shieldRegenRate, 1e-3f, "Taking it back restores the authored rate.");
         }
 
         private sealed class World

@@ -661,14 +661,14 @@ Format: **term** — definition. *(authority)*
   The first *station* kind. *(RepairStation, RepairStationFeelProfile,
   `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
-  one roll among the authored mod bonuses that fit the hero, all weighted
-  alike. The stat surges (damage, fire rate, shield regen) are pulled, so the
-  shipped feel lists no bonus and every claim rolls the hull patch. A bonus joins
+  one roll among the authored mod bonuses that fit the hero (damage, fire
+  rate, shield regen), all weighted alike. A bonus joins
   the run's mods for 20 s by default, adding to lull picks rather than
   multiplying them, and the HUD lists it with its seconds left. Each claim's
   bonus runs on its own clock, and sector teardown takes back any still
-  running. The *hull patch* is a further roll, weighted 1 against each
-  fitting bonus. It restores 30% of a full hull at once, touches no mods, and wastes what
+  running. The *hull patch* is a further roll that ships with a weight of 0, so
+  no claim rolls it and repair stations are the sector's hull repair. Weighted
+  in, it restores 30% of a full hull at once, touches no mods, and wastes what
   passes full. A low-hull lean, off by default, multiplies the patch's weight
   while the hero's hull is below a threshold. No beacon, no
   cache: headless and harness sectors never grant one. *(BeaconCache,
