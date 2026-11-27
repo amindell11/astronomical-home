@@ -546,6 +546,28 @@ namespace Tests.EditMode.Ships
             Assert.That(guard.CooldownRemaining, Is.EqualTo(Cooldown).Within(1e-4f), "then the cooldown starts");
         }
 
+        // Steps of 1/8 s keep every clock sum exact, so the last step inside the window is unambiguous.
+        [Test]
+        public void DoubleDash_TheSecondFiresOnlyOnAStepInsideItsWindow([Values] bool lastStepInside)
+        {
+            const float step = 0.125f;
+            var guard = NewKit<GuardDash>();
+            var so = new SerializedObject(guard);
+            so.FindProperty("doubleDashWindow").floatValue = 0.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            guard.Behaviours.Set(new BehaviourMod[] { Key("DoubleDash") });
+            var kin = Facing(0f);
+
+            guard.Step(in kin, 1f, step, out _);
+            guard.Step(in kin, 0f, step, out _);
+            guard.Step(in kin, 0f, step, out _);
+            if (!lastStepInside) guard.Step(in kin, 0f, step, out _);
+            guard.Step(in kin, 1f, step, out var second);
+
+            Assert.That(second, Is.EqualTo(lastStepInside),
+                lastStepInside ? "a press on the last step inside the window fires the second" : "a press as the window closes does not");
+        }
+
         [Test]
         public void OtherKits_HaveNoSight()
         {
