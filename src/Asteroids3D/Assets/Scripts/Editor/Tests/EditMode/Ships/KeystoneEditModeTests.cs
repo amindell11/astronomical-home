@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Combat.Targeting;
 using Damage;
+using Loot;
 using Movement;
 using NUnit.Framework;
 using Ships;
@@ -11,6 +12,7 @@ using Ships.Damage;
 using Ships.Keystones.Kits;
 using Ships.Keystones.Tells;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Registry;
 using Substrate;
 using UnityEditor;
@@ -561,8 +563,41 @@ namespace Tests.EditMode.Ships
             so.FindProperty("thrustScale").floatValue = 1.5f;
             so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
+            so.FindProperty("snapTurn").objectReferenceValue = SnapTurn;
+            so.FindProperty("orbit").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<KeystoneMod>("Assets/Settings/Ships/Keystones/Mods/Orbit.asset");
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
+        }
+
+        private static KeystoneMod SnapTurn =>
+            AssetDatabase.LoadAssetAtPath<KeystoneMod>("Assets/Settings/Ships/Keystones/Mods/SnapTurn.asset");
+
+        [Test]
+        public void SnapTurn_SwingsTheWholeVelocityOntoTheNose_AsTheWindowEnds_KeepingSpeed([Values] bool held)
+        {
+            var kit = NewOverdrive();
+            if (held) kit.Behaviours.Set(new BehaviourMod[] { SnapTurn });
+            // Nose along -x, sliding along +y.
+            var sliding = new Kinematics(Vector2.zero, new Vector2(0f, 30f), 90f, 0f, 0f);
+            Assert.That(sliding.Forward.x, Is.EqualTo(-1f).Within(1e-4f));
+
+            var swing = kit.Step(in sliding, 1f, Dt, out _, 32f).Acceleration;
+            while (kit.Active)
+            {
+                Assert.That(swing, Is.EqualTo(Vector2.zero), "nothing swings inside the window");
+                swing = kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration;
+            }
+
+            var after = sliding.vel + swing * Dt;
+            if (!held)
+            {
+                Assert.That(swing, Is.EqualTo(Vector2.zero), "without Snap turn the ship slides on");
+                return;
+            }
+            Assert.That(after.x, Is.EqualTo(-30f).Within(1e-3f), "the whole velocity lies on the nose");
+            Assert.That(after.y, Is.EqualTo(0f).Within(1e-3f));
+            Assert.That(kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration, Is.EqualTo(Vector2.zero), "it swings once");
         }
 
         [Test]

@@ -91,7 +91,7 @@ namespace Ships.Movement
 
             var kinematics = Kinematics;
             var effect = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated,
-                settings.maxSpeed, currentCommand.abilityTarget);
+                settings.maxSpeed, currentCommand.abilityTarget, currentCommand.yawTorque);
             rb.mass = settings.mass * keystone.MassScale;
             currentCommand.boost = activated ? 1f : 0f;
             if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);

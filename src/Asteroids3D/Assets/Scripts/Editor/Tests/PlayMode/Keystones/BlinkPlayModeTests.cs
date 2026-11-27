@@ -7,11 +7,13 @@ using Asteroids.Spawning;
 using Combat;
 using Combat.Projectiles;
 using Damage;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Ships.Registry;
 using Substrate;
 using Tests.PlayMode.Common;
@@ -28,6 +30,7 @@ namespace Tests.PlayMode.Keystones
         private const string MissilePath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
+        private const string RecallPath = "Assets/Settings/Ships/Keystones/Mods/Recall.asset";
 
         private readonly List<GameObject> spawned = new();
         private Ship crimson;
@@ -65,6 +68,56 @@ namespace Tests.PlayMode.Keystones
             Assert.That(jump.x, Is.EqualTo(blink.Range).Within(0.5f), "the jump is clamped to range along the aim");
             Assert.That(Mathf.Abs(jump.y), Is.LessThan(0.5f), "only the one step of drift on top");
             Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, velocity), Is.LessThan(0.5f), "velocity is preserved");
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_AFreshPressOnCooldown_JumpsBackToTheStart_KeepingVelocity()
+        {
+            yield return SpawnCrimson();
+            blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+            var velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
+            crimson.Rigidbody.linearVelocity = velocity;
+            var start = Plane(crimson.Rigidbody.position);
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            Assert.That(blink.Marker.HasValue && Vector2.Distance(blink.Marker.Value, start) < 0.5f, Is.True,
+                "the blink marks where it started");
+            for (var i = 0; i < 3; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(Plane(crimson.Rigidbody.position).x - start.x, Is.GreaterThan(blink.Range - 1f),
+                "the press that blinked does not also recall");
+            Assert.That(blink.Ready, Is.False, "the blink is on cooldown");
+
+            var before = crimson.Rigidbody.linearVelocity;
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(Mathf.Abs(Plane(crimson.Rigidbody.position).x - start.x), Is.LessThan(0.5f), "back at the marker");
+            Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, before), Is.LessThan(0.5f), "keeping its velocity");
+            Assert.That(blink.Activations, Is.EqualTo(1), "a recall is not a second blink");
+            Assert.That(blink.Marker, Is.Null, "the marker is spent");
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_OutsideItsWindow_OrWithoutTheMod_DoesNothing([Values] bool held)
+        {
+            yield return SpawnCrimson();
+            if (held) blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+            var start = Plane(crimson.Rigidbody.position);
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            var window = new SerializedObject(blink).FindProperty("recallWindow").floatValue;
+            var wait = held ? Mathf.CeilToInt(window / Time.fixedDeltaTime) + 2 : 3;
+            for (var i = 0; i < wait; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(blink.Ready, Is.False, "the press comes on cooldown");
+            var landed = Plane(crimson.Rigidbody.position);
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), landed), Is.LessThan(0.5f), "no jump back");
         }
 
         [UnityTest]

@@ -109,6 +109,7 @@ namespace Ships
         public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
+        public float ShotDamageScale => Keystone ? Keystone.ShotDamageScale : 1f;
 
         Transform IShipStatus.Transform => transform;
         void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
@@ -270,7 +271,7 @@ namespace Ships
             else if (Rigidbody) Rigidbody.inertiaTensor *= this.scale.Mass * this.scale.Size * this.scale.Size;
 
             Stats.shipRadius = DeriveShipRadius();
-            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));
+            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock, this, projectiles));
 
             baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 

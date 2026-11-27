@@ -74,6 +74,9 @@ namespace Ships.Keystones
         /// <summary>Multiplier on the ship's mass, applied every step.</summary>
         public virtual float MassScale => 1f;
 
+        /// <summary>Multiplier on every hit the ship's own shots deal, fixed as each shot leaves.</summary>
+        public virtual float ShotDamageScale => 1f;
+
         /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
         public virtual float PeakSpeedScale => 1f;
         public virtual float PeakThrustScale => 1f;
@@ -81,15 +84,20 @@ namespace Ships.Keystones
         protected float SinceActivation => clock - activatedAt;
         protected KeystoneHost Host { get; private set; }
 
+        /// <summary>The pilot's turn command this step, -1 to 1; positive turns the nose counter-clockwise.</summary>
+        protected float Turn { get; private set; }
+
         public void Initialize(in KeystoneHost host) => Host = host;
 
         /// <param name="target">Where the pilot points the ability, as a plane point; null means straight ahead.</param>
+        /// <param name="turn">The pilot's turn command, which <see cref="Turn"/> reports.</param>
         public KeystoneEffect Step(in Kinematics kinematics, float input, float dt, out bool activated,
-            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null)
+            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null, float turn = 0f)
         {
             clock += dt;
+            Turn = turn;
             activated = Ready && input != 0f;
-            var effect = activated ? Commit(in kinematics, target) : default;
+            var effect = activated ? Commit(in kinematics, target) : Idle(in kinematics, input);
             return effect + Sustain(in kinematics, dt, baseMaxSpeed);
         }
 
@@ -141,6 +149,9 @@ namespace Ships.Keystones
         protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
 
         protected virtual KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed) => default;
+
+        /// <summary>Each step the input does not activate the kit, with that input: pressed on cooldown, or released.</summary>
+        protected virtual KeystoneEffect Idle(in Kinematics kinematics, float input) => default;
 
         protected virtual void OnReset() { }
 

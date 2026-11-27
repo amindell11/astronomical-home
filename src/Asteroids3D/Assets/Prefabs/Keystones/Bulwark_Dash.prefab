@@ -69,6 +69,8 @@ MonoBehaviour:
   maxKnockbackSpeed: 15
   damageReferenceSpeed: 16
   maxSpeedBonus: 1.6
+  batteringRam: {fileID: 11400000, guid: a035c1aa9a4e421eb754e68cffbc891c, type: 2}
+  batteringRamMass: 3
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0

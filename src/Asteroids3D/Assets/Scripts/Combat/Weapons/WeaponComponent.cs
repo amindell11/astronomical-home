@@ -68,6 +68,9 @@ namespace Combat.Weapons
         /// <summary>The held weapon behaviour mods that land on this mount.</summary>
         public HeldBehaviours Behaviours { get; } = new();
 
+        /// <summary>Multiplier on a shot's authored damage as it leaves: the damage mods and the shooter's own scale.</summary>
+        protected float ShotDamageFactor => Mods.Factor(WeaponModField.Damage) * (shooter?.ShotDamageScale ?? 1f);
+
         protected virtual void Awake()
         {
             shooter = GetComponentInParent<IShooter>();

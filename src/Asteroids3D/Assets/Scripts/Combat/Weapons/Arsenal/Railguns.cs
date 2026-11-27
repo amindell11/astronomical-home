@@ -6,7 +6,6 @@ using Damage;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
-using Combat.Weapons.Mods;
 using Substrate;
 
 namespace Combat.Weapons.Arsenal
@@ -164,7 +163,7 @@ namespace Combat.Weapons.Arsenal
             // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
             var attackerId = shooter?.Id ?? Ships.Registry.ShipId.Invalid;
-            var remaining = Mods.Apply(WeaponModField.Damage, damage);
+            var remaining = damage * ShotDamageFactor;
             struck.Clear();
             for (var i = 0; i < count; i++)
             {
