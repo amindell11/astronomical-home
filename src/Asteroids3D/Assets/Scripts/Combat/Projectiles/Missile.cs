@@ -61,7 +61,6 @@ namespace Combat.Projectiles
         /// <summary>Steers at the point <paramref name="aimPoint"/> reads each step, in place of a lock.</summary>
         public void Wire(Func<Vector3> aimPoint) => wire = aimPoint;
 
-        /// <summary>A direct hit on a ship jams its weapons and locks for <paramref name="seconds"/>.</summary>
         public void Jam(float seconds) => jamSeconds = seconds;
 
         private void Track()

@@ -91,7 +91,6 @@ namespace Combat.Projectiles
         /// <summary>Per-shot multiplier on the wave's push, negative to pull, set by the launcher after launch; resets to 1 on pool return.</summary>
         public void SetBlastPush(float scale) => blastPush = scale;
 
-        /// <summary>The charge sticks to the first ship it touches and detonates <paramref name="fuse"/> seconds later.</summary>
         public void Limpet(float fuse) => limpetFuse = fuse;
 
         event Action IChargeFlight.Ended

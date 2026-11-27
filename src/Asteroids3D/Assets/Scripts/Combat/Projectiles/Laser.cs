@@ -31,10 +31,8 @@ namespace Combat.Projectiles
         /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
         public void BankOnce() => banks = true;
 
-        /// <summary>The bolt flies through other shooters' missiles and charges instead of setting them off.</summary>
         public void PassOrdnance() => passesOrdnance = true;
 
-        /// <summary>Counts this bolt's hit on a ship toward <paramref name="fire"/>'s steady fire.</summary>
         public void Suppress(SuppressingFire fire) => suppressing = fire;
 
         protected override void OnHit(IDamageable other, Collider collider)
@@ -46,6 +44,7 @@ namespace Combat.Projectiles
                 Bank(collider);
                 return;
             }
+            // The owner can still pop its own charge early.
             if (passesOrdnance && other is ProjectileBase ordnance && ordnance.Shooter != Shooter) return;
             if (suppressing != null && other is DamageController hull && hull.Ship)
                 suppressing.Strike(hull.Ship.Status, Time.fixedTime);
