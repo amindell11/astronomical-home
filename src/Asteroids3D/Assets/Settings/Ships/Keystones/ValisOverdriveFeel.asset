@@ -177,7 +177,7 @@ MonoBehaviour:
     centreAhead: -0.405
     anchorAhead: -0.405
     depth: 0.55
-    staysAtLaunch: 0
+    staysAtLaunch: 1
     startsBehind: 0
     followsTravel: 0
     goneAtSpeed: 0
