@@ -19,8 +19,10 @@ namespace Ships.Keystones.Tells
         private static readonly int FadeId = Shader.PropertyToID("_Fade");
         private static readonly int ProgressId = Shader.PropertyToID("_Progress");
         private static readonly int ElapsedId = Shader.PropertyToID("_Elapsed");
-        private static readonly int HitAngleId = Shader.PropertyToID("_HitAngle");
-        private static readonly int HitAgeId = Shader.PropertyToID("_HitAge");
+        private static readonly int HitAnglesId = Shader.PropertyToID("_HitAngles");
+        private static readonly int HitAgesId = Shader.PropertyToID("_HitAges");
+        private static readonly int HitFadeId = Shader.PropertyToID("_HitFade");
+        private const int ShownHits = 4;
         private static Mesh quad;
 
         [SerializeField] private RamDash ram;
@@ -44,8 +46,10 @@ namespace Ships.Keystones.Tells
         private float bracedFor;
         private float releasedFor;
         private int seenBracedHits;
-        private float hitAt = float.NegativeInfinity;
-        private float hitAngle;
+        // Finite, so ages stay finite in the shader.
+        private readonly float[] hitAt = { -1000f, -1000f, -1000f, -1000f };
+        private Vector4 hitAngles;
+        private int nextHit;
 
         private void Awake()
         {
@@ -93,9 +97,10 @@ namespace Ships.Keystones.Tells
             if (ram.BracedHits != seenBracedHits)
             {
                 seenBracedHits = ram.BracedHits;
-                hitAt = Time.time;
                 var toHit = ram.LastBracedPoint - centre;
-                hitAngle = Mathf.Atan2(Vector3.Dot(toHit, pose * Vector3.right), Vector3.Dot(toHit, pose * Vector3.up));
+                hitAt[nextHit] = Time.time;
+                hitAngles[nextHit] = Mathf.Atan2(Vector3.Dot(toHit, pose * Vector3.right), Vector3.Dot(toHit, pose * Vector3.up));
+                nextHit = (nextHit + 1) % ShownHits;
             }
 
             if (ram.Braking)
@@ -106,8 +111,12 @@ namespace Ships.Keystones.Tells
             }
             else releasedFor += Time.deltaTime;
 
-            var fade = ram.Braking ? 1f : fadeOut > 0f ? 1f - releasedFor / fadeOut : 0f;
-            if (fade <= 0f)
+            var fade = ram.Braking ? 1f : fadeOut > 0f ? Mathf.Max(0f, 1f - releasedFor / fadeOut) : 0f;
+            var hitFade = material.GetFloat(HitFadeId);
+            var hitAges = new Vector4(
+                Time.time - hitAt[0], Time.time - hitAt[1], Time.time - hitAt[2], Time.time - hitAt[3]);
+            var hitShowing = Mathf.Min(Mathf.Min(hitAges.x, hitAges.y), Mathf.Min(hitAges.z, hitAges.w)) < hitFade;
+            if (fade <= 0f && !hitShowing)
             {
                 arcRenderer.enabled = false;
                 return;
@@ -119,8 +128,8 @@ namespace Ships.Keystones.Tells
             block.SetFloat(FadeId, fade);
             block.SetFloat(ProgressId, ram.HoldProgress);
             block.SetFloat(ElapsedId, bracedFor);
-            block.SetFloat(HitAngleId, hitAngle);
-            block.SetFloat(HitAgeId, Time.time - hitAt);
+            block.SetVector(HitAnglesId, hitAngles);
+            block.SetVector(HitAgesId, hitAges);
             arcRenderer.SetPropertyBlock(block);
             arcRenderer.enabled = true;
         }

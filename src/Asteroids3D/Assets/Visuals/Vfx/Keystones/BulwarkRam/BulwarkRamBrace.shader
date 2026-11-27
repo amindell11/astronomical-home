@@ -12,8 +12,9 @@ Shader "Astronomical/Vfx/Bulwark Ram Brace"
         [HideInInspector] _Fade ("Fade", Float) = 1
         [HideInInspector] _Progress ("Hold Progress", Float) = 0
         [HideInInspector] _Elapsed ("Elapsed", Float) = 0
-        [HideInInspector] _HitAngle ("Hit Angle", Float) = 0
-        [HideInInspector] _HitAge ("Hit Age", Float) = 1
+        _HitFade ("Hit Fade Seconds", Range(0.05, 1)) = 0.35
+        [HideInInspector] _HitAngles ("Hit Angles", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _HitAges ("Hit Ages", Vector) = (9, 9, 9, 9)
     }
     SubShader
     {
@@ -39,8 +40,9 @@ Shader "Astronomical/Vfx/Bulwark Ram Brace"
                 float _Fade;
                 float _Progress;
                 float _Elapsed;
-                float _HitAngle;
-                float _HitAge;
+                float _HitFade;
+                float4 _HitAngles;
+                float4 _HitAges;
             CBUFFER_END
             struct Input { float4 vertex:POSITION; };
             struct Varying { float4 position:SV_POSITION; float2 local:TEXCOORD0; };
@@ -83,31 +85,41 @@ Shader "Astronomical/Vfx/Bulwark Ram Brace"
                 float sweepRate = lerp(1.2, 4.0, _Progress);
                 float sheen = pow(saturate(1 - abs(frac(_Elapsed * sweepRate) * 2.4 - 1.2 - angle / (2 * _HalfAngle))), 6);
 
-                // A braced hit lights its plate and sends a ripple both ways along the arc.
-                float hitPlate = floor((_HitAngle + _HalfAngle) / plateWidth);
-                float hitLive = 1 - saturate(_HitAge / 0.3);
-                float plateFlash = (plateIndex == hitPlate ? 1 : 0) * hitLive * hitLive;
-                float ripple = (1 - smoothstep(0, 0.12, abs(abs(angle - _HitAngle) - _HitAge * 6))) * hitLive;
-                // Three sparks glance off outward from the hit.
+                // Each recent braced hit flares around where it struck, ripples along the arc and
+                // glances sparks off the rim, fading out on its own clock.
+                float flash = 0;
+                float ripple = 0;
                 float sparks = 0;
-                float head = centre + 0.05 + _HitAge * 1.6;
-                [unroll] for (int s = -1; s <= 1; s++)
+                [unroll] for (int h = 0; h < 4; h++)
                 {
-                    float d = abs(angle - (_HitAngle + s * 0.14)) * r;
-                    sparks += (1 - smoothstep(0.004, 0.012 + aa, d))
-                        * smoothstep(head - 0.3, head - 0.05, r) * (1 - smoothstep(head - 0.05, head, r));
+                    float hitAngle = _HitAngles[h];
+                    float age = _HitAges[h];
+                    float t = saturate(age / _HitFade);
+                    float live = (1 - t) * (1 - t);
+                    float off = abs(angle - hitAngle);
+                    float samePlate = floor((hitAngle + _HalfAngle) / plateWidth) == plateIndex ? 1 : 0;
+                    flash += live * max(samePlate * 0.45, 1 - smoothstep(0.05, 0.4, off));
+                    ripple += live * (1 - smoothstep(0, 0.1, abs(off - age * 2.5)));
+                    float head = centre + 0.08 + age * 1.2;
+                    [unroll] for (int s = -1; s <= 1; s++)
+                    {
+                        float d = abs(angle - (hitAngle + s * 0.16)) * r;
+                        sparks += live * (1 - smoothstep(0.008, 0.016 + aa, d))
+                            * smoothstep(centre - 0.02, centre + 0.02, r) * smoothstep(head - 0.35, head - 0.1, r)
+                            * (1 - smoothstep(head - 0.04, head, r));
+                    }
                 }
-                sparks *= hitLive;
 
                 float plate = face * 0.5 + rim * 0.9 + halo * 0.25 + sheen * face * 0.9;
                 float body = plate * seam * inArc;
-                float hotPlate = saturate((plateFlash + ripple * 0.8) * (face + rim)) * seam * inArc;
-                float hotMask = saturate(hotPlate + sparks);
+                float hotPlate = saturate((flash + ripple * 0.6) * (face + rim)) * seam * inArc;
+                float hot = saturate(hotPlate + sparks);
 
-                float3 rgb = _Color.rgb * body + _HotColor.rgb * hotMask * 1.4;
-                float alpha = saturate(body * 0.55 + hotMask * 0.4);
+                // The plates fade with the brace; a hit already landed finishes its own fade.
                 float k = _Opacity * saturate(_Fade);
-                return half4(rgb * k, alpha * k);
+                float3 rgb = _Color.rgb * body * k + _HotColor.rgb * hot * 1.4 * _Opacity;
+                float alpha = saturate(body * 0.55 * k + hot * 0.4 * _Opacity);
+                return half4(rgb, alpha);
             }
             ENDHLSL
         }
