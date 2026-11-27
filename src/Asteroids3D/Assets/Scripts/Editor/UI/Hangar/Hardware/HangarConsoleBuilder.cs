@@ -21,6 +21,9 @@ namespace UI.Hangar.Hardware
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
         private const float PixelsPerUnit = 200f;
+        private const string LabelFontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
+        private const string TitleFontPath = "Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf";
+        private const string CanopyTextMaterialGuid = "9b40b60b37593de4bb769186332c3e17";
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -144,6 +147,7 @@ namespace UI.Hangar.Hardware
                 rect.offsetMin = rect.offsetMax = Vector2.zero;
                 image.raycastTarget = false;
                 image.material = ShaderMaterial("ConsoleComposite", "Hangar/ConsoleComposite");
+                var checklist = Checklist(root.transform);
 
                 var lens = parts["ProjectorLens"].transform;
                 var projectorObject = (GameObject)PrefabUtility.InstantiatePrefab(
@@ -223,6 +227,10 @@ namespace UI.Hangar.Hardware
                 data.FindProperty("ordnanceNextButton").objectReferenceValue = ordnanceNext;
                 data.FindProperty("launchLegend").objectReferenceValue = parts["LaunchLegend"];
                 data.FindProperty("compositeImage").objectReferenceValue = image;
+                data.FindProperty("checklist").objectReferenceValue = checklist;
+                data.FindProperty("commFont").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Font>(LabelFontPath);
+                data.FindProperty("commMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(
+                    AssetDatabase.GUIDToAssetPath(CanopyTextMaterialGuid));
                 data.FindProperty("projector").objectReferenceValue = projectorObject.GetComponent<HangarHologramProjector>();
                 data.FindProperty("mainDisplay").objectReferenceValue = mainView.GetComponent<HangarDisplay>();
                 data.FindProperty("detailDisplay").objectReferenceValue = detailView.GetComponent<HangarDisplay>();
@@ -263,6 +271,61 @@ namespace UI.Hangar.Hardware
             }
 
             AssetDatabase.SaveAssets();
+        }
+
+        // Scaled like the flight HUD's canvas so the bay's comm line keeps the HUD comm line's look.
+        private static CanvasGroup Checklist(Transform root)
+        {
+            var go = new GameObject("Checklist", typeof(RectTransform), typeof(Canvas));
+            go.transform.SetParent(root, false);
+            var canvas = go.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = HangarConsole.CompositeSortingOrder + 1;
+            var scaler = go.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(800f, 600f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0f;
+            var group = go.AddComponent<CanvasGroup>();
+            group.interactable = false;
+            group.blocksRaycasts = false;
+            var titles = AssetDatabase.LoadAssetAtPath<Font>(TitleFontPath);
+            var labels = AssetDatabase.LoadAssetAtPath<Font>(LabelFontPath);
+            ChecklistLine(go.transform, "Heading", "PRE-LAUNCH CHECK", titles, 11, Color.white, 40f, 16f);
+            var rule = (RectTransform)new GameObject("Rule", typeof(RectTransform), typeof(Image)).transform;
+            rule.SetParent(go.transform, false);
+            rule.anchorMin = rule.anchorMax = rule.pivot = new Vector2(.5f, 1f);
+            rule.anchoredPosition = new Vector2(0f, -58f);
+            rule.sizeDelta = new Vector2(150f, .75f);
+            var ruleImage = rule.GetComponent<Image>();
+            ruleImage.color = new Color(1f, 1f, 1f, .42f);
+            ruleImage.raycastTarget = false;
+            ChecklistLine(go.transform, "Steps",
+                "SELECT HULL  <color=#FFFFFF94>\u00b7</color>  SELECT WEAPONS  <color=#FFFFFF94>\u00b7</color>  OR LAUNCH AS YOU ARE",
+                labels, 9, Color.white, 61f, 14f);
+            ChecklistLine(go.transform, "Keys", "W / S or the knob: next screen", labels, 8,
+                new Color(1f, 1f, 1f, .58f), 74f, 12f);
+            go.SetActive(false);
+            return group;
+        }
+
+        private static void ChecklistLine(Transform parent, string name, string value, Font font, int size, Color color,
+            float top, float height)
+        {
+            var rect = (RectTransform)new GameObject(name, typeof(RectTransform), typeof(Text)).transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -top);
+            rect.sizeDelta = new Vector2(500f, height);
+            var text = rect.GetComponent<Text>();
+            text.font = font;
+            text.fontSize = size;
+            text.color = color;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.raycastTarget = false;
+            text.text = value;
         }
 
         private static Vector2Int Resolution(ExportManifest manifest, string glassName)
