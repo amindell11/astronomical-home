@@ -429,6 +429,8 @@ namespace Game
                                 var rival = closeUpRival;
                                 closeUpRival = null;
                                 yield return RunCloseUp(rival);
+                                // A pause cuts the close-up short and must survive the drop below.
+                                if (pauseRequested) continue;
                             }
                         }
 
@@ -1087,7 +1089,7 @@ namespace Game
             try
             {
                 yield return RivalCloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
-                    clock.Slow(1f), () => playerDied || sectorEnded || shutdownRequested || quitRun);
+                    clock.Slow(1f), () => playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested);
             }
             finally
             {
