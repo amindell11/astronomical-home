@@ -393,8 +393,8 @@ namespace UI.Hangar.Hardware
 
         private void EnableKeys()
         {
-            Key("StepBack", "<Keyboard>/leftArrow", "<Keyboard>/a", previousButton.Press);
-            Key("StepForward", "<Keyboard>/rightArrow", "<Keyboard>/d", nextButton.Press);
+            Key("StepBack", "<Keyboard>/leftArrow", "<Keyboard>/a", () => StepKey(-1).Press());
+            Key("StepForward", "<Keyboard>/rightArrow", "<Keyboard>/d", () => StepKey(1).Press());
             Key("TurnBack", "<Keyboard>/upArrow", "<Keyboard>/w", () => selection.Turn(-1));
             Key("TurnForward", "<Keyboard>/downArrow", "<Keyboard>/s", selectorKnob.Press);
             // Scroll is a signed axis; a button binding ignores the negative half.
@@ -414,6 +414,14 @@ namespace UI.Hangar.Hardware
             launch.Enable();
             actions.Add(launch);
         }
+
+        private HangarControl StepKey(int step) => selection.Selected switch
+        {
+            HangarSlot.Ship => step < 0 ? previousButton : nextButton,
+            HangarSlot.Weapon => step < 0 ? primaryPreviousButton : primaryNextButton,
+            HangarSlot.Ordnance => step < 0 ? ordnancePreviousButton : ordnanceNextButton,
+            _ => throw new ArgumentOutOfRangeException(nameof(selection.Selected), selection.Selected, null)
+        };
 
         private void Key(string name, string binding, string extra, Action act)
         {
