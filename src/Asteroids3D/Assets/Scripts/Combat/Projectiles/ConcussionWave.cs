@@ -31,6 +31,7 @@ namespace Combat.Projectiles
         private float radius;
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
+        private Ships.Ship attacker;
         private float damageScale = 1f;
         private float radiusScale = 1f;
 
@@ -54,9 +55,11 @@ namespace Combat.Projectiles
         public event Action Released;
 
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage and reach multipliers.</summary>
-        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f)
+        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f,
+            Ships.Ship attacker = null)
         {
             this.attackerId = attackerId;
+            this.attacker = attacker;
             this.damageScale = Mathf.Max(0f, damageScale);
             this.radiusScale = Mathf.Max(0f, radiusScale);
             radius = 0f;
@@ -108,7 +111,7 @@ namespace Combat.Projectiles
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
                 Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
                 target.TakeDamage(new DamageInfo(MaxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
-                    waveMass, outward * expandSpeed, hitPoint));
+                    waveMass, outward * expandSpeed, hitPoint, attacker: attacker));
             }
         }
 

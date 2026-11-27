@@ -247,7 +247,8 @@ namespace Ships.Keystones.Kits
             return Mathf.Lerp(1f, aimFloor, Mathf.InverseLerp(aimFullAngle, aimFloorAngle, angle));
         }
 
-        private static DamageInfo Hit(float amount, in KeystoneContact contact) =>
-            new(amount, DamageKind.Collision, contact.Self, contact.SelfMass, contact.SelfVelocity, contact.Point);
+        private DamageInfo Hit(float amount, in KeystoneContact contact) =>
+            new(amount, DamageKind.Collision, contact.Self, contact.SelfMass, contact.SelfVelocity, contact.Point,
+                attacker: Host.Ship);
     }
 }
