@@ -10,7 +10,7 @@ namespace UI.Prompts
 
         private const float FadeSeconds = .3f;
         private const float UnderBannerY = 176f;
-        private const float HighY = 215f;
+        private const float HighY = 270f;
         private const float Width = 560f;
         private const int TextSize = 15;
         private const float SkipGap = 10f;

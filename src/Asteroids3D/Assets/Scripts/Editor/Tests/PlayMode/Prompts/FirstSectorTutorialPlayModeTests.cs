@@ -87,6 +87,8 @@ namespace Tests.PlayMode.Prompts
             input.Release(keyboard.dKey);
             input.Press(keyboard.spaceKey);
             input.Press(mouse.leftButton);
+            // Two presses on one device in one frame queue two full states, and the second drops the first button.
+            yield return null;
             input.Press(mouse.rightButton);
             yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => tutorial.IntroDue), Timeout,
                 "using every weapon key makes the intro due");
