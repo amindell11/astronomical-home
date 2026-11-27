@@ -30,7 +30,8 @@ namespace Substrate.Sectors.Elements.Hunt
     /// fills or the search clock runs out, and every live patrol wakes and hunts the hero by sight. The marker
     /// pulses while a patrol sees the hero. The sight wedge is faint on the route, red while it sees, and amber while it chases or searches
     /// blind. The wave director holds its opening lull until <see cref="Released"/> and counts
-    /// <see cref="LivePatrols"/> as enemies alive. The events are plain C#, for listeners outside the sector.
+    /// <see cref="LivePatrols"/> as enemies alive. A held hunt keeps its patrols waiting and its clock full until it
+    /// resumes, so the guided first sector can teach before anything hunts. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
@@ -80,6 +81,9 @@ namespace Substrate.Sectors.Elements.Hunt
 
         public bool Alarmed { get; private set; }
 
+        /// <summary>True between <see cref="Hold"/> and <see cref="Resume"/>: patrols wait, nothing sees, the search clock waits full.</summary>
+        public bool Held { get; private set; }
+
         /// <summary>True once <see cref="GraceSecondsLeft"/> has run out after the alarm. The first wave waits for it.</summary>
         public bool Released { get; private set; }
 
@@ -117,6 +121,7 @@ namespace Substrate.Sectors.Elements.Hunt
             started = false;
             hasTicked = false;
             Alarmed = false;
+            Held = false;
             Released = false;
             SpottedFill = 0f;
             SearchSecondsLeft = searchSeconds;
@@ -151,6 +156,15 @@ namespace Substrate.Sectors.Elements.Hunt
             field = null;
         }
 
+        public void Hold()
+        {
+            if (Alarmed) throw new InvalidOperationException($"SectorHunt on '{name}' cannot hold a hunt whose alarm has sounded.");
+            Held = true;
+            SpottedFill = 0f;
+        }
+
+        public void Resume() => Held = false;
+
         private void Update()
         {
             if (!hero || !hero.gameObject.activeInHierarchy) return;
@@ -171,6 +185,13 @@ namespace Substrate.Sectors.Elements.Hunt
             lastNow = now;
 
             DespawnDead();
+            if (Held)
+            {
+                foreach (var patrol in patrols) patrol.Wait();
+                startTime = now;
+                SearchSecondsLeft = searchSeconds;
+                return;
+            }
             if (Alarmed)
             {
                 if (!Released)
@@ -282,7 +303,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrol.Wedge = SpawnWedge(ship);
                 patrol.OnDamaged = hit =>
                 {
-                    if (Alarmed || !hero || hit.Info.AttackerId != hero.Id) return;
+                    if (Alarmed || Held || !hero || hit.Info.AttackerId != hero.Id) return;
                     SpottedFill = Mathf.Min(1f, SpottedFill + feel.hitFill);
                     if (!patrol.Seeing)
                         patrol.ChaseBlind(GamePlane.WorldPointToPlane(hero.transform.position), PlanarVelocity(hero));
@@ -483,6 +504,9 @@ namespace Substrate.Sectors.Elements.Hunt
             }
 
             private Vector2 Here() => GamePlane.WorldPointToPlane(Ship.transform.position);
+
+            // Steering at zero speed brakes the ship where it is, guns cold; clearing it would hand it back to its brain.
+            public void Wait() => Commander.SteerTo(Here(), 0f);
 
             private void FlyRoute(float speed, float arrivalRadius)
             {
