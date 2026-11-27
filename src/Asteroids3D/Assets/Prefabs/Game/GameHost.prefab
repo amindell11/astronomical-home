@@ -101,9 +101,9 @@ MonoBehaviour:
     stationsBand:
       serializedVersion: 2
       x: 0.04
-      y: 0.22
+      y: 0.2
       width: 0.74
-      height: 0.28
+      height: 0.25
     patrolScreenHeight: 0.36
     introSkipDelaySeconds: 0.6
     wavesCardSeconds: 7
