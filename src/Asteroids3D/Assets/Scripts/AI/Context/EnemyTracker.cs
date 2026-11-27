@@ -9,7 +9,8 @@ namespace AI.Context
     /// Tracks the AI's current enemy: acquisition via the <see cref="Scout"/>, the enemy's live
     /// kinematics, and a combat-exit grace period. Unlimited, an acquired enemy is kept at any
     /// range. Sight-limited, the enemy is held only while it is seen, and a lost one can be handed
-    /// back. The "enemy" half of the world model, distinct from the <c>Combat</c> package's weapon
+    /// back. Holding an enemy unlimited, or seeing it sight-limited, stamps the enemy's sighting.
+    /// The "enemy" half of the world model, distinct from the <c>Combat</c> package's weapon
     /// mechanics.
     /// </summary>
     public class EnemyTracker
@@ -72,6 +73,9 @@ namespace AI.Context
                 AcquireEnemy();
             }
 
+            if (HasEnemy && !SightLimited)
+                cachedEnemy.Lock.NoteSighted(Time.time);
+
             if (HasEnemy)
             {
                 lastContactTime = simTime;
@@ -96,7 +100,10 @@ namespace AI.Context
             else if (cachedEnemy)
             {
                 if (Sees(cachedEnemy))
+                {
                     lastSeenTime = simTime;
+                    cachedEnemy.Lock.NoteSighted(Time.time);
+                }
                 else if (simTime - lastSeenTime >= scout.loseSightAfter)
                 {
                     lostEnemy = cachedEnemy;
@@ -120,6 +127,7 @@ namespace AI.Context
                 return;
             cachedEnemy = enemy;
             lastSeenTime = simTime;
+            enemy.Lock.NoteSighted(Time.time);
         }
 
         private bool TryNearestEnemy(out Ship enemy)

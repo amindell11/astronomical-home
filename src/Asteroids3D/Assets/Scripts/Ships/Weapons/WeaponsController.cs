@@ -10,6 +10,7 @@ using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Status;
 using UnityEngine;
 using Substrate.Services.Projectiles;
@@ -46,12 +47,17 @@ namespace Ships.Weapons
         private WeaponContext context;
         private LullModStack mods;
         private StatusEffects status;
+        private Turret turret;
+        private Quaternion centreAuthored, leftAuthored, rightAuthored;
 
         private void Awake()
         {
             RequireSocket(centreSocket, "Centre");
             RequireSocket(leftSocket, "Left");
             RequireSocket(rightSocket, "Right");
+            centreAuthored = centreSocket.localRotation;
+            leftAuthored = leftSocket.localRotation;
+            rightAuthored = rightSocket.localRotation;
             RequireKinds(name, primaryMount, secondaryMount);
             Primary = ReplaceMount(WeaponSlot.Primary, null, primaryMount);
             Secondary = ReplaceMount(WeaponSlot.Secondary, null, secondaryMount);
@@ -168,6 +174,7 @@ namespace Ships.Weapons
                 if (!owner || !owner.enabled || !owner.status.CanFire) return;
                 var mount = owner.Mount(slot);
                 if (!mount) return;
+                owner.AimSockets(cmd.targetPoint);
                 if (cmd.reload) mount.Reload();
                 mount.HandleTrigger(in cmd, projectiles);
             }
@@ -176,6 +183,13 @@ namespace Ships.Weapons
         private void RaisePrimaryFired() => Fired?.Invoke(WeaponSlot.Primary);
 
         private void RaiseSecondaryFired() => Fired?.Invoke(WeaponSlot.Secondary);
+
+        private void AimSockets(Vector3 targetPoint)
+        {
+            turret.Aim(centreSocket, centreAuthored, targetPoint);
+            turret.Aim(leftSocket, leftAuthored, targetPoint);
+            turret.Aim(rightSocket, rightAuthored, targetPoint);
+        }
 
         private WeaponComponent ReplaceMount(WeaponSlot slot, WeaponComponent current, WeaponComponent prefab)
         {
@@ -203,10 +217,11 @@ namespace Ships.Weapons
             return null;
         }
 
-        /// <summary>Supplies the ship pose used to build each slot's firing solution, and the status that gates firing.</summary>
-        public void Initialize(Func<Kinematics> pose, StatusEffects status)
+        /// <summary>Supplies the ship pose used to build each slot's firing solution, the status that gates firing, and the Turret passive that swings the sockets to the aim point.</summary>
+        public void Initialize(Func<Kinematics> pose, StatusEffects status, Turret turret)
         {
             this.status = status ?? throw new ArgumentNullException(nameof(status));
+            this.turret = turret ?? throw new ArgumentNullException(nameof(turret));
             context = new WeaponContext(this, pose);
         }
 
