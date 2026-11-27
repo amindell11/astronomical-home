@@ -1066,9 +1066,8 @@ namespace Game
             // Its own world, away from the sector and the preview stage.
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var launched = false;
-            var tutorial = true;
             Action<CommLine> greet = voice ? onto => voice.SpeakNow(new HangarOpened(), onto) : null;
-            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, tutorial, greet, () => launched = true);
+            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, TutorialSetting.On, greet, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 
