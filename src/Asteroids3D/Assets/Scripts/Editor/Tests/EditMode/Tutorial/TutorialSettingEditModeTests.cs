@@ -2,7 +2,7 @@ using Game.Player;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.Tutorial
 {
     [Category("UI")]
     public class TutorialSettingEditModeTests

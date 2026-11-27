@@ -57,7 +57,6 @@ namespace Game.Tutorial
                     step = Step.Weapons;
                     break;
                 case Step.Weapons when Gone(lines):
-                    lines = null;
                     step = Step.Intro;
                     break;
                 case Step.Hunting when hunt.Alarmed:

@@ -1117,10 +1117,12 @@ namespace Game
             sectorIndex == 0 && teachFirstSector && presentation && TutorialSetting.On && rigInstance &&
             rigInstance.Overlay && spine && spine.Hunt;
 
-        // A fire press skips only after the delay, and only once fire was let go, so held fire never skips it.
+        // Fire skips only after the delay and a release, so held fire never skips.
+        // Its own action, because the frozen ship's flight input is disabled.
         private IEnumerator RunTutorialIntro(Ship patrol)
         {
-            var flight = ((PlayerCommander)rigInstance.Player.Commander).playerInput;
+            var fire = new InputAction("TutorialSkip", InputActionType.Button, "<Mouse>/leftButton");
+            fire.Enable();
             var shownAt = Time.unscaledTime;
             var released = false;
             var skipped = false;
@@ -1130,7 +1132,7 @@ namespace Game
             {
                 if (Skippable() && !skipped)
                 {
-                    if (!flight.PrimaryFire) released = true;
+                    if (!fire.IsPressed()) released = true;
                     else if (released) skipped = true;
                 }
                 return skipped || playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested;
@@ -1150,6 +1152,7 @@ namespace Game
             finally
             {
                 showing = false;
+                fire.Dispose();
                 rigInstance.SetInputEnabled(true);
             }
         }
