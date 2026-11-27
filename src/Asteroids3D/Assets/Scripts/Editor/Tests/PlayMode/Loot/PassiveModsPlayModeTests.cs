@@ -5,10 +5,13 @@ using System.Linq;
 using Asteroids;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
+using Combat.Weapons;
+using Combat.Weapons.Conditions;
 using Damage;
 using Loot;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Mods;
 using Substrate;
 using Tests.PlayMode.Common;
@@ -19,12 +22,15 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Loot
 {
-    /// <summary>The pitch passives on shipped prefabs and keys: a Backstab holder's rear hit skips a live ship's shield, and a rock a Shrapnel rocks holder breaks throws its fragments away from it, armed against other ships.</summary>
+    /// <summary>The passives on shipped prefabs and keys: a Backstab holder's rear hit skips a live ship's shield, a rock a Shrapnel rocks holder breaks throws its fragments away from it, armed against other ships, a Turret holder's guns swing to the aim point while its hull turns at half rate, a Lie in wait holder hides beside a heavy rock and shows when it thrusts, and a Duck and load holder's guns cool faster while nothing sights it.</summary>
     [Category("Ships")]
     public class PassiveModsPlayModeTests : PlayModeWorldFixture
     {
         private const string BackstabPath = "Assets/Settings/Ships/Passives/Backstab.asset";
         private const string ShrapnelPath = "Assets/Settings/Ships/Passives/ShrapnelRocks.asset";
+        private const string TurretPath = "Assets/Settings/Ships/Passives/Turret.asset";
+        private const string LieInWaitPath = "Assets/Settings/Ships/Passives/LieInWait.asset";
+        private const string DuckAndLoadPath = "Assets/Settings/Ships/Passives/DuckAndLoad.asset";
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
         private const float Scale = 2f;
@@ -101,6 +107,88 @@ namespace Tests.PlayMode.Loot
                 "a thrown fragment hits an enemy harder than its thrower");
             Assert.AreEqual(ordinaryFragments[0].Damage.DamageTo(enemy.Damage, 10f), fragmentDamage.DamageTo(thrower.Damage, 10f),
                 1e-4f, "an ordinary fragment hits like a thrown one hits its thrower");
+        }
+
+        [UnityTest]
+        public IEnumerator ATurretHolder_AimsItsGunsAtTheAimPoint_AndTurnsAtHalfRate()
+        {
+            var turret = SpawnCrimson(new Vector3(0f, -40f, 0f), TestAssets.Load<PassiveMod>(TurretPath));
+            var plain = SpawnCrimson(new Vector3(0f, 40f, 0f));
+            Assert.IsTrue(turret.Turret.Held, "the shipped key reaches the prefab's Turret");
+            Assert.AreEqual(plain.MaxYawRate * 0.5f, turret.MaxYawRate, 1e-3f, "the hull turns at half rate");
+            Assert.AreEqual(plain.Stats.reverseForce * 2.5f, turret.Stats.reverseForce, 1e-2f, "reverse thrust is stronger");
+
+            var plainFacing = plain.Weapons.Primary.FireDirection;
+            var aside = GamePlane.Right * 30f;
+            Aim(turret, turret.transform.position + aside);
+            Aim(plain, plain.transform.position + aside);
+            yield return null;
+
+            var gun = turret.Weapons.Primary;
+            var toAim = GamePlane.WorldDirOnPlane(turret.transform.position + aside - gun.FireOrigin);
+            Assert.Less(Vector3.Angle(gun.FireDirection, toAim), 1f, "the Turret's guns point at the aim point");
+            Assert.Less(Vector3.Angle(plain.Weapons.Primary.FireDirection, plainFacing), 1f, "a plain ship's guns keep to the nose");
+        }
+
+        private void Aim(Ship ship, Vector3 point) =>
+            ship.Weapons.Arm(Projectiles).Fire(WeaponSlot.Primary, new WeaponCommand { targetPoint = point });
+
+        [UnityTest]
+        public IEnumerator ALieInWaitHolder_HidesBesideAHeavyRock_AndShowsWhenItThrusts()
+        {
+            var ship = SpawnCrimson(Vector3.zero, TestAssets.Load<PassiveMod>(LieInWaitPath));
+            Assert.IsTrue(ship.LieInWait.Held, "the shipped key reaches the prefab's Lie in wait");
+            var rock = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            made.Add(rock);
+            rock.layer = LayerIds.Asteroid;
+            rock.transform.localScale = Vector3.one * 4f;
+            rock.transform.position = ship.transform.position + GamePlane.Right * (ship.ShipRadius + 3.5f);
+            var body = rock.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.mass = 10f;
+            Physics.SyncTransforms();
+
+            yield return new WaitForSeconds(1.3f);
+            Assert.IsFalse(ship.Lock.IsConcealed, "a light rock hides nothing");
+
+            body.mass = ship.Body.mass * 100f;
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsFalse(ship.Lock.IsConcealed, "the ship hides only once it has held still long enough");
+            yield return new WaitForSeconds(0.8f);
+            Assert.IsTrue(ship.Lock.IsConcealed, "held still beside a heavy rock, the ship hides");
+
+            ship.Movement.Drive(new PilotCommand { thrust = 1f });
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsFalse(ship.Lock.IsConcealed, "thrusting shows the ship");
+        }
+
+        [UnityTest]
+        public IEnumerator ADuckAndLoadHolder_CoolsFaster_WhileNothingSightsIt()
+        {
+            var ship = SpawnCrimson(Vector3.zero, TestAssets.Load<PassiveMod>(DuckAndLoadPath));
+            Assert.IsTrue(ship.DuckAndLoad.Held, "the shipped key reaches the prefab's Duck and load");
+            var heat = ship.Weapons.Primary.GetComponent<Heat>();
+            Assert.IsTrue(heat, "the Crimson's primary runs on heat");
+
+            for (var shot = 0; shot < 3; shot++) heat.ProcessFire();
+            var start = Time.time;
+            while (Time.time - start < 0.8f) yield return null;
+            var unseen = heat.CurrentHeat;
+
+            heat.Reset();
+            for (var shot = 0; shot < 3; shot++) heat.ProcessFire();
+            start = Time.time;
+            while (Time.time - start < 0.8f)
+            {
+                ship.Lock.NoteSighted(Time.time);
+                yield return null;
+            }
+            var seen = heat.CurrentHeat;
+
+            Debug.Log($"[DuckAndLoad] heat after 0.8 s: unseen {unseen:F1}, sighted {seen:F1}");
+            Assert.Greater(seen, 0f, "sighted, the gun cools at its own rate");
+            Assert.Less(unseen, seen - 15f, "unseen, the gun cools much faster");
         }
 
         private static List<AsteroidController> Shatter(AsteroidSpawner spawner, AsteroidController rock, Ship breaker)

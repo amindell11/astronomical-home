@@ -65,6 +65,16 @@ namespace Ships
 
         [Stat, SerializeField] private ShrapnelRocks shrapnelRocks = new();
 
+        [Stat, SerializeField] private Headstrong headstrong = new();
+
+        [Stat, SerializeField] private Turret turret = new();
+
+        [Stat, SerializeField] private LieInWait lieInWait = new();
+
+        [Stat, SerializeField] private CleanKill cleanKill = new();
+
+        [Stat, SerializeField] private DuckAndLoad duckAndLoad = new();
+
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
@@ -78,6 +88,16 @@ namespace Ships
         public Backstab Backstab => backstab;
 
         public ShrapnelRocks ShrapnelRocks => shrapnelRocks;
+
+        public Headstrong Headstrong => headstrong;
+
+        public Turret Turret => turret;
+
+        public LieInWait LieInWait => lieInWait;
+
+        public CleanKill CleanKill => cleanKill;
+
+        public DuckAndLoad DuckAndLoad => duckAndLoad;
 
         /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
         public Keystone Keystone { get; private set; }
@@ -119,6 +139,7 @@ namespace Ships
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
         public float ShotDamageScale => Keystone ? Keystone.ShotDamageScale : 1f;
+        public float RecoveryScale => duckAndLoad.RecoveryScale(Lock, Time.time);
 
         Transform IShipStatus.Transform => transform;
         void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
@@ -153,7 +174,7 @@ namespace Ships
             Rigidbody        = GetComponent<Rigidbody>();
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
-            if (weapons) weapons.Initialize(() => Kinematics, Status);
+            if (weapons) weapons.Initialize(() => Kinematics, Status, turret);
             if (keystone) Keystone = Instantiate(keystone, transform);
             Behaviours.Changed += ReadPassives;
         }
@@ -162,6 +183,11 @@ namespace Ships
         {
             backstab.Read(Behaviours);
             shrapnelRocks.Read(Behaviours);
+            headstrong.Read(Behaviours);
+            turret.Read(Behaviours);
+            lieInWait.Read(Behaviours);
+            cleanKill.Read(Behaviours);
+            duckAndLoad.Read(Behaviours);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -182,6 +208,7 @@ namespace Ships
             var radius = Stats?.shipRadius ?? 1f;
             Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
             Stats.shipRadius = radius;
+            turret.Scale(Stats);
         }
 
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
@@ -275,6 +302,7 @@ namespace Ships
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
             if (Weapons) Weapons.Fired += Keystone.NotifyFired;
+            if (Weapons) Weapons.Fired += lieInWait.NotifyFired;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -312,6 +340,9 @@ namespace Ships
         private void FixedUpdate()
         {
             Status.Tick(Time.fixedDeltaTime);
+            if (isInitialized && lieInWait.Held)
+                lieInWait.Step(Time.fixedDeltaTime, transform.position, ShipRadius, Rigidbody.mass, Kinematics.vel,
+                    Movement.CurrentCommand, Lock);
             if (isInitialized && Keystone && Keystone.ContactsByHull)
                 ReportHullContacts();
         }
@@ -406,6 +437,7 @@ namespace Ships
             Weapons?.ResetSystem();
             Movement.ResetMovement();
             Keystone.ResetKeystone();
+            lieInWait.Reset(Lock);
             Status.Clear();
             Damage.ResetDamageState();
             KinematicsPoller?.Poll();

@@ -160,6 +160,7 @@ namespace Tests.EditMode.Ships
             {
                 "Bank shot", "Stopping power", "Deep strike", "Shrapnel rocks", "Wire guided", "Implosion",
                 "Battering ram", "Ambush", "Recall", "Snap turn", "Orbit", "Riposte", "Backstab",
+                "Headstrong", "Turret", "Lie in wait", "Clean kill", "Duck and load",
             }, pool.mods.Select(mod => mod.DisplayName));
 
             var weapons = new[] { "Lasers", "Scattergun", "Railgun", "Missiles", "Grenades" }.Select(Weapon).ToArray();

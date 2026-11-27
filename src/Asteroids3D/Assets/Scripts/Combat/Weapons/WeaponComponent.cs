@@ -71,6 +71,9 @@ namespace Combat.Weapons
         /// <summary>Multiplier on a shot's authored damage as it leaves: the damage mods and the shooter's own scale.</summary>
         protected float ShotDamageFactor => Mods.Factor(WeaponModField.Damage) * (shooter?.ShotDamageScale ?? 1f);
 
+        /// <summary>Multiplier on how fast this weapon's conditions reload and cool, from its shooter.</summary>
+        public float RecoveryScale => shooter?.RecoveryScale ?? 1f;
+
         protected virtual void Awake()
         {
             shooter = GetComponentInParent<IShooter>();

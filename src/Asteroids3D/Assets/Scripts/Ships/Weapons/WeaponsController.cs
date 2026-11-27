@@ -10,6 +10,7 @@ using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Status;
 using UnityEngine;
 using Substrate.Services.Projectiles;
@@ -46,6 +47,7 @@ namespace Ships.Weapons
         private WeaponContext context;
         private LullModStack mods;
         private StatusEffects status;
+        private Turret turret;
 
         private void Awake()
         {
@@ -168,12 +170,20 @@ namespace Ships.Weapons
                 if (!owner || !owner.enabled || !owner.status.CanFire) return;
                 var mount = owner.Mount(slot);
                 if (!mount) return;
+                owner.AimSockets(cmd.targetPoint);
                 if (cmd.reload) mount.Reload();
                 mount.HandleTrigger(in cmd, projectiles);
             }
         }
 
         private void RaiseFired() => Fired?.Invoke();
+
+        private void AimSockets(Vector3 targetPoint)
+        {
+            turret.Aim(centreSocket, targetPoint);
+            turret.Aim(leftSocket, targetPoint);
+            turret.Aim(rightSocket, targetPoint);
+        }
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab)
         {
@@ -200,10 +210,11 @@ namespace Ships.Weapons
             return null;
         }
 
-        /// <summary>Supplies the ship pose used to build each slot's firing solution, and the status that gates firing.</summary>
-        public void Initialize(Func<Kinematics> pose, StatusEffects status)
+        /// <summary>Supplies the ship pose used to build each slot's firing solution, the status that gates firing, and the Turret passive that swings the sockets to the aim point.</summary>
+        public void Initialize(Func<Kinematics> pose, StatusEffects status, Turret turret)
         {
             this.status = status ?? throw new ArgumentNullException(nameof(status));
+            this.turret = turret ?? throw new ArgumentNullException(nameof(turret));
             context = new WeaponContext(this, pose);
         }
 
