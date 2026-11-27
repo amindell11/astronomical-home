@@ -10,6 +10,7 @@ using Damage;
 using Game.Audio;
 using Game.CloseUps;
 using Game.Companion;
+using Game.Dev;
 using Game.Display;
 using Game.Moments;
 using Game.Moments.Encounters;
@@ -360,6 +361,8 @@ namespace Game
                 var draw = new System.Random();
                 runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
                 runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
+                if (runFactions != null)
+                    SectorRun.PutFirst(runFactions, LaunchArgs.FirstFaction(System.Environment.GetCommandLineArgs()));
                 if (voice) voice.Initialize(moments, runFactions);
                 while (true)
                 {
