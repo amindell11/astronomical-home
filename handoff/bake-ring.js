@@ -12,7 +12,7 @@ const [,, outDir]=process.argv;
     for(let i=0;i<N;i++){const cx=(i%COLS)*BOX*S,cy=Math.floor(i/COLS)*BOX*S;
       ctx.save();ctx.beginPath();ctx.rect(cx,cy,BOX*S,BOX*S);ctx.clip();ctx.setTransform(S,0,0,S,cx+BOX*S/2,cy+BOX*S/2);
       const u=(i+1)/N, e=1-Math.pow(1-u,2.4);        // fast out, easing
-      const R=10+74*e, t=11*(1-u)+1.6;               // radius and band thickness
+      const R=10+66*e, t=11*(1-u)+1.6;               // radius and band thickness
       const gaps=i<3?0:6, gap=i<3?0:(0.05+0.5*Math.pow((i-2)/(N-2),1.5))*(Math.PI*2/6); // ring breaks into arcs as it thins
       ctx.globalAlpha=i>=N-2?[0.6,0.32][i-(N-2)]:1;
       ctx.scale(1.12,0.9);                           // wider across the ship than along it
