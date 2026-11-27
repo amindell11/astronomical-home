@@ -15,7 +15,8 @@ namespace Game.Companion
     /// moment's faction colour for an enemy), and offered to the nag budget.
     /// A line the budget lets through shows on the comm line. Built once per session; each run hands it
     /// the moment stream. With debug labels on, a moment with no matching line speaks a bracketed label
-    /// of its id and facts instead of staying silent, prefixed the same way.
+    /// of its id and facts instead of staying silent, prefixed the same way. Outside a run, where the
+    /// comm line is hidden, <see cref="SpeakNow"/> puts a moment's opening line straight on another comm line.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
@@ -86,6 +87,18 @@ namespace Game.Companion
             var second = picked.Count > 1 ? Spoken(picked[1], slot, moment) : (CommMessage?)null;
             budget.Offer(first, slot.MustSay, Time.unscaledTime, second);
             TrySpeak();
+        }
+
+        public void SpeakNow(IRunMoment moment, CommLine onto)
+        {
+            if (!onto) throw new ArgumentNullException(nameof(onto));
+            var slot = sheet.Find(moment.Slot);
+            var picked = lines.Pick(moment.Slot, moment.Facts, n => UnityEngine.Random.Range(0, n), false);
+            CommMessage line;
+            if (picked.Count > 0) line = Spoken(picked[0], slot, moment);
+            else if (debugLabels) line = new CommMessage(slot.SpokenBy, SpeakerColor(slot.SpokenBy, slot, moment), DebugLabel(moment));
+            else return;
+            onto.Show(line, feel.HoldFor(line.Plain), feel.FadeSeconds);
         }
 
         private CommMessage Spoken(SpokenLine line, LineSlot slot, IRunMoment moment)

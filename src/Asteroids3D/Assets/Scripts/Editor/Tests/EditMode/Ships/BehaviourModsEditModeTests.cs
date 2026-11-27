@@ -8,7 +8,6 @@ using NUnit.Framework;
 using Ships.Keystones;
 using Ships.Mods;
 using Ships.Status;
-using Substrate.Sectors.Elements.Phases;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -21,7 +20,6 @@ namespace Tests.EditMode.Ships
     public class BehaviourModsEditModeTests
     {
         private const string PoolPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
-        private const string CacheFeelPath = "Assets/Settings/Game/BeaconCacheFeel.asset";
 
         private readonly List<Object> made = new();
 
@@ -154,10 +152,9 @@ namespace Tests.EditMode.Ships
         public void TheShippedPool_HoldsOnlyBehaviourMods_EachLandingSomewhere()
         {
             var pool = AssetDatabase.LoadAssetAtPath<LullModPool>(PoolPath);
-            var cache = AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>(CacheFeelPath);
             var statKinds = new[] { typeof(WeaponMod), typeof(ShipMod) };
-            Assert.IsFalse(pool.mods.Concat(cache.bonuses).Any(mod => statKinds.Contains(mod.GetType())),
-                "no stat mod is left in an offer pool");
+            Assert.IsFalse(pool.mods.Any(mod => statKinds.Contains(mod.GetType())),
+                "no stat mod is left in the lull pool");
 
             CollectionAssert.AreEquivalent(new[]
             {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
+using UI.Comms;
 using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
 using UI.Hangar.Selection;
@@ -21,6 +22,8 @@ namespace UI.Hangar.Hardware
     /// pending loadout, once. Each frame the console applies its light profile and hands its painted
     /// parts the light of its screens, hologram, Launch and overheads, which their shader sums per pixel.
     /// The six status lamps beside the screens carry no meaning; each blinks on Perlin noise in its own colour.
+    /// With tutorial prompts on, the windshield shows the bay's checklist, the bracketed screen names its keys,
+    /// and the caller is handed the bay's comm line once, shortly after the bay comes up.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -46,6 +49,8 @@ namespace UI.Hangar.Hardware
         // Neighbouring lamps sample nearby noise rows, so they sometimes blink together.
         private const float StatusLampNoiseRowSpacing = .37f;
         private const float StatusLampNoiseRowOrigin = .5f;
+        private const float GreetDelaySeconds = 1.5f;
+        private const float CommLineBottom = 8f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
@@ -65,6 +70,9 @@ namespace UI.Hangar.Hardware
         [SerializeField] private MeshRenderer launchLegend;
         [SerializeField] private MeshRenderer projectorLens;
         [SerializeField] private RawImage compositeImage;
+        [SerializeField] private CanvasGroup checklist;
+        [SerializeField] private Font commFont;
+        [SerializeField] private Material commMaterial;
         [SerializeField] private HangarHologramProjector projector;
         [SerializeField] private HangarDisplay mainDisplay;
         [SerializeField] private HangarDisplay detailDisplay;
@@ -91,6 +99,7 @@ namespace UI.Hangar.Hardware
         [SerializeField] private float knobDetentDegrees = 40f;
 
         private RenderTexture texture;
+        private CommLine commLine;
         private readonly Vector3[] corners = new Vector3[4];
         private readonly List<InputAction> actions = new();
         private MaterialPropertyBlock legendBlock;
@@ -132,20 +141,23 @@ namespace UI.Hangar.Hardware
         internal bool KnobSettled => knob.Settled;
         internal bool InputLocked => launching;
         internal bool LaunchLegendLit => legendBlock.GetColor(ConstantEmissionId) == legendLit;
+        internal bool ChecklistShown => checklist.gameObject.activeSelf;
+        internal CommLine CommLine => commLine;
 
         private void Awake()
         {
             if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !primaryScreenGlass ||
                 !ordnanceScreenGlass || !selectorKnob || !knob || !previousButton || !nextButton ||
                 !launchButton || !primaryPreviousButton || !primaryNextButton || !ordnancePreviousButton ||
-                !ordnanceNextButton || !launchLegend || !projectorLens || !compositeImage || !projector ||
+                !ordnanceNextButton || !launchLegend || !projectorLens || !compositeImage || !checklist || !commFont || !projector ||
                 !mainDisplay || !detailDisplay || !primaryDisplay || !ordnanceDisplay || !mainView ||
                 !detailView || !primaryView || !ordnanceView || !displayProfile || !lightProfile ||
                 paintedParts == null || paintedParts.Length == 0 || !launchSurface ||
                 lampGlows == null || !Wired(launchLamps, launchLampGlows) || !Wired(statusLamps, statusLampGlows) ||
                 overheadGlows == null || !lensGlow.card)
                 throw new InvalidOperationException(
-                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, lamp glows, launch lamps, launch lamp glows, status lamps, status lamp glows, overhead glows and lens glow.");
+                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, checklist, comm font, projector, painted parts, launch surface, lamp glows, launch lamps, launch lamp glows, status lamps, status lamp glows, overhead glows and lens glow.");
+            commLine = CommLine.Create(checklist.transform, commFont, commMaterial, CommLineBottom);
             raycaster = GetComponent<HangarConsoleRaycaster>();
             if (!raycaster)
                 throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
@@ -165,18 +177,20 @@ namespace UI.Hangar.Hardware
                 () => lightProfile.WeaponScreenSpill, () => lightProfile.DisplayBacking);
         }
 
-        public void Show(ItemSubset offer, ShipLoadout loadout, Func<Ship, bool> earned, Action launch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Func<Ship, bool> earned, bool tutorial,
+            Action<CommLine> greet, Action launch)
         {
             if (selection != null)
                 throw new InvalidOperationException("HangarConsole.Show was called twice.");
             onLaunch = launch;
+            checklist.gameObject.SetActive(tutorial);
             selection = new HangarSelection(offer, loadout, earned);
             projector.Open(offer ? offer.ships : Array.Empty<Ship>(), loadout.Ship);
             selection.ShipChanged += projector.Select;
-            mainView.Bind(selection);
+            mainView.Bind(selection, tutorial);
             detailView.Bind(selection);
-            BindWeaponScreen(primaryView, HangarSlot.Weapon, primaryPreviousButton, primaryNextButton);
-            BindWeaponScreen(ordnanceView, HangarSlot.Ordnance, ordnancePreviousButton, ordnanceNextButton);
+            BindWeaponScreen(primaryView, HangarSlot.Weapon, primaryPreviousButton, primaryNextButton, tutorial);
+            BindWeaponScreen(ordnanceView, HangarSlot.Ordnance, ordnancePreviousButton, ordnanceNextButton, tutorial);
             mainView.ArrowPressed += step => (step < 0 ? previousButton : nextButton).Press();
             previousButton.Pressed += () => selection.Step(HangarSlot.Ship, -1);
             nextButton.Pressed += () => selection.Step(HangarSlot.Ship, 1);
@@ -191,6 +205,7 @@ namespace UI.Hangar.Hardware
             EnableKeys();
             knob.Snap(Detent());
             ApplyLaunch();
+            if (tutorial && greet != null) StartCoroutine(Greet(greet));
         }
 
         public void Launch()
@@ -211,18 +226,30 @@ namespace UI.Hangar.Hardware
         }
 
         private void BindWeaponScreen(HangarWeaponDisplayView view, HangarSlot slot, HangarControl previousKey,
-            HangarControl nextKey)
+            HangarControl nextKey, bool hint)
         {
-            view.Bind(selection);
+            view.Bind(selection, hint);
             view.ArrowPressed += step => (step < 0 ? previousKey : nextKey).Press();
             previousKey.Pressed += () => selection.Step(slot, -1);
             nextKey.Pressed += () => selection.Step(slot, 1);
         }
 
+        private IEnumerator Greet(Action<CommLine> greet)
+        {
+            var started = Time.unscaledTime;
+            while (Time.unscaledTime - started < GreetDelaySeconds) yield return null;
+            if (!launching) greet(commLine);
+        }
+
         private IEnumerator HandOff()
         {
             var started = Time.unscaledTime;
-            while (Time.unscaledTime - started < HangarDisplay.PowerDownSeconds) yield return null;
+            while (Time.unscaledTime - started < HangarDisplay.PowerDownSeconds)
+            {
+                checklist.alpha = 1f - (Time.unscaledTime - started) / HangarDisplay.PowerDownSeconds;
+                yield return null;
+            }
+            checklist.alpha = 0f;
             onLaunch?.Invoke();
         }
 
