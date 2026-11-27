@@ -548,7 +548,7 @@ namespace Substrate.Sectors.Elements
             // Counted before dressing, so a dressing throw cannot leave a live ship outside the caps.
             Track(ship);
             if (asRival) rivals.Add(ship);
-            faction.Faction.Dress(ship, rank);
+            faction.Faction.Dress(ship, rank, faction.Locale);
             return ship;
         }
 
