@@ -2,6 +2,7 @@ using System;
 using Balance;
 using Combat.Projectiles;
 using Damage;
+using Movement;
 using Ships.Mods;
 using Substrate;
 using UnityEngine;
@@ -12,7 +13,8 @@ namespace Ships.Keystones.Kits
     /// <summary>
     /// Vanguard's kit: a dash whose window drops every hit on the ship. With Riposte, each shot the
     /// guard drops fires back down the line it came in on, as the ship's own shot carrying the
-    /// dropped damage.
+    /// dropped damage. With Double dash, a fresh press soon after the dash fires a second one, and the
+    /// cooldown starts from the second, or from when its chance runs out.
     /// </summary>
     public sealed class GuardDash : Dash
     {
@@ -24,6 +26,16 @@ namespace Ships.Keystones.Kits
 
         [Tooltip("With Riposte, the shot a blocked hit fires back; it carries the blocked hit's damage.")]
         [SerializeField] private Laser riposteShot;
+
+        [Tooltip("The Double dash keystone mod, whose holding lets the dash fire twice before its cooldown starts.")]
+        [SerializeField] private KeystoneMod doubleDash;
+
+        [Tooltip("With Double dash, seconds after the first dash during which a fresh press fires the second.")]
+        [Stat, SerializeField] private float doubleDashWindow = 1f;
+
+        // The first dash fired with Double dash: pending until the press is released, then armed.
+        private bool secondPending;
+        private bool secondArmed;
 
         public override string DisplayName => "Dash";
         public float Window => window;
@@ -41,7 +53,38 @@ namespace Ships.Keystones.Kits
             if (Behaviours.Holds(riposte)) Riposte(in hit);
         }
 
-        protected override void OnReset() => Ripostes = 0;
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target)
+        {
+            secondPending = !secondArmed && Behaviours.Holds(doubleDash);
+            secondArmed = false;
+            return base.Activate(in kinematics, target);
+        }
+
+        // The press that dashed can stay held past its step, so only a press after a release fires the second.
+        protected override KeystoneEffect Idle(in Kinematics kinematics, float input)
+        {
+            if (!secondPending || input != 0f) return default;
+            secondPending = false;
+            secondArmed = true;
+            ShortenCooldown(0f);
+            return default;
+        }
+
+        protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
+        {
+            if ((!secondPending && !secondArmed) || SinceActivation < doubleDashWindow) return default;
+            secondPending = false;
+            secondArmed = false;
+            RestartCooldown();
+            return default;
+        }
+
+        protected override void OnReset()
+        {
+            Ripostes = 0;
+            secondPending = false;
+            secondArmed = false;
+        }
 
         // A blast's or a collision's velocity points away from its source, not back along a shot.
         private void Riposte(in DamageInfo hit)

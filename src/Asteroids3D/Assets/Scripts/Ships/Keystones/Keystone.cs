@@ -3,6 +3,8 @@ using Balance;
 using Damage;
 using Loot;
 using Movement;
+using Ships.Command;
+using Ships.Damage;
 using UnityEngine;
 
 namespace Ships.Keystones
@@ -90,15 +92,20 @@ namespace Ships.Keystones
         /// <summary>The pilot's turn command this step, -1 to 1; positive turns the nose counter-clockwise.</summary>
         protected float Turn { get; private set; }
 
+        /// <summary>Whether the pilot thrusts or strafes this step.</summary>
+        protected bool Thrusting { get; private set; }
+
         public void Initialize(in KeystoneHost host) => Host = host;
 
         /// <param name="target">Where the pilot points the ability, as a plane point; null means straight ahead.</param>
         /// <param name="turn">The pilot's turn command, which <see cref="Turn"/> reports.</param>
+        /// <param name="thrusting">Whether the pilot thrusts or strafes, which <see cref="Thrusting"/> reports.</param>
         public KeystoneEffect Step(in Kinematics kinematics, float input, float dt, out bool activated,
-            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null, float turn = 0f)
+            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null, float turn = 0f, bool thrusting = false)
         {
             clock += dt;
             Turn = turn;
+            Thrusting = thrusting;
             activated = Ready && input != 0f;
             var effect = activated ? Commit(in kinematics, target) : Idle(in kinematics, input);
             return effect + Sustain(in kinematics, dt, baseMaxSpeed);
@@ -145,7 +152,7 @@ namespace Ships.Keystones
 
         public virtual void NotifyBlocked(DamageInfo hit) { }
 
-        public virtual void NotifyFired() { }
+        public virtual void NotifyFired(WeaponSlot slot) { }
 
         public virtual void OnContact(in KeystoneContact contact) { }
 
@@ -162,6 +169,18 @@ namespace Ships.Keystones
 
         protected void ShortenCooldown(float secondsFromActivation) =>
             readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
+
+        protected void RestartCooldown() => readyAt = clock + cooldown;
+
+        /// <summary>Whether the collider belongs to a ship on another team than the host's.</summary>
+        protected bool TryEnemy(Collider collider, out Ship enemy)
+        {
+            enemy = DamageableColliders.TryGet(collider, out var owner) && owner is DamageController damage ? damage.Ship : null;
+            if (!enemy) return false;
+            if (!Host.Ship)
+                throw new InvalidOperationException($"{name} looks for enemies on a host with no ship.");
+            return enemy != Host.Ship && enemy.teamNumber != Host.Ship.teamNumber;
+        }
 
         protected void RecordHit(Vector3 point)
         {

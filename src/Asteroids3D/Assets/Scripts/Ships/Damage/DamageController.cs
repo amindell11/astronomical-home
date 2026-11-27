@@ -21,6 +21,9 @@ namespace Ships.Damage
         public Resource Health { get; private set; }
         public RegenResource Shield { get; private set; }
 
+        /// <summary>The ship these hits land on; null on a damage target that is not a ship.</summary>
+        public Ship Ship => myShip;
+
         private Ship myShip;
         private Keystone keystone;
         private bool deathFired;

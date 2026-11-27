@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6499e2679e294913b8df649cf19fd54d, type: 3}
+  m_Name: DoubleDash
+  m_EditorClassIdentifier: 
+  displayName: Double dash
+  icon: {fileID: 0}
+  effect: Dash twice before the cooldown
+  fits:
+  - {fileID: 5512903418735166201, guid: 2f670f74921442afa35a8d12f18317cf, type: 3}

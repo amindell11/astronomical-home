@@ -41,7 +41,7 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
-        public event Action Fired;
+        public event Action<WeaponSlot> Fired;
 
         private WeaponContext context;
         private LullModStack mods;
@@ -53,8 +53,8 @@ namespace Ships.Weapons
             RequireSocket(leftSocket, "Left");
             RequireSocket(rightSocket, "Right");
             RequireKinds(name, primaryMount, secondaryMount);
-            Primary = ReplaceMount(null, primaryMount);
-            Secondary = ReplaceMount(null, secondaryMount);
+            Primary = ReplaceMount(WeaponSlot.Primary, null, primaryMount);
+            Secondary = ReplaceMount(WeaponSlot.Secondary, null, secondaryMount);
             Sensor = FindMountSensor();
         }
 
@@ -90,13 +90,13 @@ namespace Ships.Weapons
             if (newPrimary != primaryMount)
             {
                 primaryMount = newPrimary;
-                Primary = ReplaceMount(Primary, newPrimary);
+                Primary = ReplaceMount(WeaponSlot.Primary, Primary, newPrimary);
                 changed = true;
             }
             if (newSecondary != secondaryMount)
             {
                 secondaryMount = newSecondary;
-                Secondary = ReplaceMount(Secondary, newSecondary);
+                Secondary = ReplaceMount(WeaponSlot.Secondary, Secondary, newSecondary);
                 changed = true;
             }
 
@@ -173,14 +173,17 @@ namespace Ships.Weapons
             }
         }
 
-        private void RaiseFired() => Fired?.Invoke();
+        private void RaisePrimaryFired() => Fired?.Invoke(WeaponSlot.Primary);
 
-        private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab)
+        private void RaiseSecondaryFired() => Fired?.Invoke(WeaponSlot.Secondary);
+
+        private WeaponComponent ReplaceMount(WeaponSlot slot, WeaponComponent current, WeaponComponent prefab)
         {
+            Action raise = slot == WeaponSlot.Primary ? (Action)RaisePrimaryFired : RaiseSecondaryFired;
             if (current)
             {
                 // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
-                current.OnFire -= RaiseFired;
+                current.OnFire -= raise;
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
@@ -188,7 +191,7 @@ namespace Ships.Weapons
             if (!prefab) return null;
             var mounted = Instantiate(prefab, transform);
             mounted.Initialize(centreSocket, leftSocket, rightSocket);
-            mounted.OnFire += RaiseFired;
+            mounted.OnFire += raise;
             return mounted;
         }
 

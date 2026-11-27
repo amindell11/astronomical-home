@@ -71,6 +71,7 @@ MonoBehaviour:
   maxSpeedBonus: 1.6
   batteringRam: {fileID: 11400000, guid: a035c1aa9a4e421eb754e68cffbc891c, type: 2}
   batteringRamMass: 3
+  chainRam: {fileID: 11400000, guid: aca4bb4e806e485583fd8bde22903857, type: 2}
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0

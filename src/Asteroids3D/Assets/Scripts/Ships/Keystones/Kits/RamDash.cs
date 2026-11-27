@@ -2,6 +2,7 @@ using Asteroids;
 using Balance;
 using Damage;
 using Movement;
+using Ships.Damage;
 using Ships.Mods;
 using Substrate;
 using UnityEngine;
@@ -15,7 +16,8 @@ namespace Ships.Keystones.Kits
     /// burn drives along the launch line, and the ship is heavier. Damage and knockback follow how
     /// centred the ram's aim is, and speed only adds damage; a lighter rock shatters, a heavier one
     /// stops the ship, and Battering ram raises that limit. A ram that makes contact refunds part of
-    /// its cooldown; one that hits nothing keeps the full cooldown and sheds its surge speed.
+    /// its cooldown, and with Chain ram one that kills a ship refunds all of it; one that hits nothing
+    /// keeps the full cooldown and sheds its surge speed.
     /// </summary>
     public sealed class RamDash : Dash
     {
@@ -75,6 +77,9 @@ namespace Ships.Keystones.Kits
 
         [Tooltip("With Battering ram, the heaviest rock the live ram shatters, as a multiple of the ship's ramming mass.")]
         [Stat, SerializeField] private float batteringRamMass = 3f;
+
+        [Tooltip("The Chain ram keystone mod, whose holding makes a ram that kills a ship refund its whole cooldown.")]
+        [SerializeField] private KeystoneMod chainRam;
 
         // -1 idle, -2 not yet counted, 0 launches this step.
         private int brakeStepsLeft = -1;
@@ -165,9 +170,13 @@ namespace Ships.Keystones.Kits
                 target.TakeDamage(Hit(float.MaxValue, in contact));
             }
             else
+            {
                 target.TakeDamage(Hit(
                     shipDamage * aim * Mathf.Clamp(contact.RelativeSpeed / damageReferenceSpeed, 1f, maxSpeedBonus),
                     in contact));
+                if (Behaviours.Holds(chainRam) && target is DamageController victim && victim.Health.CurrentValue <= 0f)
+                    ShortenCooldown(0f);
+            }
             CreditActivation();
         }
 
