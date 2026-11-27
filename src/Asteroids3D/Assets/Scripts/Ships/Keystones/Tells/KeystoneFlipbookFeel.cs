@@ -87,6 +87,26 @@ namespace Ships.Keystones.Tells
 
             [Tooltip("Left where the ship was on the frame before this layer started. Needs Stays At Launch.")]
             public bool startsBehind;
+
+            [Header("Speed")]
+            [Tooltip("Points along the ship's travel instead of its heading.")]
+            public bool followsTravel;
+
+            [Tooltip("Planar speed at or below which this layer is gone. Speed fading is off while Full At Speed is 0.")]
+            public float goneAtSpeed;
+
+            [Tooltip("Planar speed at or above which this layer is at full opacity. 0 turns speed fading off.")]
+            public float fullAtSpeed;
+
+            [Tooltip("Share of its length this layer keeps at rest, growing to full by Length Full At Speed. 0 keeps full length.")]
+            [Range(0f, 1f)]
+            public float lengthAtRest;
+
+            [Tooltip("Forward speed at which this layer reaches its full length.")]
+            public float lengthFullAtSpeed;
+
+            [Tooltip("Seconds this layer's turn trails the ship's, pivoting at Anchor Ahead. 0 turns with the ship.")]
+            public float turnLag;
         }
     }
 }

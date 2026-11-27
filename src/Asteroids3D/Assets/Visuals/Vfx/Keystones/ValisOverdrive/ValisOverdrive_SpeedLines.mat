@@ -29,10 +29,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Columns: 10
+    - _Columns: 8
     - _Frame: 0
     - _Opacity: 1
-    - _Rows: 6
+    - _Rows: 5
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

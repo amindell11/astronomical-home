@@ -33,12 +33,18 @@ MonoBehaviour:
     rows: 3
     frames: 27
     width: 0.7869
-    length: 2.3607
-    centreAhead: -1.1842
-    anchorAhead: 0
+    length: 1.4164
+    centreAhead: -0.929
+    anchorAhead: -0.405
     depth: 0.4
     staysAtLaunch: 0
     startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0.4
+    lengthFullAtSpeed: 40
+    turnLag: 0
   - name: Subside
     show: 1
     size: 1
@@ -55,12 +61,18 @@ MonoBehaviour:
     rows: 1
     frames: 5
     width: 0.7869
-    length: 2.3607
-    centreAhead: -1.1842
-    anchorAhead: 0
+    length: 1.4164
+    centreAhead: -0.929
+    anchorAhead: -0.405
     depth: 0.4
     staysAtLaunch: 0
     startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0.4
+    lengthFullAtSpeed: 40
+    turnLag: 0
   - name: BowShock
     show: 1
     size: 1
@@ -83,6 +95,12 @@ MonoBehaviour:
     depth: -0.4
     staysAtLaunch: 0
     startsBehind: 0
+    followsTravel: 1
+    goneAtSpeed: 16
+    fullAtSpeed: 32
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: SpeedLines
     show: 1
     size: 1
@@ -95,19 +113,25 @@ MonoBehaviour:
     loops: 1
     loopFrom: 0
     material: {fileID: 2100000, guid: a0d812ee2c1333a44a0b16072d854ae9, type: 2}
-    columns: 10
-    rows: 6
-    frames: 60
-    width: 0.9836
-    length: 3.1475
-    centreAhead: -1.5082
+    columns: 8
+    rows: 5
+    frames: 40
+    width: 1.1803
+    length: 3.7377
+    centreAhead: -0.4918
     anchorAhead: 0
     depth: 0.45
     staysAtLaunch: 0
     startsBehind: 0
+    followsTravel: 1
+    goneAtSpeed: 24
+    fullAtSpeed: 40
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Burst
     show: 1
-    size: 1
+    size: 1.6
     opacity: 1
     speed: 0.25
     endsAt: 0
@@ -120,10 +144,44 @@ MonoBehaviour:
     columns: 4
     rows: 1
     frames: 4
-    width: 0.7213
-    length: 0.7213
+    width: 2.1639
+    length: 1.2459
     centreAhead: -0.3317
     anchorAhead: 0
-    depth: 0.5
+    depth: -0.5
+    staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
+  - name: Ring
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    loops: 0
+    loopFrom: 0
+    material: {fileID: 2100000, guid: 95c4f91cc21091044974dab400b1a9ef, type: 2}
+    columns: 6
+    rows: 1
+    frames: 6
+    width: 2.1639
+    length: 1.5738
+    centreAhead: -0.405
+    anchorAhead: -0.405
+    depth: 0.55
     staysAtLaunch: 1
     startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0

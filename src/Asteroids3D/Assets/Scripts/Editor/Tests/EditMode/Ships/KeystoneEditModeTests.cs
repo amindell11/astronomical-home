@@ -547,7 +547,6 @@ namespace Tests.EditMode.Ships
             Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.PeakThrustScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its overdrive flipbook");
-            Assert.That(overdrive.GetComponent<KeystoneGhosts>(), Is.Not.Null, "the kit carries its hull ghosts");
             Assert.That(overdrive.GetComponent<KeystoneFlash>(), Is.Null, "the kit leaves the hull untouched");
         }
 
@@ -740,6 +739,57 @@ namespace Tests.EditMode.Ships
                 layer.FindPropertyRelative("loopFrom").intValue = loopFrom;
             });
             Assert.That(error.Message, Does.Contain("needs loopFrom from 0 to 3"));
+        }
+
+        [TestCase(10f, 10f)]
+        [TestCase(20f, 10f)]
+        [TestCase(5f, 0f)]
+        public void SpeedFade_WithFullNotAboveGone_ThrowsOnAwake(float gone, float full)
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("goneAtSpeed").floatValue = gone;
+                layer.FindPropertyRelative("fullAtSpeed").floatValue = full;
+            });
+            Assert.That(error.Message, Does.Contain("needs fullAtSpeed above goneAtSpeed"));
+        }
+
+        [TestCase(-0.1f)]
+        [TestCase(1.5f)]
+        public void LengthAtRest_OutsideZeroToOne_ThrowsOnAwake(float share)
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("lengthAtRest").floatValue = share;
+                layer.FindPropertyRelative("lengthFullAtSpeed").floatValue = 10f;
+            });
+            Assert.That(error.Message, Does.Contain("needs lengthAtRest from 0 to 1"));
+        }
+
+        [Test]
+        public void LengthAtRest_WithoutAFullSpeed_ThrowsOnAwake()
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("lengthAtRest").floatValue = 0.4f;
+                layer.FindPropertyRelative("lengthFullAtSpeed").floatValue = 0f;
+            });
+            Assert.That(error.Message, Does.Contain("needs a positive lengthFullAtSpeed"));
+        }
+
+        [Test]
+        public void FollowsTravel_OnALaunchLayer_ThrowsOnAwake()
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("staysAtLaunch").boolValue = true;
+                layer.FindPropertyRelative("followsTravel").boolValue = true;
+            });
+            Assert.That(error.Message, Does.Contain("only when it follows the ship"));
         }
 
         private InvalidOperationException FlipbookAwakeError(Action<SerializedProperty> authorLayer)

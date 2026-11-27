@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 5653732871112655559}
   - component: {fileID: 4128149131714659984}
   - component: {fileID: 6979926270516225493}
-  - component: {fileID: 2016628640793116491}
   m_Layer: 0
   m_Name: Valis_Overdrive
   m_TagString: Untagged
@@ -111,22 +110,3 @@ MonoBehaviour:
   keystone: {fileID: 5512903418735166201}
   shipLength: 2.71
   feel: {fileID: 11400000, guid: c290a775671e601429ba8c07d812ac6e, type: 2}
---- !u!114 &2016628640793116491
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7781260934417810432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dfbdbd2b06364e0ba5cb0c49cf34db69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  keystone: {fileID: 5512903418735166201}
-  material: {fileID: 2100000, guid: a0768f6e082450541af878e64bb46150, type: 2}
-  interval: 0.17
-  life: 0.22
-  colour: {r: 0.56078434, g: 0.9647059, b: 1, a: 1}
-  peakAlpha: 0.62
-  alphaSteps: 4

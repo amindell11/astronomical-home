@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: KeystoneGhost
-  m_Shader: {fileID: 4800000, guid: 997c081fcbee4ca6870ea3d65d2452dd, type: 3}
+  m_Name: ValisOverdrive_Ring
+  m_Shader: {fileID: 4800000, guid: 0189bc22a9b593a4884009edc73d974b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -22,10 +22,17 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: e42c0244393254146a1be209333e4286, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    m_Floats:
+    - _Columns: 6
+    - _Frame: 0
+    - _Opacity: 1
+    - _Rows: 1
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
