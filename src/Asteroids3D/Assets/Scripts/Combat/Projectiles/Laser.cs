@@ -1,5 +1,6 @@
 using Balance;
 using Damage;
+using Ships.Damage;
 using Substrate;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace Combat.Projectiles
 
         private bool banks;
         private Collider bankedOff;
+        private bool passesOrdnance;
+        private SuppressingFire suppressing;
 
         protected override DamageKind Kind => DamageKind.Laser;
 
@@ -28,6 +31,12 @@ namespace Combat.Projectiles
         /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
         public void BankOnce() => banks = true;
 
+        /// <summary>The bolt flies through other shooters' missiles and charges instead of setting them off.</summary>
+        public void PassOrdnance() => passesOrdnance = true;
+
+        /// <summary>Counts this bolt's hit on a ship toward <paramref name="fire"/>'s steady fire.</summary>
+        public void Suppress(SuppressingFire fire) => suppressing = fire;
+
         protected override void OnHit(IDamageable other, Collider collider)
         {
             // The rock it banked off still touches it on the step it turns.
@@ -37,6 +46,9 @@ namespace Combat.Projectiles
                 Bank(collider);
                 return;
             }
+            if (passesOrdnance && other is ProjectileBase ordnance && ordnance.Shooter != Shooter) return;
+            if (suppressing != null && other is DamageController hull && hull.Ship)
+                suppressing.Strike(hull.Ship.Status, Time.fixedTime);
             base.OnHit(other, collider);
         }
 
@@ -61,6 +73,8 @@ namespace Combat.Projectiles
         {
             banks = false;
             bankedOff = null;
+            passesOrdnance = false;
+            suppressing = null;
         }
     }
 }

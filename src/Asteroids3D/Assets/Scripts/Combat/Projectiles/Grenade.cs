@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using Damage;
+using Ships.Damage;
 using UnityEngine;
 using Utils;
 using Substrate;
@@ -14,7 +15,9 @@ namespace Combat.Projectiles
     /// Every other fuse waits for <see cref="armingTime"/> after launch: then it detonates on
     /// arrival (holding on the point if it got there first), on contact, or when a ship comes
     /// within <see cref="proximityRadius"/> — never the owner's hull. Detonation spawns a
-    /// <see cref="ConcussionWave"/>; the charge itself never applies damage. Design: arc #950.
+    /// <see cref="ConcussionWave"/>; the charge itself never applies damage. A limpet charge has no
+    /// proximity fuse: the first ship it touches, armed or not, carries it until the limpet fuse
+    /// runs out. Design: arc #950.
     /// </summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
     {
@@ -40,6 +43,10 @@ namespace Combat.Projectiles
         private int shipLayers;
         private float blastRadiusScale = 1f;
         private float blastPush = 1f;
+        private float limpetFuse;
+        private Transform carrier;
+        private Vector3 carriedAt;
+        private float sinceStuck;
 
         private bool Armed => sinceLaunch >= armingTime;
 
@@ -84,6 +91,9 @@ namespace Combat.Projectiles
         /// <summary>Per-shot multiplier on the wave's push, negative to pull, set by the launcher after launch; resets to 1 on pool return.</summary>
         public void SetBlastPush(float scale) => blastPush = scale;
 
+        /// <summary>The charge sticks to the first ship it touches and detonates <paramref name="fuse"/> seconds later.</summary>
+        public void Limpet(float fuse) => limpetFuse = fuse;
+
         event Action IChargeFlight.Ended
         {
             add => ReturnedToPool += value;
@@ -116,11 +126,16 @@ namespace Combat.Projectiles
 
         protected override void FixedUpdate()
         {
+            if (carrier)
+            {
+                Ride();
+                return;
+            }
             sinceLaunch += Time.fixedDeltaTime;
             var remaining = Vector3.Dot(targetPoint - transform.position, heading);
             var closingSpeed = Vector3.Dot(rb.linearVelocity, heading);
             var arrived = remaining <= 0f || closingSpeed <= 0f;
-            if (Armed && (arrived || ShipInProximity()))
+            if (Armed && (arrived || (limpetFuse <= 0f && ShipInProximity())))
             {
                 Detonate();
                 return;
@@ -156,9 +171,35 @@ namespace Combat.Projectiles
 
         protected override void OnHit(IDamageable other)
         {
+            if (carrier) return;
+            if (limpetFuse > 0f && other is DamageController hull && hull.Ship)
+            {
+                Stick(hull.transform);
+                return;
+            }
             if (!Armed) return;
             RaiseHit(other);
             Detonate();
+        }
+
+        private void Stick(Transform ship)
+        {
+            carrier = ship;
+            carriedAt = ship.InverseTransformPoint(transform.position);
+            Burning = false;
+            rb.linearVelocity = Vector3.zero;
+        }
+
+        private void Ride()
+        {
+            sinceStuck += Time.fixedDeltaTime;
+            if (carrier.gameObject.activeInHierarchy)
+            {
+                var at = carrier.TransformPoint(carriedAt);
+                transform.position = at;
+                rb.position = at;
+            }
+            if (sinceStuck >= limpetFuse) Detonate();
         }
 
         public float TakeDamage(in DamageInfo hit)
@@ -188,6 +229,9 @@ namespace Combat.Projectiles
             sinceLaunch = 0f;
             blastRadiusScale = 1f;
             blastPush = 1f;
+            limpetFuse = 0f;
+            carrier = null;
+            sinceStuck = 0f;
         }
     }
 }

@@ -3,6 +3,8 @@ using System;
 using Combat.Targeting;
 using Damage;
 using Movement;
+using Ships.Damage;
+using Ships.Status;
 using UnityEngine;
 using Utils;
 using Substrate;
@@ -35,6 +37,7 @@ namespace Combat.Projectiles
         internal Transform target;
         private Transform lockedPoint;
         private Func<Vector3> wire;
+        private float jamSeconds;
         private LockChannel lockedChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
@@ -57,6 +60,9 @@ namespace Combat.Projectiles
 
         /// <summary>Steers at the point <paramref name="aimPoint"/> reads each step, in place of a lock.</summary>
         public void Wire(Func<Vector3> aimPoint) => wire = aimPoint;
+
+        /// <summary>A direct hit on a ship jams its weapons and locks for <paramref name="seconds"/>.</summary>
+        public void Jam(float seconds) => jamSeconds = seconds;
 
         private void Track()
         {
@@ -232,6 +238,8 @@ namespace Combat.Projectiles
 
         protected override void OnHit(IDamageable other)
         {
+            if (jamSeconds > 0f && other is DamageController hull && hull.Ship)
+                hull.Ship.Status.Apply(StatusEffect.WeaponsJammed, jamSeconds);
             Explode(other);
             base.OnHit(other);
         }
@@ -274,6 +282,7 @@ namespace Combat.Projectiles
             lockedChannel = null;
             lockedPoint = null;
             wire = null;
+            jamSeconds = 0f;
             target = null;
             hasLos = false;
             aliveTime = 0f;

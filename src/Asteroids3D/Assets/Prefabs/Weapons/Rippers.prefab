@@ -88,6 +88,10 @@ MonoBehaviour:
     type: 3}
   fireDistance: 18
   fireAngleTolerance: 6
+  suppression: {fileID: 11400000, guid: c8bd0711236b468183755f7632b9c4af, type: 2}
+  suppressionHits: 5
+  suppressionWindow: 0.5
+  suppressionHold: 0.4
   rounds: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!114 &3036594076463291748

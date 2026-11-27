@@ -17,6 +17,11 @@ namespace Combat.Weapons.Arsenal
         [Header("Wire Guided")]
         [SerializeField] private WeaponBehaviourMod wireGuided;
 
+        [Header("EMP Warhead")]
+        [SerializeField] private WeaponBehaviourMod empWarhead;
+        [Tooltip("With EMP warhead held: seconds a direct hit jams the target's weapons and locks.")]
+        [Stat, SerializeField, Min(0.01f)] private float empJam = 2f;
+
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -52,6 +57,11 @@ namespace Combat.Weapons.Arsenal
             if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
+        }
+
+        protected override void Prime(Missile missile)
+        {
+            if (Behaviours.Holds(empWarhead)) missile.Jam(empJam);
         }
 
         public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)

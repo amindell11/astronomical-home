@@ -22,6 +22,10 @@ namespace Combat.Weapons.Arsenal
         [Header("Bank Shot")]
         [SerializeField] private WeaponBehaviourMod bankShot;
 
+        [Header("Point Defence")]
+        [Tooltip("Without it held, bolts fly through enemy missiles and charges.")]
+        [SerializeField] private WeaponBehaviourMod pointDefence;
+
         [Header("Conditions")]
         [Stat, SerializeField] private Heat heat;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -49,6 +53,7 @@ namespace Combat.Weapons.Arsenal
         protected override void Prime(Laser bolt)
         {
             if (Behaviours.Holds(bankShot)) bolt.BankOnce();
+            if (!Behaviours.Holds(pointDefence)) bolt.PassOrdnance();
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
