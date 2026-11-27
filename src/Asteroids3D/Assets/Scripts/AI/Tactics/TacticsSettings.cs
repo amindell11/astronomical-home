@@ -1,4 +1,5 @@
 using System;
+using AI.Plays;
 using UnityEngine;
 
 namespace AI.Tactics
@@ -51,6 +52,10 @@ namespace AI.Tactics
         [Tooltip("Seconds the ambush holds after the ship shows: its strike, guns hot.")]
         [Min(0f)] public float ambushHold = 4f;
 
+        [Header("Plays")]
+        [Tooltip("The wave plays this pilot calls when it leads a wave. Empty, its wave flies without one.")]
+        public WavePlay[] plays = Array.Empty<WavePlay>();
+
         [Header("When hurt")]
         [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Jump out flies straight away and leaves the sector past a distance. Never ignores the wound.")]
         public WoundedResponse wounded = WoundedResponse.BreakOff;
@@ -77,6 +82,9 @@ namespace AI.Tactics
 
         private void OnValidate()
         {
+            foreach (var play in plays)
+                if (!play)
+                    throw new InvalidOperationException($"{name}: a temper cannot list an empty play");
             if (home == Tactic.BreakOff)
                 throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
             if (home == Tactic.Charge)

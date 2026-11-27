@@ -999,8 +999,8 @@ Format: **term** — definition. *(authority)*
   one ship's pick. A phrase has a tell the player can spot at its start, teeth
   that make it dangerous in a new way while it runs, and a window where the
   enemy has committed and the player can use that commitment. Coined
-  2026-11-25 as a research direction. No shipped system flies one yet, and
-  how a phrase composes with tactic picks and tempers is unruled.
+  2026-11-25 as a research direction. The shipped form is the *wave play*
+  (2026-11-27); use that term for anything in the game.
   *(doc/design/Design/Gameplay/Combat.md; #1589)*
 - **geometry verb**. A player action that changes positions or angles in a
   fight, such as a blast that moves ships, a ram, a blink, or a rock knocked
@@ -1026,10 +1026,22 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
-  ship's position and velocity and nothing of its brain, and the leader never commands it.
+- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. Outside a
+  *wave play* the minion observes that ship's position and velocity and nothing of its brain. In a wave play the
+  rival commands its minions (arye, 2026-11-27, #1765, undoing "the leader never commands").
   When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
+- **wave play**. What a wave flies together under its rival: a formation, one *read* of the player, and two
+  answers. The rival's temper lists the plays it can call, and a wave whose rival lists none flies without one.
+  A minion under a live play flies its order even when hurt. When the rival dies the play is broken and the
+  minions fly as they do without a leader. When the rival loses the player the wave searches in formation, and
+  any ship that sees the player starts the play again. Coined 2026-11-27, replacing the research term
+  *enemy phrase* for what ships. ⚠ "Play" alone also means Unity's play mode; say "wave play".
+  *(WavePlay, PlayCall, TacticsSettings.plays; #1765)*
+- **read** (of a wave play). The one moment a wave play samples what the player is doing and, after the play's
+  read delay, commits to one of its two answers. The delay is why a wave never reacts on the frame the player
+  moves. ⚠ Qualify it outside a wave-play context: "read" is also an ordinary verb here.
+  *(WavePlay.Read, PlayCall.Command)*
 - **regroup**. What a minion whose temper says so does when its leader dies: it
   flees with guns cold and leaves past the temper's jump distance, and the wave
   director sends it again with the sector's next rival's wave (never with a
