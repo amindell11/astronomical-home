@@ -9,6 +9,7 @@ namespace Game.Moments.Encounters
 {
     /// <summary>
     /// Bridges one sector's hunt, elite, first wave and fallen rivals onto the run's moment stream.
+    /// A first wave led by a rival the introduction test calls new introduces it instead of starting combat.
     /// The host disposes it when the sector closes, so a dead sector's events
     /// never reach the next one's stream.
     /// </summary>
@@ -19,13 +20,15 @@ namespace Game.Moments.Encounters
         private readonly SectorHunt hunt;
         private readonly IEliteStatus elite;
         private readonly IWaveSignal waves;
+        private readonly Func<Ship, bool> introduces;
         private bool combatStarted;
 
         public SectorMoments(RunMomentStream moments, string faction, SectorHunt hunt, IEliteStatus elite,
-            IWaveSignal waves)
+            IWaveSignal waves, Func<Ship, bool> introduces)
         {
             this.moments = moments ?? throw new ArgumentNullException(nameof(moments));
             this.faction = faction ?? throw new ArgumentNullException(nameof(faction));
+            this.introduces = introduces ?? throw new ArgumentNullException(nameof(introduces));
             this.hunt = hunt;
             this.elite = elite;
             this.waves = waves;
@@ -88,11 +91,12 @@ namespace Game.Moments.Encounters
 
         private void OnEliteBeaten(EliteMoment moment) => moments.Raise(new EliteBeaten(moment));
 
-        private void OnWaveSent(int sectorIndex)
+        private void OnWaveSent(int sectorIndex, Ship rival)
         {
             if (combatStarted) return;
             combatStarted = true;
-            moments.Raise(new CombatStarted(sectorIndex + 1, faction));
+            if (introduces(rival)) moments.Raise(new RivalIntroduced(sectorIndex + 1, faction, rival));
+            else moments.Raise(new CombatStarted(sectorIndex + 1, faction));
         }
 
         private void OnRivalFell(int sectorIndex) => moments.Raise(new RivalFell(sectorIndex + 1, faction));

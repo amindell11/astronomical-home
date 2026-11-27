@@ -453,7 +453,7 @@ namespace Tests.PlayMode
             var director = NewTrial(template, player, out var sector, fewest: 1, most: 1, rivalCap: 1, minionCap: 3,
                 rivalPilot: rivalPilot, minionPilot: minionPilot, waveEvery: beat);
             var waves = 0;
-            director.WaveSent += _ => waves++;
+            director.WaveSent += (_, _) => waves++;
 
             yield return sector.Setup();
             for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)

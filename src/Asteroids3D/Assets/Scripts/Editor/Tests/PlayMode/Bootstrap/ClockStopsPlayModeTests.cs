@@ -45,6 +45,37 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         [Test]
+        public void Slow_RunsAtItsScaleOfTheRunningSpeed_AndFollowsItsChanges()
+        {
+            Time.timeScale = .5f;
+            var clock = new ClockStops();
+            var slow = clock.Slow(.2f);
+
+            Assert.AreEqual(.1f, Time.timeScale, 1e-6f);
+            Assert.IsFalse(clock.Stopped, "a slow is not a stop");
+            slow.Scale = .6f;
+            Assert.AreEqual(.3f, Time.timeScale, 1e-6f);
+            slow.Dispose();
+            Assert.AreEqual(.5f, Time.timeScale);
+        }
+
+        [Test]
+        public void StopOverASlow_HoldsTimeStill_AndTheSlowEndingCannotRestartIt()
+        {
+            Time.timeScale = 1f;
+            var clock = new ClockStops();
+            var slow = clock.Slow(.2f);
+            var pause = clock.Hold();
+
+            Assert.AreEqual(0f, Time.timeScale);
+            slow.Scale = .8f;
+            slow.Dispose();
+            Assert.AreEqual(0f, Time.timeScale, "the pause still holds the clock");
+            pause.Dispose();
+            Assert.AreEqual(1f, Time.timeScale);
+        }
+
+        [Test]
         public void ReleaseAll_RestoresTheSavedScale()
         {
             Time.timeScale = .5f;

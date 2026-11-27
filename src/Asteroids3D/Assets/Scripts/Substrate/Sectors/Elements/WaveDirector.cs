@@ -98,7 +98,7 @@ namespace Substrate.Sectors.Elements
         private float lastWave;
         private float eliteSince;
 
-        public event Action<int> WaveSent;
+        public event Action<int, Ship> WaveSent;
 
         public event Action<int> RivalFell;
 
@@ -242,9 +242,10 @@ namespace Substrate.Sectors.Elements
             if (WavesOver) return TryReinforce(MinionRoom(drawn, AliveMinions), _ => elite.Ship);
             if (!RivalRoom(rivals.Count)) return TryReinforce(MinionRoom(drawn, AliveMinions), LeastEscorted);
             var sent = MinionRoom(drawn + regrouping, AliveMinions);
-            if (!TrySend(sent)) return false;
+            var rival = TrySend(sent);
+            if (!rival) return false;
             regrouping = Rejoined(regrouping, sent);
-            WaveSent?.Invoke(sectorIndex);
+            WaveSent?.Invoke(sectorIndex, rival);
             return true;
         }
 
@@ -439,12 +440,12 @@ namespace Substrate.Sectors.Elements
             products.Add(ship);
         }
 
-        private bool TrySend(int minions)
+        private Ship TrySend(int minions)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             var count = 1 + minions;
             var slots = ClearSlots(center, count);
-            if (slots == null) return false;
+            if (slots == null) return null;
 
             var centreIndex = (count - 1) / 2;
             var rivalRank = faction.Faction.Rival;
@@ -474,7 +475,7 @@ namespace Substrate.Sectors.Elements
                     Follow(spawned[i], rival, i - centreIndex);
                 ((AICommander)spawned[i].Commander).HuntBySight(hero);
             }
-            return true;
+            return rival;
         }
 
         private bool TryReinforce(int minions, Func<Vector2, Ship> leaderFor)
