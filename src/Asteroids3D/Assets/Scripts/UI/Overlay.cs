@@ -212,7 +212,8 @@ namespace UI
             FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
                 dismissed, () => CommLine.Speaking);
 
-        public TutorialCard ShowTutorialCard(string text, Func<bool> ended, Func<bool> skippable = null) =>
-            TutorialCard.Show(transform, readoutFont, labelFont, textMaterial, text, ended, skippable);
+        public TutorialCard ShowTutorialCard(string text, TutorialCard.Spot spot, Func<bool> ended,
+            Func<bool> skippable = null) =>
+            TutorialCard.Show(transform, readoutFont, labelFont, textMaterial, text, spot, ended, skippable);
     }
 }

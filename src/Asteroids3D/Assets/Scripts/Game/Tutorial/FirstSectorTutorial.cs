@@ -61,7 +61,7 @@ namespace Game.Tutorial
                     break;
                 case Step.Hunting when hunt.Alarmed:
                     var until = Time.unscaledTime + wavesCardSeconds;
-                    overlay.ShowTutorialCard(WavesText, () => ended || Time.unscaledTime >= until);
+                    overlay.ShowTutorialCard(WavesText, TutorialCard.Spot.UnderBanner, () => ended || Time.unscaledTime >= until);
                     step = Step.Done;
                     break;
             }

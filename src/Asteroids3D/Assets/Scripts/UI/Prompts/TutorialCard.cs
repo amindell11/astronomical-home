@@ -6,8 +6,11 @@ namespace UI.Prompts
 {
     public sealed class TutorialCard : MonoBehaviour
     {
+        public enum Spot { UnderBanner, High }
+
         private const float FadeSeconds = .3f;
-        private const float BottomY = 176f;
+        private const float UnderBannerY = 176f;
+        private const float HighY = 215f;
         private const float Width = 560f;
         private const int TextSize = 15;
         private const float SkipGap = 10f;
@@ -22,7 +25,7 @@ namespace UI.Prompts
         public string Message { get; private set; }
 
         public static TutorialCard Show(Transform parent, Font keyFont, Font wordFont, Material textMaterial,
-            string text, Func<bool> ended, Func<bool> skippable = null)
+            string text, Spot spot, Func<bool> ended, Func<bool> skippable = null)
         {
             if (string.IsNullOrEmpty(text)) throw new ArgumentException("A card needs its text.", nameof(text));
             if (ended == null) throw new ArgumentNullException(nameof(ended));
@@ -33,7 +36,7 @@ namespace UI.Prompts
             var rect = (RectTransform)go.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0f);
             rect.pivot = new Vector2(.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, BottomY);
+            rect.anchoredPosition = new Vector2(0f, spot == Spot.High ? HighY : UnderBannerY);
             rect.sizeDelta = new Vector2(Width, 0f);
 
             var card = go.AddComponent<TutorialCard>();

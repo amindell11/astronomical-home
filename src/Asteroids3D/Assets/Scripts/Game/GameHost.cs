@@ -33,6 +33,7 @@ using Ships.Loadout;
 using Ships.Weapons;
 using UI;
 using UI.Hangar.Hardware;
+using UI.Prompts;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -1138,7 +1139,8 @@ namespace Game
                 return skipped || playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested;
             }
 
-            rigInstance.Overlay.ShowTutorialCard(FirstSectorTutorial.IntroText, () => !showing, Skippable);
+            rigInstance.Overlay.ShowTutorialCard(FirstSectorTutorial.IntroText, TutorialCard.Spot.High,
+                () => !showing, Skippable);
             rigInstance.SetInputEnabled(false);
             try
             {

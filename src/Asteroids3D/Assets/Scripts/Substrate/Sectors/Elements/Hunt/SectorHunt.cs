@@ -161,7 +161,6 @@ namespace Substrate.Sectors.Elements.Hunt
             if (Alarmed) throw new InvalidOperationException($"SectorHunt on '{name}' cannot hold a hunt whose alarm has sounded.");
             Held = true;
             SpottedFill = 0f;
-            foreach (var patrol in patrols) patrol.Release();
         }
 
         public void Resume() => Held = false;
@@ -188,6 +187,7 @@ namespace Substrate.Sectors.Elements.Hunt
             DespawnDead();
             if (Held)
             {
+                foreach (var patrol in patrols) patrol.Wait();
                 startTime = now;
                 SearchSecondsLeft = searchSeconds;
                 return;
@@ -504,6 +504,9 @@ namespace Substrate.Sectors.Elements.Hunt
             }
 
             private Vector2 Here() => GamePlane.WorldPointToPlane(Ship.transform.position);
+
+            // Steering at zero speed brakes the ship where it is, guns cold; clearing it would hand it back to its brain.
+            public void Wait() => Commander.SteerTo(Here(), 0f);
 
             private void FlyRoute(float speed, float arrivalRadius)
             {

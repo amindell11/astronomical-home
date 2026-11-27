@@ -63,10 +63,17 @@ namespace UI.Prompts
             if (waiting == null) throw new ArgumentNullException(nameof(waiting));
         }
 
+        // Disabled flight controls read the aim as zero, so the start point waits for a live reading.
         private static Func<bool> Aimed(IFlightInput input)
         {
-            var from = input.AimScreenPoint;
-            return () => (input.AimScreenPoint - from).sqrMagnitude >= AimTravelPixels * AimTravelPixels;
+            Vector2? from = null;
+            return () =>
+            {
+                var at = input.AimScreenPoint;
+                if (at == Vector2.zero) return false;
+                from ??= at;
+                return (at - from.Value).sqrMagnitude >= AimTravelPixels * AimTravelPixels;
+            };
         }
 
         private static string Key(WeaponSlot slot) => slot switch

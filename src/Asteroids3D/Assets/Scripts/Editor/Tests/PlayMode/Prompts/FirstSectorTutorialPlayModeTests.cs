@@ -72,9 +72,12 @@ namespace Tests.PlayMode.Prompts
             yield return null;
             CollectionAssert.AreEqual(new[] { "W/S", "A/D", "MOUSE" }, Keys(), "the sector opens on the movement lines alone");
 
+            input.Set(mouse.position, new Vector2(300f, 300f));
+            yield return null;
+            yield return null;
             input.Press(keyboard.wKey);
             input.Press(keyboard.dKey);
-            input.Set(mouse.position, new Vector2(300f, 300f));
+            input.Set(mouse.position, new Vector2(500f, 300f));
             yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => Keys().Contains("SPACE")), Timeout,
                 "using every movement key brings up the weapon and keystone lines");
             CollectionAssert.DoesNotContain(Keys(), "W/S", "the movement lines have gone");
@@ -110,6 +113,8 @@ namespace Tests.PlayMode.Prompts
             rig = Object.Instantiate(TestAssets.Load<PlayerRig>(RigPrefabPath));
             yield return rig.Build(units, objectives, presentationEnabled: true, observer, servicesGo.transform,
                 new SessionFrame(Vector2.zero), onPlayerDeath: null);
+            // A built rig parks its ship inactive, and an inactive ship's flight controls read nothing.
+            rig.Player.gameObject.SetActive(true);
         }
 
         private IEnumerator BuildHeldHunt()
