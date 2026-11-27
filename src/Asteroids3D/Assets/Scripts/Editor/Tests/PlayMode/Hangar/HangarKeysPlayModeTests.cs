@@ -51,6 +51,8 @@ namespace Tests.PlayMode.Hangar
             yield return null;
             Assert.AreSame(nightshade, console.Selection.Ship, "Right steps the selected ship");
             Release(keyboard.rightArrowKey);
+            InputSystem.Update();
+            yield return null;
 
             Press(keyboard.downArrowKey);
             InputSystem.Update();

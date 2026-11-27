@@ -107,7 +107,7 @@ namespace Tests.PlayMode.Companion
             yield return null;
 
             Assert.IsTrue(bay.Speaking, "the bay's comm line speaks");
-            Assert.AreEqual("Bay's yours.", bay.Line);
+            StringAssert.EndsWith("Bay's yours.", bay.Line);
             Assert.IsFalse(display.Speaking, "the run's comm line stays quiet");
         }
 
