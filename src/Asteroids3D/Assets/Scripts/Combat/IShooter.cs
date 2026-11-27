@@ -18,5 +18,8 @@ namespace Combat
 
         /// <summary>Damage-attribution identity; <see cref="ShipId.Invalid"/> for non-ship shooters.</summary>
         ShipId Id { get; }
+
+        /// <summary>Multiplier on every hit this shooter's shots deal, read as each shot leaves.</summary>
+        float ShotDamageScale => 1f;
     }
 }

@@ -5,10 +5,12 @@ using AI.Strategy;
 using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Substrate;
 using Tests.Common;
 using Tests.PlayMode.Common;
@@ -23,6 +25,7 @@ namespace Tests.PlayMode.Keystones
     {
         private const string NightshadePath = "Assets/Prefabs/Ships/Nightshade.prefab";
         private const string MissilePath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
+        private const string AmbushPath = "Assets/Settings/Ships/Keystones/Mods/Ambush.asset";
 
         private readonly List<GameObject> spawned = new();
         private Ship nightshade;
@@ -169,6 +172,45 @@ namespace Tests.PlayMode.Keystones
             for (var i = 0; i < steps; i++)
                 yield return new WaitForFixedUpdate();
             Assert.That(stealth.Active, Is.False, "unfired, it ends with its window");
+        }
+
+        [UnityTest]
+        public IEnumerator Ambush_TriplesTheShotThatBreaksStealth_AndEveryShotInItsWindow_ThenLetsGo()
+        {
+            yield return SpawnNightshade(Vector3.zero, team: 1);
+            nightshade.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(stealth.Active, Is.True);
+            Assert.That(nightshade.ShotDamageScale, Is.EqualTo(1f), "without Ambush stealth adds nothing");
+
+            stealth.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(AmbushPath) });
+            var primary = nightshade.Weapons.Primary;
+            var aim = nightshade.transform.position + GamePlane.PlaneDirToWorld(Vector2.up) * 20f;
+            var opening = primary.Fire(aim, Projectiles);
+            Assert.That(opening, Is.Not.Null, "the opening shot leaves");
+            Assert.That(stealth.Active, Is.False, "and breaks stealth");
+            Assert.That(opening.DamageScale, Is.EqualTo(3f).Within(1e-4f), "the shot that breaks stealth hits three times as hard");
+
+            ProjectileBase follow = null;
+            for (var i = 0; i < 30 && !follow; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (primary.CanFire()) follow = primary.Fire(aim, Projectiles);
+            }
+            Assert.That(follow, Is.Not.Null, "a follow-up shot leaves inside the window");
+            Assert.That(follow.DamageScale, Is.EqualTo(3f).Within(1e-4f), "so does every shot in the window");
+
+            for (var i = 0; i < 100 && stealth.Ambushing; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(stealth.Ambushing, Is.False, "the window closes");
+            ProjectileBase late = null;
+            for (var i = 0; i < 30 && !late; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (primary.CanFire()) late = primary.Fire(aim, Projectiles);
+            }
+            Assert.That(late, Is.Not.Null);
+            Assert.That(late.DamageScale, Is.EqualTo(1f).Within(1e-4f), "after it, shots hit as authored");
         }
 
         private IEnumerator SpawnNightshade(Vector3 at, int team)

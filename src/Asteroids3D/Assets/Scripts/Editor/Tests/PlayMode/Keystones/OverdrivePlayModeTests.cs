@@ -1,9 +1,13 @@
 using System.Collections;
+using Combat.Targeting;
+using Loot;
+using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -15,12 +19,65 @@ namespace Tests.PlayMode.Keystones
     public class OverdrivePlayModeTests : PlayModeWorldFixture
     {
         private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
+        private const string KitPath = "Assets/Prefabs/Keystones/Valis_Overdrive.prefab";
+        private const string OrbitPath = "Assets/Settings/Ships/Keystones/Mods/Orbit.asset";
+        private const float RockRadius = 4f;
+        private const float Speed = 30f;
         private Ship valis;
+        private GameObject kitHost;
+        private GameObject rock;
 
         public override void TearDown()
         {
             ShipTestFactory.DestroyShip(valis);
+            if (kitHost) Object.DestroyImmediate(kitHost);
+            if (rock) Object.DestroyImmediate(rock);
             base.TearDown();
+        }
+
+        public enum Pass { Orbiting, NoTurn, TurningAway, NotHeld }
+
+        // The kit flies a point ship past a rock abeam on its left, nose held a little inside the course.
+        [Test]
+        public void Orbit_BendsTheCourseAroundASkimmedRock_KeepingSpeed_OnlyWhileTurningTowardIt([Values] Pass pass)
+        {
+            rock = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            rock.layer = LayerIds.Asteroid;
+            rock.transform.position = GamePlane.PlanePointToWorld(Vector2.zero);
+            rock.transform.localScale = Vector3.one * (RockRadius * 2f);
+            kitHost = Object.Instantiate(TestAssets.Load<GameObject>(KitPath));
+            var kit = kitHost.GetComponent<Overdrive>();
+            var body = new GameObject("Body").AddComponent<Rigidbody>();
+            body.transform.SetParent(kitHost.transform);
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
+            if (pass != Pass.NotHeld) kit.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(OrbitPath) });
+            Physics.SyncTransforms();
+            var turn = pass switch { Pass.NoTurn => 0f, Pass.TurningAway => -1f, _ => 1f };
+
+            var dt = Time.fixedDeltaTime;
+            var pos = new Vector2(0f, -(RockRadius + 2f));
+            var vel = new Vector2(Speed, 0f);
+            var closest = float.PositiveInfinity;
+            for (var i = 0; i < Mathf.RoundToInt(0.5f / dt); i++)
+            {
+                var nose = (Vector2)(Quaternion.AngleAxis(20f, Vector3.forward) * vel.normalized);
+                var yaw = Mathf.Atan2(-nose.x, nose.y) * Mathf.Rad2Deg;
+                var kinematics = new Kinematics(pos, vel, yaw, 0f, 0f);
+                vel += kit.Step(in kinematics, i == 0 ? 1f : 0f, dt, out _, Speed, null, turn).Acceleration * dt;
+                pos += vel * dt;
+                closest = Mathf.Min(closest, pos.magnitude);
+            }
+
+            Assert.That(kit.Active, Is.True, "the pass stays inside the window");
+            Assert.That(vel.magnitude, Is.EqualTo(Speed).Within(0.01f), "no speed is lost");
+            var bend = Vector2.Angle(Vector2.right, vel);
+            if (pass != Pass.Orbiting)
+            {
+                Assert.That(bend, Is.LessThan(0.01f), "the course runs straight on");
+                return;
+            }
+            Assert.That(bend, Is.GreaterThan(90f), "the course bends around the rock");
+            Assert.That(closest, Is.GreaterThan(RockRadius + 1f), "skimming it, never into it");
         }
 
         [UnityTest]

@@ -2,6 +2,7 @@ using Asteroids;
 using Balance;
 using Damage;
 using Movement;
+using Ships.Mods;
 using Substrate;
 using UnityEngine;
 
@@ -13,8 +14,8 @@ namespace Ships.Keystones.Kits
     /// is absorbed, while the sides and rear stay open. While the ram is live the speed cap lifts, a
     /// burn drives along the launch line, and the ship is heavier. Damage and knockback follow how
     /// centred the ram's aim is, and speed only adds damage; a lighter rock shatters, a heavier one
-    /// stops the ship. A ram that makes contact refunds part of its cooldown; one that hits nothing
-    /// keeps the full cooldown and sheds its surge speed.
+    /// stops the ship, and Battering ram raises that limit. A ram that makes contact refunds part of
+    /// its cooldown; one that hits nothing keeps the full cooldown and sheds its surge speed.
     /// </summary>
     public sealed class RamDash : Dash
     {
@@ -68,6 +69,12 @@ namespace Ships.Keystones.Kits
 
         [Tooltip("Largest damage multiplier impact speed gives; slower hits never deal less than a full hit.")]
         [Stat, SerializeField] private float maxSpeedBonus = 1.6f;
+
+        [Tooltip("The Battering ram keystone mod, whose holding raises the heaviest rock the ram shatters.")]
+        [SerializeField] private KeystoneMod batteringRam;
+
+        [Tooltip("With Battering ram, the heaviest rock the live ram shatters, as a multiple of the ship's ramming mass.")]
+        [Stat, SerializeField] private float batteringRamMass = 3f;
 
         // -1 idle, -2 not yet counted, 0 launches this step.
         private int brakeStepsLeft = -1;
@@ -153,7 +160,8 @@ namespace Ships.Keystones.Kits
                     contact.Point, ForceMode.Impulse);
             if (target is AsteroidDamage)
             {
-                if (!contact.OtherBody || contact.OtherBody.mass >= contact.SelfMass) return;
+                var heaviest = contact.SelfMass * (Behaviours.Holds(batteringRam) ? batteringRamMass : 1f);
+                if (!contact.OtherBody || contact.OtherBody.mass >= heaviest) return;
                 target.TakeDamage(Hit(float.MaxValue, in contact));
             }
             else

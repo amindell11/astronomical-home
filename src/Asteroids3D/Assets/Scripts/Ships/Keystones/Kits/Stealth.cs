@@ -1,5 +1,6 @@
 using Balance;
 using Movement;
+using Ships.Mods;
 using UnityEngine;
 
 namespace Ships.Keystones.Kits
@@ -10,7 +11,8 @@ namespace Ships.Keystones.Kits
     /// lock and seeker on the ship lets go on the step it starts. Projectiles still hit; stealth
     /// hides the ship, it does not dodge, but it raises the cap and thrust like Overdrive so the
     /// ship can leave where it was last seen. It pays when it breaks a missile's track.
-    /// Over the last moments of the window the hull tells that the ship is about to show.
+    /// Over the last moments of the window the hull tells that the ship is about to show. With Ambush,
+    /// the ship's shots hit harder from concealment until a short while after it shows.
     /// </summary>
     public sealed class Stealth : Keystone
     {
@@ -29,7 +31,17 @@ namespace Ships.Keystones.Kits
         [Tooltip("Multiplier on forward thrust while concealed; must lift drag-limited top speed past the raised cap.")]
         [Stat, SerializeField] private float thrustScale = 1.45f;
 
+        [Tooltip("The Ambush keystone mod, whose holding makes the ship's shots hit harder as it leaves stealth.")]
+        [SerializeField] private KeystoneMod ambush;
+
+        [Tooltip("With Ambush, seconds after the ship shows during which its shots hit harder.")]
+        [Stat, SerializeField, Min(0f)] private float ambushWindow = 1.5f;
+
+        [Tooltip("With Ambush, multiplier on the damage of every shot fired concealed or in the ambush window.")]
+        [Stat, SerializeField] private float ambushDamageScale = 3f;
+
         private bool concealed;
+        private float revealedAt = float.NegativeInfinity;
 
         public override string DisplayName => "Stealth";
         public float Window => window;
@@ -39,6 +51,10 @@ namespace Ships.Keystones.Kits
         public override float ThrustScale => concealed ? thrustScale : 1f;
         public override float PeakSpeedScale => speedScale;
         public override float PeakThrustScale => thrustScale;
+
+        // Concealment counts too: the shot that breaks stealth leaves before the reveal it causes.
+        public bool Ambushing => Behaviours.Holds(ambush) && (concealed || SinceActivation - revealedAt < ambushWindow);
+        public override float ShotDamageScale => Ambushing ? ambushDamageScale : 1f;
 
         public override bool ShouldActivate(in KeystoneContext context) => context.SelfShieldPct < sightShield;
 
@@ -64,11 +80,13 @@ namespace Ships.Keystones.Kits
         protected override void OnReset()
         {
             if (concealed) Reveal();
+            revealedAt = float.NegativeInfinity;
         }
 
         private void Reveal()
         {
             concealed = false;
+            revealedAt = SinceActivation;
             Host.Lock.Reveal();
         }
     }
