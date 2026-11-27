@@ -1,4 +1,5 @@
 using Movement;
+using UnityEngine;
 
 namespace AI.Plays
 {
@@ -13,9 +14,10 @@ namespace AI.Plays
         public readonly int minions;
         public readonly PlayRead read;
         public readonly float answerSeconds;
+        public readonly Vector2 bearing;
 
         public PlayView(Kinematics rival, Kinematics target, PlayStage stage, float stageSeconds,
-            float imposedSeconds, int mirror, int minions, PlayRead read, float answerSeconds)
+            float imposedSeconds, int mirror, int minions, PlayRead read, float answerSeconds, Vector2 bearing)
         {
             this.rival = rival;
             this.target = target;
@@ -26,6 +28,7 @@ namespace AI.Plays
             this.minions = minions;
             this.read = read;
             this.answerSeconds = answerSeconds;
+            this.bearing = bearing;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Tests.EditMode.Plays
             var rivalPos = new Vector2(4f, -2f);
             var targetPos = rivalPos + new Vector2(30f, 0f);
             var rival = Pose(rivalPos);
-            var view = new PlayView(rival, Pose(targetPos), PlayStage.Imposing, 0f, 0f, -1, 4, PlayRead.None, 0f);
+            var view = new PlayView(rival, Pose(targetPos), PlayStage.Imposing, 0f, 0f, -1, 4, PlayRead.None, 0f, Vector2.right);
 
             var order = wall.MinionOrder(view, rival, rank: 2, speed: 100f);
 
@@ -55,12 +55,23 @@ namespace Tests.EditMode.Plays
         }
 
         [Test]
+        public void Read_ReachesTheFreeEnd_OfAThreeShipWall_WhenTheTargetFliesToIt()
+        {
+            var rival = Pose(Vector2.zero);
+            var freeEnd = new Vector2(0f, 3f * wall.spacing);
+            var atFreeEnd = new PlayView(rival, Pose(freeEnd + Vector2.right * 5f), PlayStage.Imposing, 0f, 0f, 1,
+                3, PlayRead.None, 0f, Vector2.right);
+
+            Assert.AreEqual(PlayRead.A, wall.Read(atFreeEnd));
+        }
+
+        [Test]
         public void AnswerB_OrdersTheRivalTowardTheTarget_AndEngages()
         {
             var rival = Pose(Vector2.zero);
             var target = Pose(new Vector2(12f, 0f));
             const float speed = 8f;
-            var answer = new PlayView(rival, target, PlayStage.AnswerB, 1f, 0f, 1, 2, PlayRead.B, 0f);
+            var answer = new PlayView(rival, target, PlayStage.AnswerB, 1f, 0f, 1, 2, PlayRead.B, 0f, Vector2.right);
 
             var order = wall.RivalOrder(answer, speed);
 
@@ -68,7 +79,7 @@ namespace Tests.EditMode.Plays
             Assert.AreEqual(RangerBrain.HoldRangeVelocity(rival, target, 0f, speed), order.Value.velocity);
             Assert.Greater(Vector2.Dot(order.Value.velocity, Vector2.right), 0f);
             Assert.IsTrue(order.Value.engages);
-            var imposing = new PlayView(rival, target, PlayStage.Imposing, 0f, 0f, 1, 2, PlayRead.None, 0f);
+            var imposing = new PlayView(rival, target, PlayStage.Imposing, 0f, 0f, 1, 2, PlayRead.None, 0f, Vector2.right);
             Assert.IsFalse(wall.RivalOrder(imposing, speed).HasValue);
         }
 
@@ -84,7 +95,7 @@ namespace Tests.EditMode.Plays
         private int EngagingRank(float imposed, int minions)
         {
             var view = new PlayView(Pose(Vector2.zero), Pose(Vector2.right), PlayStage.Imposing, 0f, imposed, 1,
-                minions, PlayRead.None, 0f);
+                minions, PlayRead.None, 0f, Vector2.right);
             var engaging = 0;
             var rankEngaged = 0;
             for (var rank = 1; rank <= minions; rank++)
@@ -101,7 +112,7 @@ namespace Tests.EditMode.Plays
         private static Kinematics Pose(Vector2 pos) => new(pos, Vector2.zero, 0f, 0f, 0f);
 
         private static PlayView View(Kinematics rival, Kinematics target, PlayStage stage, float imposed, int minions) =>
-            new(rival, target, stage, 0f, imposed, 1, minions, PlayRead.None, 0f);
+            new(rival, target, stage, 0f, imposed, 1, minions, PlayRead.None, 0f, Vector2.right);
     }
 }
 #endif

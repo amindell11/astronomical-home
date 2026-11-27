@@ -71,7 +71,7 @@ namespace AI.Plays
 
         private Vector2 Slot(in PlayView view, int rank)
         {
-            var toTarget = (view.target.pos - view.rival.pos).normalized;
+            var toTarget = view.bearing;
             var axis = Vector2.Perpendicular(toTarget) * view.mirror;
             var radians = Angle(view) * Mathf.Deg2Rad;
             var dir = axis * Mathf.Cos(radians) + toTarget * Mathf.Sin(radians);

@@ -19,6 +19,7 @@ namespace AI.Plays
         private float answeredFor;
         private PlayRead read;
         private Ship spotted;
+        private UnityEngine.Vector2 bearing;
 
         public PlayCall(Ship rival, WavePlay[] book, Random random)
         {
@@ -81,14 +82,14 @@ namespace AI.Plays
                     ? frozenImposed
                     : now - imposeStart;
             return new PlayView(rival, target, Stage, stageSeconds, imposedSeconds, Mirror, Flying, read,
-                answeredFor);
+                answeredFor, clocked ? bearing : (target.pos - rival.pos).normalized);
         }
 
         internal void Command(in Kinematics rival, in Kinematics target, float now)
         {
             if (!clocked || Stage == PlayStage.Searching)
             {
-                BeginImpose(now);
+                BeginImpose(now, rival, target);
                 return;
             }
 
@@ -123,7 +124,7 @@ namespace AI.Plays
                 throw new InvalidOperationException($"A play call cannot be commanded while {Stage}.");
             if (now - stageStart < Play.reformSeconds) return;
             Mirror = random.Next(2) == 0 ? -1 : 1;
-            BeginImpose(now);
+            BeginImpose(now, rival, target);
         }
 
         internal void LoseTarget()
@@ -143,8 +144,9 @@ namespace AI.Plays
             return false;
         }
 
-        private void BeginImpose(float now)
+        private void BeginImpose(float now, in Kinematics rival, in Kinematics target)
         {
+            bearing = (target.pos - rival.pos).normalized;
             Stage = PlayStage.Imposing;
             imposeStart = now;
             stageStart = now;
