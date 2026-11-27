@@ -36,6 +36,11 @@ namespace Combat.Weapons.Arsenal
         [Tooltip("With Implosion held: the blast's pull toward its centre, as a fraction of its usual push.")]
         [Stat, SerializeField, Min(0f)] private float implosionPull = 1f;
 
+        [Header("Limpet")]
+        [SerializeField] private WeaponBehaviourMod limpet;
+        [Tooltip("With Limpet held: seconds a charge rides the ship it stuck to before it detonates.")]
+        [Stat, SerializeField, Min(0.01f)] private float limpetFuse = 1f;
+
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -71,6 +76,7 @@ namespace Combat.Weapons.Arsenal
             if (!charge) return null;
             charge.SetBlastRadiusScale(Mods.Factor(WeaponModField.BlastRadius));
             charge.SetBlastPush(Behaviours.Holds(implosion) ? -implosionPull : 1f);
+            if (Behaviours.Holds(limpet)) charge.Limpet(limpetFuse);
             Track(charge);
             Launched?.Invoke(charge);
             return charge;

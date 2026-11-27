@@ -18,6 +18,8 @@ namespace Ships.Damage
         public float shieldRegenDelay = 3f;
         public float shieldRegenRate = 25f;
 
+        public Ship Ship => myShip;
+
         public Resource Health { get; private set; }
         public RegenResource Shield { get; private set; }
 
