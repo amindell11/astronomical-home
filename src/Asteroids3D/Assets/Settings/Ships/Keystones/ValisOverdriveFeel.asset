@@ -131,7 +131,7 @@ MonoBehaviour:
     turnLag: 0
   - name: Burst
     show: 1
-    size: 1
+    size: 1.6
     opacity: 1
     speed: 0.25
     endsAt: 0
