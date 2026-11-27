@@ -10,6 +10,7 @@ using Game.Moments.Encounters;
 using Game.Moments.Finds;
 using Game.Runs;
 using NUnit.Framework;
+using Ships;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
@@ -287,15 +288,20 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
-        public void SectorMoments_RejectsANullStreamOrFaction_AndAllowsNeitherHuntNorElite()
+        public void SectorMoments_RejectsANullStreamFactionOrIntroductionTest_AndAllowsNeitherHuntNorElite()
         {
             var stream = new RunMomentStream();
-            var missingStream = Assert.Throws<ArgumentNullException>(() => new SectorMoments(null, "", null, null, null));
+            var missingStream = Assert.Throws<ArgumentNullException>(
+                () => new SectorMoments(null, "", null, null, null, _ => false));
             Assert.AreEqual("moments", missingStream.ParamName);
-            var missingFaction = Assert.Throws<ArgumentNullException>(() => new SectorMoments(stream, null, null, null, null));
+            var missingFaction = Assert.Throws<ArgumentNullException>(
+                () => new SectorMoments(stream, null, null, null, null, _ => false));
             Assert.AreEqual("faction", missingFaction.ParamName);
+            var missingTest = Assert.Throws<ArgumentNullException>(
+                () => new SectorMoments(stream, "", null, null, null, null));
+            Assert.AreEqual("introduces", missingTest.ParamName);
 
-            var wired = new SectorMoments(stream, "", null, null, null);
+            var wired = new SectorMoments(stream, "", null, null, null, _ => false);
             Assert.DoesNotThrow(wired.Dispose);
         }
 
@@ -304,7 +310,7 @@ namespace Tests.EditMode.Companion
         {
             var stream = new RunMomentStream();
             var waves = new WaveSignal();
-            var moments = new SectorMoments(stream, "veil", null, null, waves);
+            var moments = new SectorMoments(stream, "veil", null, null, waves, _ => false);
 
             waves.Raise(2);
             waves.Raise(2);
@@ -317,11 +323,47 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void SectorMoments_FirstWaveLedByANewRival_IntroducesItInsteadOfStartingCombat()
+        {
+            var stream = new RunMomentStream();
+            var waves = new WaveSignal();
+            var asked = 0;
+            var moments = new SectorMoments(stream, "bastion", null, null, waves, _ => ++asked > 0);
+
+            waves.Raise(1);
+            waves.Raise(1);
+
+            Assert.AreEqual(1, asked, "only the sector's first wave asks");
+            Assert.AreEqual(1, stream.Moments.Count);
+            var introduced = (RivalIntroduced)stream.Moments[0];
+            Assert.AreEqual(RivalIntroduced.IntroducedSlot, introduced.Slot);
+            Assert.AreEqual(2, introduced.Sector);
+            Assert.AreEqual("bastion", introduced.Facts["faction"]);
+            moments.Dispose();
+        }
+
+        [Test]
+        public void ShippedSheet_RivalIntroducedIsMustSay_AndEachFactionOpensWithACompanionWarning()
+        {
+            var sheet = AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath);
+            Assert.IsTrue(sheet.Find(RivalIntroduced.IntroducedSlot).MustSay, "the introduction always speaks");
+
+            var lines = sheet.LoadLines();
+            foreach (var faction in new[] { "shoal", "veil", "bastion" })
+            {
+                var moment = new RivalIntroduced(1, faction, null);
+                var picked = lines.Pick(moment.Slot, moment.Facts, _ => 0, withReply: false);
+                Assert.IsNotEmpty(picked, faction);
+                Assert.AreEqual(LineTable.CompanionSpeaker, picked[0].Speaker, faction);
+            }
+        }
+
+        [Test]
         public void SectorMoments_EachFallenRival_RaisesRivalFell()
         {
             var stream = new RunMomentStream();
             var waves = new WaveSignal();
-            var moments = new SectorMoments(stream, "veil", null, null, waves);
+            var moments = new SectorMoments(stream, "veil", null, null, waves, _ => false);
 
             waves.Fell(1);
             waves.Fell(1);
@@ -353,7 +395,7 @@ namespace Tests.EditMode.Companion
         {
             var stream = new RunMomentStream();
             var waves = new WaveSignal();
-            var moments = new SectorMoments(stream, "veil", null, null, waves);
+            var moments = new SectorMoments(stream, "veil", null, null, waves, _ => false);
             Assert.AreEqual(2, waves.SubscriberCount, "the bridge subscribed to both signals");
 
             moments.Dispose();
@@ -416,10 +458,10 @@ namespace Tests.EditMode.Companion
 
         private sealed class WaveSignal : IWaveSignal
         {
-            public event Action<int> WaveSent;
+            public event Action<int, Ship> WaveSent;
             public event Action<int> RivalFell;
 
-            public void Raise(int sectorIndex) => WaveSent?.Invoke(sectorIndex);
+            public void Raise(int sectorIndex) => WaveSent?.Invoke(sectorIndex, null);
 
             public void Fell(int sectorIndex) => RivalFell?.Invoke(sectorIndex);
 

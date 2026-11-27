@@ -8,6 +8,7 @@ using Cameras;
 using Combat.Weapons;
 using Damage;
 using Game.Audio;
+using Game.CloseUps;
 using Game.Companion;
 using Game.Display;
 using Game.Moments;
@@ -50,6 +51,7 @@ namespace Game
     /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
     /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
+    /// Each sector's first wave slows time for a close-up on its rival.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
     /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
@@ -146,6 +148,11 @@ namespace Game
         [Tooltip("The nag budget and line timings. Required when lines are assigned and presentation is on.")]
         [SerializeField] internal CompanionFeelProfile companionFeel;
 
+        [Header("Rival close-up")]
+        [Tooltip("How each sector's first wave shows its rival: time slows while the camera pans and zooms onto " +
+                 "it. Presentation only.")]
+        [SerializeField] internal CloseUpFeel closeUpFeel = new CloseUpFeel();
+
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
         internal string runExportFolder;
@@ -187,6 +194,7 @@ namespace Game
         private GameMusic music;
         private CompanionVoice voice;
         private RunMomentStream moments;
+        private Ship closeUpRival;
 
         private Transform viewport;
         private Transform ui;
@@ -336,6 +344,7 @@ namespace Game
 
                 playerDied = false;
                 moments = new RunMomentStream();
+                moments.Raised += OnMomentRaised;
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
@@ -391,7 +400,8 @@ namespace Game
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
                     var sectorMoments = new SectorMoments(moments, faction, spine ? spine.Hunt : null,
-                        spine ? spine.Elite : null, spine ? spine.Waves : null);
+                        spine ? spine.Elite : null, spine ? spine.Waves : null, Introduces);
+                    closeUpRival = null;
 
                     pauseRequested = false;
                     while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
@@ -413,6 +423,14 @@ namespace Game
                             {
                                 cachesClaimed++;
                                 moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
+                            }
+                            if (closeUpRival)
+                            {
+                                var rival = closeUpRival;
+                                closeUpRival = null;
+                                yield return RunCloseUp(rival);
+                                // A pause cuts the close-up short and must survive the drop below.
+                                if (pauseRequested) continue;
                             }
                         }
 
@@ -1055,6 +1073,27 @@ namespace Game
                 recapStop?.Dispose();
                 recapStop = null;
                 presenter.Restore();
+            }
+        }
+
+        private bool Introduces(Ship rival) => sessionProfile.presentation && rigInstance && rival;
+
+        private void OnMomentRaised(IRunMoment moment)
+        {
+            if (moment is RivalIntroduced introduced) closeUpRival = introduced.Rival;
+        }
+
+        private IEnumerator RunCloseUp(Ship rival)
+        {
+            rigInstance.SetInputEnabled(false);
+            try
+            {
+                yield return RivalCloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
+                    clock.Slow(1f), () => playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested);
+            }
+            finally
+            {
+                rigInstance.SetInputEnabled(true);
             }
         }
 
