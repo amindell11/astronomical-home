@@ -11,6 +11,7 @@ namespace Game.Player
     /// <see cref="IPilot"/>/<see cref="IWeapons"/>/<see cref="IJumpDrive"/> actuators. Reads ship situation through the
     /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly. While the flight assist is on
     /// (V toggles it), a movement axis with no input counter-thrusts the ship's drift along it on its own engines.
+    /// With <see cref="MovementSetting.ScreenRelative"/> on, the movement keys push along the screen and are split onto the ship's axes.
     /// </summary>
     [DefaultExecutionOrder(-30)]
     public class PlayerCommander : Commander
@@ -133,15 +134,25 @@ namespace Game.Player
         {
             if (context == null) return;
 
-            if (thrustInput != 0f) thrustInputAt = Time.time;
-            if (strafeInput != 0f) strafeInputAt = Time.time;
+            var forward = context.Kinematics.Forward;
+            var right = new Vector2(forward.y, -forward.x);
+            var thrust = thrustInput;
+            var strafe = strafeInput;
+            if (MovementSetting.ScreenRelative)
+            {
+                var push = Vector2.ClampMagnitude(new Vector2(strafeInput, thrustInput), 1f);
+                thrust = OntoAxis(push, forward);
+                strafe = OntoAxis(push, right);
+            }
+
+            if (thrust != 0f) thrustInputAt = Time.time;
+            if (strafe != 0f) strafeInputAt = Time.time;
             if (boostInput) boostPressedAt = Time.time;
 
-            var forward = context.Kinematics.Forward;
             var cmd = new PilotCommand
             {
-                thrust = Assisted(thrustInput, thrustInputAt, forward),
-                strafe = Assisted(strafeInput, strafeInputAt, new Vector2(forward.y, -forward.x)),
+                thrust = Assisted(thrust, thrustInputAt, forward),
+                strafe = Assisted(strafe, strafeInputAt, right),
                 boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
                 yawTorque = wantsRotate ? GetMouseRotationTorque() : 0f,
                 abilityTarget = hasScreenProjector ? (Vector2?)GamePlane.WorldPointToPlane(cursorPoint) : null,
@@ -154,6 +165,13 @@ namespace Game.Player
                 FireSlot(WeaponSlot.Primary, primaryHeld, ref prevPrimaryHeld, ref primaryReload);
                 FireSlot(WeaponSlot.Secondary, secondaryHeld, ref prevSecondaryHeld, ref secondaryReload);
             }
+        }
+
+        // A push square across an axis must read as released there, or the assist never brakes it.
+        private static float OntoAxis(Vector2 push, Vector2 axis)
+        {
+            var along = Vector2.Dot(push, axis);
+            return Mathf.Abs(along) < 0.01f ? 0f : along;
         }
 
         private float Assisted(float input, float inputAt, Vector2 axis)

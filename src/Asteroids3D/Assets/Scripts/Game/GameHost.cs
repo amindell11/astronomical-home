@@ -693,6 +693,8 @@ namespace Game
                 AssistSetting.Set(on);
                 if (rigInstance) rigInstance.SetAssist(on);
             }));
+            rows.Add(SettingsRow.Choice("MOVEMENT", new[] { "SHIP", "SCREEN" }, MovementSetting.ScreenRelative ? 1 : 0,
+                i => MovementSetting.ScreenRelative = i == 1));
             rows.Add(SettingsRow.Slider("SCREEN SHAKE", CameraSettings.ShakeScale, v => CameraSettings.ShakeScale = v));
             rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
                 on => DisplaySettings.Set(DisplaySettings.Resolution, on)));

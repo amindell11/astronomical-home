@@ -36,11 +36,14 @@ namespace Tests.PlayMode
         private StubShipStatus status;
         private RecordingPilot pilot;
         private FlightAssistProfile profile;
+        private bool previousScreenRelative;
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
+            previousScreenRelative = MovementSetting.ScreenRelative;
+            MovementSetting.ScreenRelative = false;
             input = new PlayModeInputTestFixture();
             input.Setup();
             keyboard = InputSystem.AddDevice<Keyboard>();
@@ -55,6 +58,7 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
+            MovementSetting.ScreenRelative = previousScreenRelative;
             DestroyTestObject(commanderGo);
             input.TearDown();
             base.TearDown();
@@ -105,6 +109,29 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(0f, pilot.Last.thrust, "no assist on thrust");
             Assert.AreEqual(0f, pilot.Last.strafe, "no assist on strafe");
+        }
+
+        [UnityTest]
+        public IEnumerator ScreenRelative_HoldingWWithTheNoseLeft_StrafesUpTheScreen()
+        {
+            MovementSetting.ScreenRelative = true;
+            status.kinematics = new Kinematics(Vector2.zero, Vector2.zero, 90f, 0f, 0f);
+            input.Press(keyboard.wKey);
+            yield return AsyncAssert.WaitUntil(() => pilot.Steps.Any(step => step.cmd.strafe != 0f), Timeout,
+                "holding W reached the pilot");
+
+            Assert.AreEqual(1f, pilot.Last.strafe, 1e-4f, "W pushes up the screen, which is the nose-left ship's right");
+            Assert.AreEqual(0f, pilot.Last.thrust, "no push along the nose");
+        }
+
+        [UnityTest]
+        public IEnumerator ShipRelative_HoldingWWithTheNoseLeft_ThrustsAlongTheNose()
+        {
+            status.kinematics = new Kinematics(Vector2.zero, Vector2.zero, 90f, 0f, 0f);
+            input.Press(keyboard.wKey);
+            yield return AsyncAssert.WaitUntil(() => pilot.Steps.Any(Held), Timeout, "holding W reached the pilot");
+
+            Assert.AreEqual(0f, pilot.Last.strafe, "no sideways push");
         }
 
         // Past fullBrakeSpeed, so a braking axis spends exactly the profile's strength.
