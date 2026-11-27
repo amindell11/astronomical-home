@@ -153,6 +153,13 @@ namespace Ships
             if (!weapons) weapons = GetComponent<WeaponsController>();
             if (weapons) weapons.Initialize(() => Kinematics, Status);
             if (keystone) Keystone = Instantiate(keystone, transform);
+            Behaviours.Changed += ReadPassives;
+        }
+
+        private void ReadPassives()
+        {
+            backstab.Read(Behaviours);
+            shrapnelRocks.Read(Behaviours);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -196,8 +203,6 @@ namespace Ships
             if (Weapons) Weapons.SetMods(mods);
             if (Keystone) Keystone.Behaviours.Set(mods.Behaviours(mod => mod.LandsOn(keystone)));
             Behaviours.Set(mods.Behaviours(mod => mod.LandsOnShip));
-            backstab.Read(Behaviours);
-            shrapnelRocks.Read(Behaviours);
             ReResolve(Vitals.Rescale);
         }
 
