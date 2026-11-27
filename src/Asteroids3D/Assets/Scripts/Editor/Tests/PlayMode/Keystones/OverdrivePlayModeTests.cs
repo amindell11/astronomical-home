@@ -49,7 +49,7 @@ namespace Tests.PlayMode.Keystones
             var kit = kitHost.GetComponent<Overdrive>();
             var body = new GameObject("Body").AddComponent<Rigidbody>();
             body.transform.SetParent(kitHost.transform);
-            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
             if (pass != Pass.NotHeld) kit.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(OrbitPath) });
             Physics.SyncTransforms();
             var turn = pass switch { Pass.NoTurn => 0f, Pass.TurningAway => -1f, _ => 1f };

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using Asteroids.Spawning;
 using JetBrains.Annotations;
+using Ships;
+using Substrate;
 using UnityEngine;
 using Utils;
 
@@ -21,22 +23,31 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
-        public void CreateFragments(AsteroidController asteroid, uint breakSeed, HitData hit, Action<Frag[]> onFragment = null)
-        {            
+        /// <param name="shrapnelThrower">The ship whose Shrapnel rocks throws the fragments; null for an ordinary break.</param>
+        public void CreateFragments(AsteroidController asteroid, uint breakSeed, HitData hit, Ship shrapnelThrower,
+            Action<Frag[]> onFragment = null)
+        {
             var ast = new AsteroidData(asteroid);
-            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, breakSeed, asteroid.AsteroidSpawner, onFragment));
+            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, breakSeed, asteroid.AsteroidSpawner, shrapnelThrower, onFragment));
         }
 
         /// <summary>
         /// spawns placeholder fragments immediately, then updates them with proper physics
         /// </summary>
-        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, uint breakSeed, AsteroidSpawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
+        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, uint breakSeed, AsteroidSpawner spawn,
+            [CanBeNull] Ship shrapnelThrower, [CanBeNull] Action<Frag[]> onFragment = null)
         {
             var rng = new DeterministicRandom(breakSeed);
             var frags = calc.GenerateFragments(ast, ref rng);
             var momentum = calc.CalculateInitialMomentum(ast, hit);
             calc.CalculatePlaceholderPhysics(ast, hit, frags, ref rng);
             var placeholderFragments = SpawnPlaceholderFragments(ast, hit, frags, spawn, ref rng);
+            // Read now: the thrower may die before the fragment physics settles.
+            var shrapnel = shrapnelThrower ? shrapnelThrower.ShrapnelRocks : null;
+            var away = shrapnelThrower ? GamePlane.WorldDirOnPlane(ast.Position - shrapnelThrower.transform.position) : Vector3.zero;
+            if (shrapnelThrower)
+                foreach (var fragment in placeholderFragments)
+                    fragment.Damage.ThrownBy(shrapnelThrower);
             onFragment += OnFrag;
             yield return null;
             yield return StartCoroutine(calc.CoCalculateFragmentPhysics(
@@ -48,7 +59,11 @@ namespace Asteroids.Fragnetics
                 ref rng
             ));
             yield break;
-            void OnFrag(Frag[] f) => UpdatePlaceholderFragments(placeholderFragments, f);
+            void OnFrag(Frag[] f)
+            {
+                shrapnel?.Throw(f, ast.Velocity, away);
+                UpdatePlaceholderFragments(placeholderFragments, f);
+            }
         }
 
         /// <summary>

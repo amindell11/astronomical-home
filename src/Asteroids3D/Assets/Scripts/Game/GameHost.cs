@@ -797,7 +797,7 @@ namespace Game
         private IEnumerator RunLullPick(int sector)
         {
             var player = rigInstance.Player;
-            var offers = LootOffers.Draw(lullMods.mods, mod => mod.Fits(player), LullPickScreen.MaxOffers,
+            var offers = LootOffers.Draw(lullMods.mods, mod => rigInstance.Mods.Offers(mod, player), LullPickScreen.MaxOffers,
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 

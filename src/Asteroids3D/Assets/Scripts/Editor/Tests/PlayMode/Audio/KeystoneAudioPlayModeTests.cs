@@ -64,7 +64,7 @@ namespace Tests.PlayMode.Audio
                 body.useGravity = false;
             }
 
-            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
             return kit;
         }
 

@@ -174,7 +174,7 @@ namespace Combat.Weapons.Arsenal
 
                 var point = StrikePoint(hit, origin);
                 remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
-                    impactMass, direction * impactSpeed, point)) ?? 0f;
+                    impactMass, direction * impactSpeed, point, attacker: shooter as Ships.Ship)) ?? 0f;
                 Hit?.Invoke(point, damageable);
                 if (remaining > 0f) continue;
 

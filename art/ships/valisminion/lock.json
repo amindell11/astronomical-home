@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7bf2c3e8f9bb435229b9f65effcc9a9c4135cb756cb50d71b7b9a995e2763217",
+  "name": "ValisMinion",
+  "geometry": "d7af2bf448e5e6cf725aaca1c9ee306e33cb8503853119cab7430be3757b4a75",
+  "parts": {
+    "01 central fuselage": "afbad7de7264936620aadc4fec64e0bb60d094c426684277bf0f06682e6fc9a2",
+    "02 black canopy": "0c4910ad2149c3692b43a539da5e28ac07343d3e326a5a4cc4cf26428b0f8a71",
+    "03 canopy side cheeks": "de482e8236faa9dd48ff87872522de834a111dfbb6d2e6e4aa6d5567d312c9a7",
+    "04 dorsal armor": "89f4a60e2a0974d0de1fdd8ac36334ffc09fbf3c0145d74756dbcb23358924d7",
+    "06 dorsal lavender rails": "6921fefdee77bc0f3fec0820ab250161c094e7a281225a91f8b30ca0d5936a70",
+    "08 ventral armor": "1b5a8b06c2f004b7d25a8969372022228db202b665d39e43131deb937e54c726",
+    "10 upper swept wings": "2ddafe190364a7b205fdcf1b722a719e1e947e4c717a2b68efd8d96ee9546f88",
+    "12 upper wing lavender tips underside": "9ef621ea2ee2b44131c23d34c1e5de6c90c6bdc19f287586b16a1c997c0bf587",
+    "13 charcoal trailing spars": "759e6972a9466337b5fac543eb29035ce482cdb4632b34d03e1ea69e047aa12a",
+    "60 engine spine": "2a73b7bf086360d4a69853ada52f0d53544bb803ecdc27643326f7b38ec74e4f",
+    "62 engine raised ribs": "179c52a1c61b042890927f152851f9270b19505b5484eaba6f224139c39c4321",
+    "64 exhaust rim": "25f3a71226b234956f7a01d67741f674c78654109430a6cccfd6b900e6181228",
+    "SymmetryOrigin": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b"
+  }
+}

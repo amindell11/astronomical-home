@@ -61,7 +61,8 @@ namespace Ships.Damage
             }
 
             var taken = keystone ? hit.WithAmount(hit.Amount * keystone.DamageScale(in hit)) : hit;
-            var shieldAbsorbed = taken.BypassesShield ? 0f : Shield.ApplyDamage(taken.Amount);
+            var pierces = taken.BypassesShield || taken.Attacker && taken.Attacker.Backstab.Pierces(transform, taken.HitPoint);
+            var shieldAbsorbed = pierces ? 0f : Shield.ApplyDamage(taken.Amount);
             var hullDamage = Health.ApplyDamage(taken.Amount - shieldAbsorbed);
             var applied = new AppliedDamage(taken, shieldAbsorbed, hullDamage);
             if (applied.Info.Amount > 0)
