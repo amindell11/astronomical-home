@@ -3,32 +3,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Cameras;
 using Combat.Weapons;
-using Game;
 using Game.Player;
 using NUnit.Framework;
 using Ships.Command;
-using Substrate.Sectors.Elements;
-using Substrate.Sectors.Elements.Phases;
-using Substrate.Services;
-using Substrate.Services.Objectives;
-using Substrate.Services.Units;
-using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI.Prompts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Prompts
 {
     [Category("UI")]
     public class FirstRunPromptPlayModeTests : PlayModeWorldFixture
     {
-        private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string KeyFontPath = "Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf";
         private const string WordFontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
         private const float Timeout = 2f;
@@ -38,10 +28,6 @@ namespace Tests.PlayMode.Prompts
         private Mouse mouse;
         private PlayerInputReader reader;
         private GameObject hud;
-        private GameObject servicesGo;
-        private UnitService units;
-        private ObserverCam observer;
-        private PlayerRig rig;
 
         [SetUp]
         public override void SetUp()
@@ -59,11 +45,6 @@ namespace Tests.PlayMode.Prompts
         [TearDown]
         public override void TearDown()
         {
-            if (rig) rig.Teardown();
-            if (units) units.Clear();
-            DestroyTestObject(rig ? rig.gameObject : null);
-            DestroyTestObject(observer ? observer.gameObject : null);
-            DestroyTestObject(servicesGo);
             DestroyTestObject(hud);
             reader.Dispose();
             input.TearDown();
@@ -175,42 +156,62 @@ namespace Tests.PlayMode.Prompts
         }
 
         [UnityTest]
-        [Category("RequiresGraphics")]
-        public IEnumerator Rig_ShowsThePromptsAtTheFirstSectorItEntersOnly()
+        public IEnumerator ShowMovement_TeachesThrustStrafeAndAim()
         {
-            servicesGo = new GameObject("TestServices");
-            units = servicesGo.AddComponent<UnitService>();
-            var objectives = servicesGo.AddComponent<ObjectiveService>();
-            ShipServices.Compose(units, servicesGo.transform, presentationEnabled: true);
-            observer = TestAssets.NewObserverCam();
-            rig = Object.Instantiate(TestAssets.Load<PlayerRig>(RigPrefabPath));
-            yield return rig.Build(units, objectives, presentationEnabled: true, observer, servicesGo.transform,
-                new SessionFrame(Vector2.zero), onPlayerDeath: null);
-
-            rig.EnterSector(null);
-            Assert.IsEmpty(Lines(rig.Overlay.gameObject), "leaving a sector shows nothing");
-            var (first, firstDirector) = NewPhase("First sector");
-            rig.EnterSector(first);
-            var weapons = rig.Player.Weapons.ReadoutContext;
-            var lineCount = 1 + weapons.Slots.Count;
-            Assert.AreEqual(lineCount, Lines(rig.Overlay.gameObject).Length,
-                "the first sector start shows the keystone line and one line per equipped weapon");
-            Assert.AreEqual(rig.Player.Keystone.DisplayName.ToUpperInvariant(), LineOn(rig, "SPACE").Action,
-                "the keystone line names the keystone the player flies");
-            foreach (var slot in weapons.Slots)
-                Assert.AreEqual(("FIRE " + weapons.DisplayName(slot)).ToUpperInvariant(),
-                    LineOn(rig, slot == WeaponSlot.Primary ? "LMB" : "RMB").Action,
-                    $"the {slot} line names the weapon the player carries");
-
-            rig.EnterSector(null);
-            rig.EnterSector(NewPhase("Second sector").module);
+            ShowMovement(() => false);
             yield return null;
-            Assert.AreEqual(lineCount, Lines(rig.Overlay.gameObject).Length, "a later sector start shows no second set");
 
-            firstDirector.Advance(41f);
-            yield return AsyncAssert.WaitUntil(() => Lines(rig.Overlay.gameObject).Length == 0, Timeout,
-                "the first sector's lull after its first sector phase ends every line");
+            Assert.AreEqual(3, Lines(hud).Length, "one line each for thrust, strafe and aim");
+            Assert.AreEqual("THRUST", Line("W/S").GetComponent<KeyPrompt>().Action);
+            Assert.AreEqual("STRAFE", Line("A/D").GetComponent<KeyPrompt>().Action);
+            Assert.AreEqual("AIM", Line("MOUSE").GetComponent<KeyPrompt>().Action);
+            Assert.Greater(Y(Line("W/S")), Y(Line("A/D")), "thrust sits above strafe");
+            Assert.Greater(Y(Line("A/D")), Y(Line("MOUSE")), "strafe sits above aim");
         }
+
+        [UnityTest]
+        public IEnumerator PressingW_FadesOnlyTheThrustLine()
+        {
+            ShowMovement(() => false);
+            yield return null;
+
+            input.Press(keyboard.wKey);
+            yield return AsyncAssert.WaitUntil(() => !Line("W/S"), Timeout, "W fades the thrust line and it goes");
+            Assert.IsTrue(Line("A/D") && Line("MOUSE"), "the other lines stay until their own inputs");
+        }
+
+        [UnityTest]
+        public IEnumerator PressingD_FadesOnlyTheStrafeLine()
+        {
+            ShowMovement(() => false);
+            yield return null;
+
+            input.Press(keyboard.dKey);
+            yield return AsyncAssert.WaitUntil(() => !Line("A/D"), Timeout, "D fades the strafe line and it goes");
+            Assert.IsTrue(Line("W/S") && Line("MOUSE"), "the other lines stay until their own inputs");
+        }
+
+        [UnityTest]
+        public IEnumerator MovingTheMouse_FadesOnlyTheAimLine()
+        {
+            input.Set(mouse.position, new Vector2(400f, 300f));
+            yield return null;
+            ShowMovement(() => false);
+            yield return null;
+
+            input.Set(mouse.position, new Vector2(410f, 305f));
+            yield return null;
+            yield return null;
+            Assert.IsTrue(Line("MOUSE"), "a nudge of the mouse is not yet aiming");
+
+            input.Set(mouse.position, new Vector2(500f, 300f));
+            yield return AsyncAssert.WaitUntil(() => !Line("MOUSE"), Timeout, "moving the mouse fades the aim line and it goes");
+            Assert.IsTrue(Line("W/S") && Line("A/D"), "the other lines stay until their own inputs");
+        }
+
+        private void ShowMovement(Func<bool> dismissed) =>
+            FirstRunPrompt.ShowMovement(hud.transform, TestAssets.Load<Font>(KeyFontPath),
+                TestAssets.Load<Font>(WordFontPath), null, reader, dismissed, () => false);
 
         private void Show(Func<bool> dismissed, Func<bool> waiting = null, IWeaponReadouts weapons = null) =>
             FirstRunPrompt.Show(hud.transform, TestAssets.Load<Font>(KeyFontPath), TestAssets.Load<Font>(WordFontPath),
@@ -220,26 +221,11 @@ namespace Tests.PlayMode.Prompts
         private FirstRunPrompt Line(string key) =>
             Lines(hud).FirstOrDefault(line => line.GetComponent<KeyPrompt>().Key == key);
 
-        private static KeyPrompt LineOn(PlayerRig rig, string key) =>
-            Lines(rig.Overlay.gameObject).Select(line => line.GetComponent<KeyPrompt>()).First(line => line.Key == key);
-
         private static FirstRunPrompt[] Lines(GameObject root) => root.GetComponentsInChildren<FirstRunPrompt>(true);
 
         private static float Alpha(FirstRunPrompt line) => line.GetComponent<CanvasGroup>().alpha;
 
         private static float Y(FirstRunPrompt line) => ((RectTransform)line.transform).anchoredPosition.y;
-
-        private (PhaseSpineModule module, WaveDirector director) NewPhase(string name)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(servicesGo.transform, false);
-            var director = go.AddComponent<WaveDirector>();
-            director.Configure(new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
-            director.BeginSchedule(0f);
-            var module = go.AddComponent<PhaseSpineModule>();
-            module.Bind(director, null, null);
-            return (module, director);
-        }
 
         private sealed class FakeWeapons : IWeaponReadouts
         {

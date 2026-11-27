@@ -89,6 +89,34 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
+        public void HeldHunt_KeepsItsClockFull_ThenRunsTheFullClockFromTheResume()
+        {
+            Tick(0f);
+            hunt.Hold();
+            Tick(SearchSeconds * 3f);
+            Assert.IsFalse(hunt.Alarmed, "A held hunt never sounds its alarm.");
+            Assert.AreEqual(SearchSeconds, hunt.SearchSecondsLeft, 1e-3f, "The search clock waits full.");
+            Assert.IsTrue(director.Phase.InOpeningLull, "No wave opens while the hunt is held.");
+
+            hunt.Resume();
+            Tick(SearchSeconds * 3f + 1f);
+            Assert.AreEqual(SearchSeconds - 1f, hunt.SearchSecondsLeft, 1e-3f, "The clock starts at the resume.");
+            Tick(SearchSeconds * 4f - .1f);
+            Assert.IsFalse(hunt.Alarmed);
+            Tick(SearchSeconds * 4f);
+            Assert.IsTrue(hunt.Alarmed, "The resumed hunt sounds after its full clock.");
+        }
+
+        [Test]
+        public void Hold_AfterTheAlarm_Throws()
+        {
+            Tick(0f);
+            Tick(SearchSeconds);
+            Assert.IsTrue(hunt.Alarmed, "test premise: the clock sounded the alarm");
+            Assert.Throws<System.InvalidOperationException>(() => hunt.Hold());
+        }
+
+        [Test]
         public void Director_HoldsTheOpeningLullThroughTheGap_ThenPhaseOneOpensAtTheReleaseAsIndexZero()
         {
             Tick(0f);
