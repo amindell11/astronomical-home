@@ -34,6 +34,7 @@ namespace Combat.Projectiles
 
         internal Transform target;
         private Transform lockedPoint;
+        private Func<Vector3> wire;
         private LockChannel lockedChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
@@ -53,6 +54,9 @@ namespace Combat.Projectiles
             lockedChannel.Concealed += Forget;
             Track();
         }
+
+        /// <summary>Steers at the point <paramref name="aimPoint"/> reads each step, in place of a lock.</summary>
+        public void Wire(Func<Vector3> aimPoint) => wire = aimPoint;
 
         private void Track()
         {
@@ -169,6 +173,11 @@ namespace Combat.Projectiles
 
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
+            if (wire != null)
+            {
+                var toAim = GamePlane.WorldDirToPlane(wire() - transform.position);
+                return toAim.sqrMagnitude < 0.01f ? kin.Forward : toAim.normalized;
+            }
             if (!target) return kin.Forward;
 
             var toTarget = GamePlane.WorldDirToPlane(target.position - transform.position);
@@ -264,6 +273,7 @@ namespace Combat.Projectiles
             }
             lockedChannel = null;
             lockedPoint = null;
+            wire = null;
             target = null;
             hasLos = false;
             aliveTime = 0f;

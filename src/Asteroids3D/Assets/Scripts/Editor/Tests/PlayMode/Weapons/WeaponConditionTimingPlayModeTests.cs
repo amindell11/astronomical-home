@@ -6,6 +6,7 @@ using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -159,6 +160,10 @@ namespace Tests.PlayMode.Weapons
         {
             var lasers = Template<Lasers>();
             lasers.projectilePrefab = Bolt();
+            var serialized = new SerializedObject(lasers);
+            serialized.FindProperty("bankShot").objectReferenceValue =
+                TestAssets.Load<WeaponBehaviourMod>("Assets/Settings/Weapons/Mods/Behaviours/BankShot.asset");
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             AddCooldown(lasers, secondsBetweenShots: 0.1f);
             lasers.gameObject.AddComponent<Heat>().Configure(maxHeat: 100f, heatPerShot: 30f, coolingRate: 100f,
                 coolDownDelay: 0.1f, overheatPenaltyTime: 0.5f);

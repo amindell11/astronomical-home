@@ -93,6 +93,7 @@ MonoBehaviour:
   fireDistance: 20
   fireAngleTolerance: 5
   ventTo: 1
+  bankShot: {fileID: 11400000, guid: b1cf69e3f5ce40cbbbef2cc31701a682, type: 2}
   heat: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!114 &8653804347652268947

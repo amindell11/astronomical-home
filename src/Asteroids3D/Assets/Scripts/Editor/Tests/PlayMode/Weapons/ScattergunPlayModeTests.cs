@@ -6,6 +6,7 @@ using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -22,6 +23,7 @@ namespace Tests.PlayMode.Weapons
     public class ScattergunPlayModeTests : PlayModeWorldFixture
     {
         private const string PrefabPath = "Assets/Prefabs/Weapons/Scattergun.prefab";
+        private const string StoppingPowerPath = "Assets/Settings/Weapons/Mods/Behaviours/StoppingPower.asset";
 
         private readonly List<GameObject> spawned = new();
         private float savedTimeScale;
@@ -201,6 +203,39 @@ namespace Tests.PlayMode.Weapons
             Assert.Less(target.ShieldPct + target.HealthPct, shieldAndHull, "a pellet hit the target");
             Assert.Greater(Vector3.Dot(target.Rigidbody.linearVelocity, gun.FireDirection), 0f,
                 "the hit pushed the target along the shot");
+        }
+
+        [UnityTest]
+        public IEnumerator StoppingPower_ShovesAPointBlankTargetFarHarder()
+        {
+            var plain = new List<float>();
+            yield return BlastAlongTheShot(Vector3.zero, false, plain);
+            var stopping = new List<float>();
+            yield return BlastAlongTheShot(GamePlane.PlaneDirToWorld(new Vector2(80f, 0f)), true, stopping);
+
+            Assert.Greater(plain[0], 0f, "the bare pellets still knock the target back");
+            Assert.Greater(stopping[0], plain[0] * 1.5f, "landing together, the pellets shove harder than their sum");
+        }
+
+        private IEnumerator BlastAlongTheShot(Vector3 at, bool stoppingPower, List<float> speedAlongShot)
+        {
+            var shooter = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), at, GamePlane.Rotation);
+            spawned.Add(shooter.gameObject);
+            shooter.Initialize(0, 0, Projectiles);
+            shooter.Reequip(TestAssets.Load<Scatterguns>(PrefabPath), null);
+            var gun = (Scatterguns)shooter.Weapons.Primary;
+            if (stoppingPower)
+                gun.Behaviours.Set(new[] { TestAssets.Load<WeaponBehaviourMod>(StoppingPowerPath) });
+
+            var target = Object.Instantiate(TestAssets.LoadCrimsonPrefab(),
+                gun.FireOrigin + gun.FireDirection * 4f, GamePlane.Rotation);
+            spawned.Add(target.gameObject);
+            target.Initialize(1, 0, Projectiles);
+
+            Assert.IsNotNull(gun.Fire(target.transform.position, Projectiles));
+            for (var step = 0; step < 20; step++)
+                yield return new WaitForFixedUpdate();
+            speedAlongShot.Add(Vector3.Dot(target.Rigidbody.linearVelocity, gun.FireDirection));
         }
 
         private Scatterguns Spawn()

@@ -1,5 +1,6 @@
 using Balance;
 using Damage;
+using Substrate;
 using UnityEngine;
 
 namespace Combat.Projectiles
@@ -8,6 +9,9 @@ namespace Combat.Projectiles
     {
         [Header("Laser Properties")]
         [Stat, SerializeField] private float laserSpeed = 20f;
+
+        private bool banks;
+        private Collider bankedOff;
 
         protected override DamageKind Kind => DamageKind.Laser;
 
@@ -19,6 +23,44 @@ namespace Combat.Projectiles
             var inheritAlong = Vector3.Project(shooterVelocity, direction);
             rb.linearVelocity = direction * laserSpeed + inheritAlong;
             base.Launch(direction, targetPoint);
+        }
+
+        /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
+        public void BankOnce() => banks = true;
+
+        protected override void OnHit(IDamageable other, Collider collider)
+        {
+            // The rock it banked off still touches it on the step it turns.
+            if (collider == bankedOff) return;
+            if (banks && collider.gameObject.layer == LayerIds.Asteroid)
+            {
+                Bank(collider);
+                return;
+            }
+            base.OnHit(other, collider);
+        }
+
+        private void Bank(Collider rock)
+        {
+            banks = false;
+            bankedOff = rock;
+            var traveled = DistanceTraveled;
+            var normal = GamePlane.WorldDirOnPlane(transform.position - rock.bounds.center).normalized;
+            var velocity = rb.linearVelocity;
+            if (Vector3.Dot(velocity, normal) >= 0f) return;
+
+            var turned = Vector3.Reflect(velocity, normal);
+            rb.linearVelocity = turned;
+            transform.rotation = Quaternion.AngleAxis(Vector3.SignedAngle(velocity, turned, GamePlane.Normal), GamePlane.Normal)
+                                 * transform.rotation;
+            // The range cap measures from the start point, so move it to keep the path length.
+            startPosition = transform.position - turned.normalized * traveled;
+        }
+
+        protected override void OnReturnToPool()
+        {
+            banks = false;
+            bankedOff = null;
         }
     }
 }
