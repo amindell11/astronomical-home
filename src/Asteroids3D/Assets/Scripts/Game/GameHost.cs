@@ -1122,12 +1122,16 @@ namespace Game
         private IEnumerator RunTutorialStations(FindStation[] finds)
         {
             var labels = new List<(string text, Color tint, Vector3 at)>();
+            var kinds = new List<StationKind>();
             foreach (var find in finds)
             {
                 if (!find) continue;
                 foreach (var station in find.Stations)
-                    if (!station.Spent)
-                        labels.Add((find.Kind.ToString().ToUpperInvariant(), FindColours.Of(find.Kind), station.Position));
+                {
+                    if (station.Spent) continue;
+                    labels.Add((find.Kind.ToString().ToUpperInvariant(), FindColours.Of(find.Kind), station.Position));
+                    if (!kinds.Contains(find.Kind)) kinds.Add(find.Kind);
+                }
             }
             if (labels.Count == 0) yield break;
 
@@ -1139,18 +1143,23 @@ namespace Game
                 min = Vector2.Min(min, at);
                 max = Vector2.Max(max, at);
             }
-            var center = (min + max) / 2f;
+            // Fit the stations inside the clear band of the screen, then shift the camera so the band sits on them.
+            var aspect = observer.Cam.aspect;
+            var band = tutorialFeel.stationsBand;
             var half = (max - min) / 2f + Vector2.one * tutorialFeel.stationsMargin;
-            var size = Mathf.Max(half.y, half.x / observer.Cam.aspect);
-            yield return RunTutorialShot(FirstSectorTutorial.StationsText, tutorialFeel.stationsZoom, () => center, size,
-                labels);
+            var size = Mathf.Max(half.y / band.height, half.x / (band.width * aspect));
+            var center = (min + max) / 2f - new Vector2((band.center.x - .5f) * 2f * size * aspect,
+                (band.center.y - .5f) * 2f * size);
+            yield return RunTutorialShot(FirstSectorTutorial.StationsText(kinds), tutorialFeel.stationsZoom, () => center,
+                size, labels);
         }
 
         private IEnumerator RunTutorialPatrol(Ship patrol)
         {
             var feel = tutorialFeel.introPan;
+            var lift = new Vector2(0f, (.5f - tutorialFeel.patrolScreenHeight) * 2f * feel.closeSize);
             Func<Vector2?> target = () => patrol && patrol.gameObject.activeInHierarchy
-                ? GamePlane.WorldPointToPlane(patrol.transform.position)
+                ? GamePlane.WorldPointToPlane(patrol.transform.position) + lift
                 : (Vector2?)null;
             yield return RunTutorialShot(FirstSectorTutorial.IntroText, feel, patrol ? target : null, feel.closeSize,
                 Array.Empty<(string, Color, Vector3)>());

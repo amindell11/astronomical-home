@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Substrate.Sectors.Elements.Stations;
 using Substrate.Sectors.Elements.Hunt;
 using Ships;
 using UI;
@@ -15,9 +17,18 @@ namespace Game.Tutorial
     /// </summary>
     internal sealed class FirstSectorTutorial
     {
-        public const string StationsText =
-            "STATIONS ARE MARKED ON YOUR MAP. REPAIR FIXES YOUR HULL, MOD ADDS AN UPGRADE AND ARMORY SWAPS YOUR WEAPON. " +
-            "FLY INTO ONE TO USE IT BEFORE THE ALARM SOUNDS.";
+        public static string StationsText(IReadOnlyList<StationKind> kinds)
+        {
+            if (kinds == null || kinds.Count == 0)
+                throw new ArgumentException("The stations card needs at least one kind.", nameof(kinds));
+            var parts = new List<string>();
+            foreach (var kind in kinds) parts.Add(Does(kind));
+            var list = parts.Count == 1
+                ? parts[0]
+                : string.Join(", ", parts.GetRange(0, parts.Count - 1)) + " AND " + parts[parts.Count - 1];
+            return $"STATIONS ARE MARKED ON YOUR MAP. {list}. FLY INTO ONE TO USE IT BEFORE THE ALARM SOUNDS.";
+        }
+
         public const string IntroText = "ENEMIES ARE PATROLLING AND CAN SENSE YOU, SO STAY ON THE LOOKOUT.";
         public const string WavesText = "WAVES OF ENEMIES ARE COMING. SURVIVE THEM AND REACH EXTRACTION.";
 
@@ -72,6 +83,14 @@ namespace Game.Tutorial
         public void IntroDone() => step = Step.Hunting;
 
         public void End() => ended = true;
+
+        private static string Does(StationKind kind) => kind switch
+        {
+            StationKind.Repair => "REPAIR FIXES YOUR HULL",
+            StationKind.Mod => "MOD ADDS AN UPGRADE",
+            StationKind.Armory => "ARMORY SWAPS YOUR WEAPON",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "A station kind with no tutorial line."),
+        };
 
         private static bool Gone(IReadOnlyList<FirstRunPrompt> shown)
         {

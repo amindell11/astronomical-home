@@ -30,6 +30,13 @@ namespace Game.Tutorial
         [Tooltip("World units of room the stations zoom leaves around the player and the outermost stations.")]
         [Min(0f)] public float stationsMargin = 20f;
 
+        [Tooltip("The part of the screen, in viewport fractions from the bottom left, the stations zoom fits the " +
+                 "stations into: clear of the weapon dials below, the card and clock above, and the minimap.")]
+        public Rect stationsBand = new(.04f, .16f, .74f, .44f);
+
+        [Tooltip("Height on screen, as a fraction from the bottom, the patrol pan holds the patrol at, below the card.")]
+        [Range(0f, 1f)] public float patrolScreenHeight = .36f;
+
         [Tooltip("Real seconds before a fire press can skip each hunt intro shot, so a player still firing from the weapon prompts can't skip it by accident.")]
         [Min(0f)] public float introSkipDelaySeconds = .6f;
 
