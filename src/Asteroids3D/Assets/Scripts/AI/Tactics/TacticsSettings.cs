@@ -1,4 +1,5 @@
 using System;
+using AI.Plays;
 using UnityEngine;
 
 namespace AI.Tactics
@@ -50,6 +51,10 @@ namespace AI.Tactics
         [Min(0f)] public float ambushAhead = 15f;
         [Tooltip("Seconds the ambush holds after the ship shows: its strike, guns hot.")]
         [Min(0f)] public float ambushHold = 4f;
+
+        [Header("Plays")]
+        [Tooltip("The wave plays this pilot calls when it leads a wave. Empty, its wave flies without one.")]
+        public WavePlay[] plays = Array.Empty<WavePlay>();
 
         [Header("When hurt")]
         [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Jump out flies straight away and leaves the sector past a distance. Never ignores the wound.")]

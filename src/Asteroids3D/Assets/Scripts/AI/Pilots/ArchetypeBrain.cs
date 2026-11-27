@@ -2,6 +2,7 @@ using System;
 using AI;
 using AI.Context;
 using AI.Maneuvers;
+using AI.Plays;
 using AI.Tactics;
 using Combat.Targeting;
 using Movement;
@@ -14,7 +15,7 @@ namespace AI.Pilots
 {
     /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The matrix lane Configures a pinned target and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
     /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A lost enemy, still alive and not concealed, is circled for its laps and then recalled once. A dead one is circled only when the temper circles the wreck, then wanders, and otherwise wanders from the start.
-    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance. A temper that ambushes cloaks and strikes when its keystone is ready, and one that holds the line keeps its place beside its leader. A minion whose leader is gone flies its wounded response, or regroups when its temper says so: it flees guns cold and asks to jump past its temper's distance. A minion that regroups or jumps out keeps fleeing the target's last live position while the target is out of sight.</summary>
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance. A temper that ambushes cloaks and strikes when its keystone is ready, and one that holds the line keeps its place beside its leader. A minion whose leader is gone flies its wounded response, or regroups when its temper says so: it flees guns cold and asks to jump past its temper's distance. A minion that regroups or jumps out keeps fleeing the target's last live position while the target is out of sight. A ship in a wave play flies its rival's orders, and the rival runs the play's read.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
@@ -195,6 +196,27 @@ namespace AI.Pilots
             if (IsGone(target) && LeavesWithoutLeader() && wreck.HasValue)
                 return Leave(ctx.Self, wreck.Value);
 
+            var call = ctx.Call;
+            if (call != null && !call.Broken && IsGone(target))
+            {
+                var me = Situation.Myself(ctx);
+                if (me == call.Rival)
+                {
+                    call.LoseTarget();
+                    if (call.TryTakeSpotted(out var spotted))
+                        ctx.Combat.LimitToSight(spotted);
+                }
+                else
+                {
+                    var self = ctx.Self.Kinematics;
+                    var speed = shape.speedFraction * ctx.Self.Dynamics.maxSpeed;
+                    var rival = call.Rival.Kinematics;
+                    var order = call.Play.SearchOrder(rival, self, call.RankOf(me), speed);
+                    CurrentTactic = Tactic.HoldLine;
+                    return new BrainDecision(NavObjective.Planar(order.velocity));
+                }
+            }
+
             // Null on a concealed target lets the commander hunt its last-seen point.
             if (archetype != OpponentArchetype.Dummy && IsGone(target))
                 return liveTargeting && !IsConcealed(droppedTarget) ? Roam(ctx.Self) : null;
@@ -321,11 +343,46 @@ namespace AI.Pilots
                 retreatsTaken++;
             }
 
+            var speed = tactics.chasesFlatOut && !situation.inMyRange ? maxSpeed : shape.speedFraction * maxSpeed;
+            var call = ctx.Call;
+            if (call != null && !call.Broken)
+            {
+                var me = Situation.Myself(ctx);
+                if (me == call.Rival)
+                {
+                    call.Command(self, target.Kinematics, Time.time);
+                    var rivalOrder = call.Play.RivalOrder(call.View(self, target.Kinematics, Time.time), maxSpeed);
+                    if (rivalOrder.HasValue)
+                    {
+                        if (CurrentTactic != Tactic.Charge)
+                        {
+                            CurrentTactic = Tactic.Charge;
+                            tacticTick = tickCounter;
+                        }
+
+                        return Pack(ctx.Self, new ManeuverStep(rivalOrder.Value.velocity, rivalOrder.Value.engages));
+                    }
+                }
+                else
+                {
+                    if (call.Stage == PlayStage.Searching)
+                        call.Spot(target);
+                    var rival = call.Rival.Kinematics;
+                    var order = call.Play.MinionOrder(call.View(rival, target.Kinematics, Time.time), self,
+                        call.RankOf(me), speed);
+                    if (CurrentTactic != Tactic.HoldLine)
+                    {
+                        CurrentTactic = Tactic.HoldLine;
+                        tacticTick = tickCounter;
+                    }
+
+                    return Pack(ctx.Self, new ManeuverStep(order.velocity, order.engages && situation.alliesInLane == 0));
+                }
+            }
+
             var them = target.Kinematics;
             if (situation.openSide != Vector2.zero)
                 flankSign = Vector2.Dot(Vector2.Perpendicular(them.pos - self.pos), situation.openSide) >= 0f ? 1 : -1;
-
-            var speed = tactics.chasesFlatOut && !situation.inMyRange ? maxSpeed : shape.speedFraction * maxSpeed;
             var gunRange = ctx.HoldRange ?? shape.desiredRange;
             var flankSide = flankSign != 0 ? flankSign : (shape.orbitDirection >= 0 ? 1 : -1);
             maneuvers ??= BuildManeuvers();
