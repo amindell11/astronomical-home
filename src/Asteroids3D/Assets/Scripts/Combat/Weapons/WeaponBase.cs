@@ -41,8 +41,12 @@ namespace Combat.Weapons
             proj.Initialize(shooter);
             proj.SetDamageScale(Mods.Factor(WeaponModField.Damage));
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
+            Prime(proj);
             proj.Launch(GamePlane.WorldDirOnPlane(turn * muzzle.up), targetPoint);
             return proj;
         }
+
+        /// <summary>Readies each projectile with this weapon's held behaviours before it flies.</summary>
+        protected virtual void Prime(TProj projectile) { }
     }
 }

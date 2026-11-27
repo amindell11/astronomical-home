@@ -39,6 +39,7 @@ namespace Combat.Projectiles
         private float sinceLaunch;
         private int shipLayers;
         private float blastRadiusScale = 1f;
+        private float blastPush = 1f;
 
         private bool Armed => sinceLaunch >= armingTime;
 
@@ -79,6 +80,9 @@ namespace Combat.Projectiles
         {
             blastRadiusScale = Mathf.Max(0f, scale);
         }
+
+        /// <summary>Per-shot multiplier on the wave's push, negative to pull, set by the launcher after launch; resets to 1 on pool return.</summary>
+        public void SetBlastPush(float scale) => blastPush = scale;
 
         event Action IChargeFlight.Ended
         {
@@ -169,7 +173,7 @@ namespace Combat.Projectiles
             detonated = true;
 
             var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid, DamageScale, blastRadiusScale);
+            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid, DamageScale, blastRadiusScale, blastPush);
             Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
 
             OnDetonated?.Invoke(transform.position);
@@ -182,6 +186,7 @@ namespace Combat.Projectiles
             Burning = false;
             sinceLaunch = 0f;
             blastRadiusScale = 1f;
+            blastPush = 1f;
         }
     }
 }

@@ -5,6 +5,7 @@ using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
+using Combat.Weapons.Mods;
 using Damage;
 using NUnit.Framework;
 using Tests.Common;
@@ -31,6 +32,7 @@ namespace Tests.PlayMode
     {
         private const string GrenadesPrefabPath = "Assets/Prefabs/Weapons/Grenades.prefab";
         private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
+        private const string ImplosionPath = "Assets/Settings/Weapons/Mods/Behaviours/Implosion.asset";
 
         private readonly List<GameObject> spawned = new();
 
@@ -463,6 +465,31 @@ namespace Tests.PlayMode
             Assert.Greater(sphereBody.linearVelocity.magnitude, 0.1f, "The wave shoves the sphere.");
             Assert.Less(sphereBody.angularVelocity.magnitude, 0.01f,
                 "A push through the centre of mass spins nothing.");
+        }
+
+        [UnityTest]
+        public IEnumerator Implosion_PullsWhatTheWaveWouldPushTowardTheCentre()
+        {
+#if UNITY_EDITOR
+            var key = AssetDatabase.LoadAssetAtPath<WeaponBehaviourMod>(ImplosionPath);
+            Assert.IsNotNull(key, ImplosionPath);
+            var weapon = MountWeapon(Plane(-60f, 60f));
+            weapon.Behaviours.Set(new[] { key });
+            var origin = weapon.firePoint.position;
+            var ship = AddBody(CreateTarget(origin + Plane(4f, 0f), "Ship"));
+            var rock = AddBody(CreateRock(origin + Plane(0f, 5f)));
+            ship.mass = rock.mass = 800f;
+
+            var grenade = weapon.Fire(origin + Plane(0f, -20f), Projectiles) as Grenade;
+            grenade.TakeDamage(Shot(origin));
+            yield return SweepFullWave();
+
+            Assert.Less(Vector3.Dot(ship.linearVelocity, Plane(1f, 0f)), -0.1f, "the ship is pulled toward the blast");
+            Assert.Less(Vector3.Dot(rock.linearVelocity, Plane(0f, 1f)), -0.1f, "the rock is pulled toward the blast");
+#else
+            Assert.Ignore("Requires Unity Editor assets.");
+            yield break;
+#endif
         }
 
         [UnityTest]

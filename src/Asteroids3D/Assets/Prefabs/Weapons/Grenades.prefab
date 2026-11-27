@@ -58,6 +58,8 @@ MonoBehaviour:
     type: 3}
   holdRange: 18
   blastMargin: 4
+  implosion: {fileID: 11400000, guid: 68945bddf50c43f19ca81abb4b104ac7, type: 2}
+  implosionPull: 1
   rounds: {fileID: 1100000000000000204}
   cooldown: {fileID: 1100000000000000205}
 --- !u!114 &1100000000000000204

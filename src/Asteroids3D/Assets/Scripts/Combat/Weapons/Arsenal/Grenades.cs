@@ -31,6 +31,11 @@ namespace Combat.Weapons.Arsenal
         [Tooltip("An AI gunner launches only at an aim point at least the blast radius plus this margin away.")]
         [Stat, SerializeField, Min(0f)] private float blastMargin = 4f;
 
+        [Header("Implosion")]
+        [SerializeField] private WeaponBehaviourMod implosion;
+        [Tooltip("With Implosion held: the blast's pull toward its centre, as a fraction of its usual push.")]
+        [Stat, SerializeField, Min(0f)] private float implosionPull = 1f;
+
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -65,6 +70,7 @@ namespace Combat.Weapons.Arsenal
             var charge = (Grenade)base.Fire(targetPoint, projectiles);
             if (!charge) return null;
             charge.SetBlastRadiusScale(Mods.Factor(WeaponModField.BlastRadius));
+            charge.SetBlastPush(Behaviours.Holds(implosion) ? -implosionPull : 1f);
             Track(charge);
             Launched?.Invoke(charge);
             return charge;
