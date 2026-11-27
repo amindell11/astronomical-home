@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Ships;
 using Ships.Mods;
 
 namespace Loot
@@ -49,6 +50,9 @@ namespace Loot
                 names.Add(pick.name);
             return names;
         }
+
+        /// <summary>Whether a lull pick may offer <paramref name="mod"/> to <paramref name="ship"/>: it fits, and it is not a behaviour key already held, which a second copy leaves unchanged.</summary>
+        public bool Offers(LullMod mod, Ship ship) => mod.Fits(ship) && !(mod is BehaviourMod && picks.Contains(mod));
 
         /// <summary>Every held mod, weapon or ship, once each with its copy count, in first-pick order.</summary>
         public IReadOnlyList<HeldMod> All() => Held(_ => true);

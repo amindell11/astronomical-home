@@ -184,7 +184,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("surgeAcceleration").floatValue = 0f;
             so.FindProperty("massScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
-            ram.Initialize(new KeystoneHost(host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
+            ram.Initialize(new KeystoneHost(null, host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
             return ram;
         }
 
@@ -865,7 +865,7 @@ namespace Tests.EditMode.Ships
         {
             var channel = new LockChannel();
             var kit = NewStealth();
-            kit.Initialize(new KeystoneHost(host.GetComponent<Rigidbody>(), 1f, channel));
+            kit.Initialize(new KeystoneHost(null, host.GetComponent<Rigidbody>(), 1f, channel));
             var kin = Facing(0f);
 
             kit.ActivateOnArrival(in kin);
@@ -920,7 +920,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("window").floatValue = window;
             so.FindProperty("tellLead").floatValue = tellLead;
             so.ApplyModifiedPropertiesWithoutUndo();
-            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
             return kit;
         }
 

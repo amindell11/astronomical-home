@@ -1107,8 +1107,9 @@ Format: **term** — definition. *(authority)*
   held set whether the key is held, and the set tells it when that changes.
   Three kinds: a weapon behaviour mod lands on the weapon or ordnance prefabs
   it lists, a keystone mod on the kits it lists, a passive on any ship. Each is
-  offered only while the player carries a part it lands on, and a swap idles a
-  weapon key the new mount doesn't take. Its card line is authored text.
+  offered only while the player carries a part it lands on and doesn't already
+  hold it (a second copy changes nothing), and a swap idles a weapon key the
+  new mount doesn't take. Its card line is authored text.
   *(BehaviourMod, WeaponBehaviourMod, KeystoneMod, PassiveMod, HeldBehaviours)*
 - **status effect** — a timed effect one ship puts on another: stunned (no
   thrust, turning, firing, locks or keystone), weapons jammed (no firing or
