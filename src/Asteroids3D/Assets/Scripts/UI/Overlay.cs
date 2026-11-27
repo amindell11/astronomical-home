@@ -58,6 +58,7 @@ namespace UI
         private string keystoneName;
         private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
+        private ShipUnlockBanner shipUnlock;
         private HeldModsReadout heldMods;
         private HullShieldReadout hullShield;
         private HullCriticalAlert hullCritical;
@@ -193,6 +194,13 @@ namespace UI
             if (!eliteReadout)
                 eliteReadout = EliteReadout.Create(transform, labelFont, headingFont, textMaterial, projection, () => IsVisible);
             eliteReadout.Bind(elite);
+        }
+
+        public void ShowShipUnlocked(string ship)
+        {
+            if (!shipUnlock)
+                shipUnlock = ShipUnlockBanner.Create(transform, labelFont, headingFont, textMaterial, projection, () => IsVisible);
+            shipUnlock.Show(ship);
         }
 
         public void ShowFirstRunPrompts(Func<bool> dismissed) =>

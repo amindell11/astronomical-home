@@ -1018,7 +1018,11 @@ namespace Game
             return (spine && spine.IsRival(victim)) || rigInstance.Spawns.IsElite(victim);
         }
 
-        private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
+        private void OnShipUnlocked(ShipUnlocked unlocked)
+        {
+            if (rigInstance.Overlay) rigInstance.Overlay.ShowShipUnlocked(unlocked.Chassis);
+            moments.Raise(new ShipEarned(unlocked));
+        }
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
