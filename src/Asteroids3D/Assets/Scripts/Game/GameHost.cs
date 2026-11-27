@@ -51,7 +51,7 @@ namespace Game
     /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
     /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
-    /// A sector's first wave led by a rival no run record has met slows time for a close-up on it.
+    /// Each sector's first wave slows time for a close-up on its rival.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
     /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
@@ -149,8 +149,8 @@ namespace Game
         [SerializeField] internal CompanionFeelProfile companionFeel;
 
         [Header("Rival close-up")]
-        [Tooltip("How a sector's first wave shows a rival the player has never met: time slows while the camera " +
-                 "pans and zooms onto it. Presentation only.")]
+        [Tooltip("How each sector's first wave shows its rival: time slows while the camera pans and zooms onto " +
+                 "it. Presentation only.")]
         [SerializeField] internal CloseUpFeel closeUpFeel = new CloseUpFeel();
 
         internal string runRecordPath;
@@ -194,7 +194,6 @@ namespace Game
         private GameMusic music;
         private CompanionVoice voice;
         private RunMomentStream moments;
-        private EnemiesMet enemiesMet;
         private Ship closeUpRival;
 
         private Transform viewport;
@@ -346,7 +345,6 @@ namespace Game
                 playerDied = false;
                 moments = new RunMomentStream();
                 moments.Raised += OnMomentRaised;
-                enemiesMet = null;
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
@@ -882,7 +880,6 @@ namespace Game
             runOpen = true;
             rigInstance.SetAssist(AssistSetting.On);
             moments.Raise(new RunStarted(PastRuns.Read(runRecords.Path)));
-            enemiesMet = EnemiesMet.Read(runRecords.Path);
             return StatHash.OfLoadout(rigInstance.Player);
         }
 
@@ -1077,8 +1074,7 @@ namespace Game
             }
         }
 
-        private bool Introduces(Ship rival) =>
-            sessionProfile.presentation && enemiesMet != null && rival && enemiesMet.Meet(SpawnLog.NameOf(rival));
+        private bool Introduces(Ship rival) => sessionProfile.presentation && rigInstance && rival;
 
         private void OnMomentRaised(IRunMoment moment)
         {

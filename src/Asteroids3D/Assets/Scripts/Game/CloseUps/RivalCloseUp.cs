@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Game.CloseUps
 {
     /// <summary>
-    /// Shows the player a rival they have never met: time slows while the flight camera pans and zooms onto
+    /// Shows the player the rival leading a sector's first wave: time slows while the flight camera pans and zooms onto
     /// it, holds, then eases back to the player as time speeds up. Every step runs on unscaled time. A rival
     /// that dies or leaves cuts the hold short; a cancel ends at once. Either way the camera goes back to
     /// following and the slow closes.

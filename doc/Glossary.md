@@ -558,12 +558,11 @@ Format: **term** — definition. *(authority)*
   reinforcement to the elite instead, until the elite dies (ruled by the game
   lead on 2026-11-23, so a kited elite fight brings minions).
   *(WaveDirector.TryReinforce, WaveDirector.FreePlace, WaveDirector.eliteGraceSeconds)*
-- **rival close-up** — the first wave in a sector whose rival chassis no run record
-  lists among its spawns: time slows, the camera pans and zooms onto the rival, and the
-  `rival-introduced` lines (a companion warning, the rival's hail as reply) speak in
-  place of combat start. Met-ness lives in the run records, so it is once per save;
-  a PC full of past runs never shows it without the editor's Meet Every Enemy Again switch.
-  *(GameHost.closeUpFeel, RivalCloseUp, EnemiesMet)*
+- **rival close-up** — on each sector's first wave, every run: time slows, the camera
+  pans and zooms onto the rival, and the `rival-introduced` lines (a companion warning,
+  the rival's hail as reply) speak in place of combat start. Every run, not once per
+  save, ruled by the game lead on 2026-11-27.
+  *(GameHost.closeUpFeel, RivalCloseUp)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap
