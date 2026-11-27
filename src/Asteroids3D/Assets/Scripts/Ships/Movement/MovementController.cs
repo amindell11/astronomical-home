@@ -1,4 +1,5 @@
 using System;
+using Balance;
 using Movement;
 using UnityEngine;
 using Ships.Command;
@@ -13,6 +14,9 @@ namespace Ships.Movement
     [DefaultExecutionOrder(50)]
     public class MovementController : MonoBehaviour, IPilot
     {
+        [Tooltip("Multiplier on the speed cap while the ship is suppressed.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float suppressedSpeedScale = 0.6f;
+
         private Rigidbody  rb;
         private Keystone keystone;
         private WeaponsController weapons;
@@ -127,7 +131,7 @@ namespace Ships.Movement
         // A raised cap takes effect at once; a lowered one bleeds down at the rate drag alone sheds the base cap.
         private void ApplySpeedCap(float dt)
         {
-            var target = settings.maxSpeed * keystone.SpeedScale;
+            var target = settings.maxSpeed * keystone.SpeedScale * (status.Slowed ? suppressedSpeedScale : 1f);
             speedCap = target >= speedCap ? target : Mathf.Max(target, speedCap - settings.maxSpeed * settings.linearDrag * dt);
             rb.maxLinearVelocity = speedCap;
         }

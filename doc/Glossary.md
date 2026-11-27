@@ -1125,7 +1125,8 @@ Format: **term** — definition. *(authority)*
   *(BehaviourMod, WeaponBehaviourMod, KeystoneMod, PassiveMod, HeldBehaviours)*
 - **status effect** — a timed effect one ship puts on another: stunned (no
   thrust, turning, firing, locks or keystone), weapons jammed (no firing or
-  locks), engines out (no thrust or strafe; the ship coasts and can turn).
+  locks), engines out (no thrust or strafe; the ship coasts and can turn),
+  suppressed (a lower speed cap and no keystone).
   Re-applying keeps the timer that ends later. It runs on the ship's
   fixed-step clock and clears on respawn. *(StatusEffects, Ship.Status)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,

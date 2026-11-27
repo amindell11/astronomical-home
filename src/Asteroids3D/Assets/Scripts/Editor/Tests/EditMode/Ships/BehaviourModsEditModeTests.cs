@@ -160,10 +160,11 @@ namespace Tests.EditMode.Ships
             {
                 "Bank shot", "Stopping power", "Deep strike", "Shrapnel rocks", "Wire guided", "Implosion",
                 "Battering ram", "Ambush", "Recall", "Snap turn", "Orbit", "Riposte", "Backstab",
+                "Point defence", "Suppression", "EMP warhead", "Limpet",
                 "Chain ram", "Double dash", "Shield bash", "Relentless", "Silent running", "Quiet ordnance",
             }, pool.mods.Select(mod => mod.DisplayName));
 
-            var weapons = new[] { "Lasers", "Scattergun", "Railgun", "Missiles", "Grenades" }.Select(Weapon).ToArray();
+            var weapons = new[] { "Lasers", "TurboLasers", "Rippers", "Scattergun", "Railgun", "Missiles", "Grenades" }.Select(Weapon).ToArray();
             var kits = new[] { "Bulwark_Dash", "Nightshade_Stealth", "Crimson_Blink", "Valis_Overdrive", "Vanguard_Dash" }
                 .Select(Kit).ToArray();
             foreach (var mod in pool.mods.Cast<BehaviourMod>())
@@ -197,6 +198,7 @@ namespace Tests.EditMode.Ships
         [TestCase(StatusEffect.Stunned, false, false, false, false)]
         [TestCase(StatusEffect.WeaponsJammed, true, true, false, true)]
         [TestCase(StatusEffect.EnginesOut, false, true, true, true)]
+        [TestCase(StatusEffect.Suppressed, true, true, true, false)]
         public void EachEffect_GatesWhatItNames(StatusEffect effect, bool thrust, bool turn, bool fire, bool keystone)
         {
             var status = new StatusEffects();
