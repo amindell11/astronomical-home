@@ -133,7 +133,7 @@ namespace AI.Tactics
             return count;
         }
 
-        private static Ship Myself(AIContext context) =>
+        internal static Ship Myself(AIContext context) =>
             context.Scout.Registry.TryGetShip(context.Self.Id, out var me) && me
                 ? me
                 : throw new InvalidOperationException(

@@ -1,4 +1,5 @@
 using AI.Context;
+using AI.Plays;
 using AI.Gunnery;
 using AI.Scanning;
 using System;
@@ -107,6 +108,13 @@ namespace AI
             if (!systemsInitialized)
                 throw new InvalidOperationException($"{name} cannot follow a leader before its systems initialise.");
             context.FollowLeader(leader, place);
+        }
+
+        internal void JoinCall(PlayCall call)
+        {
+            if (!systemsInitialized)
+                throw new InvalidOperationException($"{name} cannot join a call before its systems initialise.");
+            context.JoinCall(call);
         }
 
         internal void HuntBySight(Ship known)
