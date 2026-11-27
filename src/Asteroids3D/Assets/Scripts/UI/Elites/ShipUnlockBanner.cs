@@ -18,7 +18,7 @@ namespace UI.Elites
         private const float FadeOut = .6f;
         private const float RuleDrawSeconds = .4f;
         private const float RuleWidth = 64f;
-        private const float RuleGap = 46f;
+        private const float RuleGap = 52f;
         private const float Lift = 64f;
 
         private CanvasGroup group;
@@ -54,12 +54,12 @@ namespace UI.Elites
             banner.group.alpha = 0f;
             banner.group.interactable = banner.group.blocksRaycasts = false;
 
-            var tag = CreateText(card.transform, "Tag", labelFont, textMaterial, 7, 14f, WindowKit.Good);
+            var tag = CreateText(card.transform, "Tag", labelFont, textMaterial, 9, 14f, WindowKit.Good);
             tag.text = "SHIP UNLOCKED";
             banner.leftRule = CreateRule(card.transform, "Left rule", -RuleGap, new Vector2(1f, .5f));
             banner.rightRule = CreateRule(card.transform, "Right rule", RuleGap, new Vector2(0f, .5f));
             banner.shipName = CreateText(card.transform, "Ship name", headingFont, textMaterial, 18, -4f, WindowKit.Ink);
-            var where = CreateText(card.transform, "Where", labelFont, textMaterial, 6, -21f, WindowKit.Dim);
+            var where = CreateText(card.transform, "Where", labelFont, textMaterial, 7, -22f, WindowKit.Dim);
             where.text = "NOW IN YOUR HANGAR";
 
             InstrumentAppear.Attach(go, projection, () => banner.group.alpha > 0f && isVisible());
