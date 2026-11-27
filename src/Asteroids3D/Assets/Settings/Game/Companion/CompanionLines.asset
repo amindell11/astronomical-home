@@ -77,3 +77,6 @@ MonoBehaviour:
   - moment: rival-fell
     speaker: 
     mustSay: 1
+  - moment: rival-introduced
+    speaker: 
+    mustSay: 1

@@ -300,7 +300,7 @@ namespace Tests.PlayMode.Sectors
                 waveEvery: beat);
             var director = sector.Spawners.OfType<WaveDirector>().Single();
             var waves = 0;
-            director.WaveSent += _ => waves++;
+            director.WaveSent += (_, _) => waves++;
 
             yield return sector.Setup();
             yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepElite, 5f,
