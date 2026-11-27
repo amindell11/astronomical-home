@@ -19,6 +19,8 @@ namespace Cameras
     /// Shakes its view on the subject's hits, death, own shakes and nearby blasts without moving its transform.
     /// While the player's kit raises their speed cap, the view pops out to the full overspeed width
     /// and comes straight back when it ends.
+    /// With the ship-up setting on, the view turns so the subject's nose points up; bounds and fit math
+    /// runs in the turned view's axes, while lead and fight-shift smoothing stay on the plane.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -67,6 +69,10 @@ namespace Cameras
         private Vector2? manualCenter;
         private float? manualZoom;
         private float zoomScale = 1f;
+        private float viewAngle;
+        private float viewAngleVelocity;
+        private Vector2 viewUp = Vector2.up;
+        private Vector2 viewRight = Vector2.right;
 
         public bool LockCameraToSubject => lockCameraToSubject;
         public Transform Subject => subject;
@@ -74,6 +80,9 @@ namespace Cameras
         public float? ManualZoom => manualZoom;
         public float ZoomScale => zoomScale;
         internal float AppliedZoomScale => CameraSettings.ManualCamera ? zoomScale : 1f;
+
+        // Degrees the view turned counterclockwise on the plane during the last update.
+        public float ViewTurn { get; private set; }
 
         protected override void Awake()
         {
@@ -163,6 +172,7 @@ namespace Cameras
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
+            StepViewAngle();
             if (manualCenter.HasValue)
             {
                 desiredCenter = manualCenter.Value;
@@ -177,16 +187,45 @@ namespace Cameras
             }
             // Outside the locked branch, so the set empties once the subject is destroyed.
             StepEngaged();
-            var center2D = ComputeFocusCenter(min2D, max2D);
-            desiredSize = ComputeDesiredZoom(center2D, min2D, max2D);
-            desiredCenter = ApplyViewConstraints(center2D, desiredSize.Value);
+            var center = ComputeFocusCenter(min2D, max2D);
+            desiredSize = ComputeDesiredZoom(center, min2D, max2D);
+            desiredCenter = FromView(ApplyViewConstraints(center, desiredSize.Value));
         }
+
+        protected override Vector3 ViewUp => GamePlane.PlaneDirToWorld(viewUp);
+
+        // Without a live subject to follow, ship-up holds the last heading rather than spinning back.
+        private void StepViewAngle()
+        {
+            var target = !CameraSettings.HeadingUp ? 0f
+                : lockCameraToSubject && subject && subject.gameObject.activeInHierarchy ? HeadingAngle(subject)
+                : viewAngle;
+            var previous = viewAngle;
+            viewAngle = Mathf.SmoothDampAngle(viewAngle, target, ref viewAngleVelocity, feel.headingSmoothTime,
+                float.PositiveInfinity, Time.unscaledDeltaTime);
+            ViewTurn = Mathf.DeltaAngle(previous, viewAngle);
+            var radians = viewAngle * Mathf.Deg2Rad;
+            viewUp = new Vector2(-Mathf.Sin(radians), Mathf.Cos(radians));
+            viewRight = new Vector2(viewUp.y, -viewUp.x);
+        }
+
+        private static float HeadingAngle(Transform ship)
+        {
+            var heading = GamePlane.WorldDirToPlane(ship.up);
+            return Mathf.Atan2(-heading.x, heading.y) * Mathf.Rad2Deg;
+        }
+
+        private Vector2 ToView(Vector2 plane) => new(Vector2.Dot(plane, viewRight), Vector2.Dot(plane, viewUp));
+
+        private Vector2 FromView(Vector2 view) => viewRight * view.x + viewUp * view.y;
+
+        private Vector2 ViewPoint(Transform t) => ToView(GamePlane.WorldPointToPlane(t.position));
 
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
             if (!lockCameraToSubject || !subject)
                 return CameraUtils.BoundsCenter(boundsMin, boundsMax);
-            var center = GamePlane.WorldPointToPlane(subject.position) + StepLead() + StepCursorLead();
+            var center = ToView(GamePlane.WorldPointToPlane(subject.position) + StepLead()) + StepCursorLead();
             return center + StepFightShift(center);
         }
 
@@ -213,18 +252,18 @@ namespace Cameras
         private Vector2 StepFightShift(Vector2 center)
         {
             var target = TryGetFightBounds(out var min, out var max)
-                ? FightFocus(center, min, max) - center
+                ? FromView(FightFocus(center, min, max) - center)
                 : Vector2.zero;
             fightShift = Vector2.SmoothDamp(fightShift, target, ref fightShiftVelocity, feel.fightShiftTime,
                 float.PositiveInfinity, Time.unscaledDeltaTime);
-            return fightShift;
+            return ToView(fightShift);
         }
 
         private Vector2 FightFocus(Vector2 center, Vector2 min, Vector2 max)
         {
             var biased = Vector2.Lerp(center, CameraUtils.BoundsCenter(min, max), feel.fightCenterBias);
             var fitted = CameraUtils.ShiftToFitBounds(biased, min, max, feel.maxZoomOut, Cam.aspect, padding);
-            var player = GamePlane.WorldPointToPlane(subject.position);
+            var player = ViewPoint(subject);
             return CameraUtils.ShiftToKeepPointInView(fitted, player - fitted, feel.maxZoomOut, Cam.aspect, padding);
         }
 
@@ -341,9 +380,9 @@ namespace Cameras
             CameraUtils.InitEmptyBounds(out min, out max);
             if (engaged.Count == 0)
                 return false;
-            CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(subject.position));
+            CameraUtils.ExpandBounds(ref min, ref max, ViewPoint(subject));
             foreach (var ship in engaged)
-                CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(ship.position));
+                CameraUtils.ExpandBounds(ref min, ref max, ViewPoint(ship));
             return true;
         }
 
@@ -355,13 +394,7 @@ namespace Cameras
 
         private Vector2 ShiftCenterToKeepSubjectInView(Vector2 center, float zoomSize)
         {
-            var tempWorldCenter = GamePlane.PlanePointToWorld(center);
-            var toPlayerWorld = subject.position - tempWorldCenter;
-            var toPlayer2D = new Vector2(
-                Vector3.Dot(toPlayerWorld, GamePlane.Right),
-                Vector3.Dot(toPlayerWorld, GamePlane.Forward));
-
-            return CameraUtils.ShiftToKeepPointInView(center, toPlayer2D, zoomSize, Cam.aspect, padding);
+            return CameraUtils.ShiftToKeepPointInView(center, ViewPoint(subject) - center, zoomSize, Cam.aspect, padding);
         }
 
         internal FlightCameraProfile Feel => feel;
@@ -395,7 +428,7 @@ namespace Cameras
             foreach (var t in secondarySubjects)
             {
                 if (!t || !t.gameObject.activeInHierarchy) continue;
-                CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(t.position));
+                CameraUtils.ExpandBounds(ref min, ref max, ViewPoint(t));
             }
 
             var valid = CameraUtils.AreBoundsValid(min, max);

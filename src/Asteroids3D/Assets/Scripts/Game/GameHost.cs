@@ -694,6 +694,8 @@ namespace Game
                 if (rigInstance) rigInstance.SetAssist(on);
             }));
             rows.Add(SettingsRow.Slider("SCREEN SHAKE", CameraSettings.ShakeScale, v => CameraSettings.ShakeScale = v));
+            rows.Add(SettingsRow.Choice("CAMERA", new[] { "NORTH UP", "SHIP UP" }, CameraSettings.HeadingUp ? 1 : 0,
+                i => CameraSettings.HeadingUp = i == 1));
             rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
                 on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
             rows.Add(SettingsRow.Choice("RESOLUTION", resolutions.Select(DisplaySettings.Label).ToList(),

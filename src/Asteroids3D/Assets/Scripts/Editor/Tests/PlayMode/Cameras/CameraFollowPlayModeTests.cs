@@ -30,6 +30,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private GameObject subject;
     private SimulationMode simulationMode;
     private bool previousManual;
+    private bool previousHeadingUp;
     private float previousShakeScale;
 
     // Deterministic timeout — camera follow should settle well within this.
@@ -48,6 +49,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     {
         base.SetUp();
         previousManual = CameraSettings.ManualCamera;
+        previousHeadingUp = CameraSettings.HeadingUp;
+        CameraSettings.HeadingUp = false;
         previousShakeScale = CameraSettings.ShakeScale;
         CameraSettings.ManualCamera = false;
         CameraSettings.ShakeScale = 1f;
@@ -82,6 +85,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
             DestroyTestObject(s);
         Physics.simulationMode = simulationMode;
         CameraSettings.ManualCamera = previousManual;
+        CameraSettings.HeadingUp = previousHeadingUp;
         CameraSettings.ShakeScale = previousShakeScale;
         base.TearDown();
     }
@@ -176,6 +180,47 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         Assert.That(offset, Is.LessThan(.25f * feel.cursorLead),
             "the camera whipped toward the lead it built while the jump flight held it");
         yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * feel.cursorLead);
+    }
+
+    [UnityTest]
+    public IEnumerator ShipUp_TurnsTheViewUntilTheSubjectPointsUp()
+    {
+        CameraSettings.HeadingUp = true;
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(true);
+        subject.transform.rotation = GamePlane.PlanePose(GamePlane.Normal, GamePlane.Right);
+
+        float Miss() => Vector3.Angle(cam.transform.up, GamePlane.Right);
+        yield return AsyncAssert.WaitUntilThen(() => Miss() < 1f, FollowTimeoutSec,
+            () => Assert.That(Miss(), Is.LessThan(1f), "ship-up left the subject's nose off screen-up"));
+    }
+
+    [UnityTest]
+    public IEnumerator NorthUp_HoldsTheViewWhileTheSubjectTurns()
+    {
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(true);
+        subject.transform.rotation = GamePlane.PlanePose(GamePlane.Normal, GamePlane.Right);
+
+        yield return AsyncAssert.AssertRemainsFalseFor(
+            () => Vector3.Angle(cam.transform.up, GamePlane.Forward) > .01f,
+            "north-up turned the view after the subject",
+            minFrames: NegativeProofFrames,
+            minUnscaledSeconds: 0.35f);
+    }
+
+    [UnityTest]
+    public IEnumerator ShipUp_LeadsTowardTheCursorAlongTheTurnedScreen()
+    {
+        CameraSettings.HeadingUp = true;
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(true);
+        subject.transform.rotation = GamePlane.PlanePose(GamePlane.Normal, GamePlane.Right);
+        cam.SetCursor(cam.Cam.ViewportToScreenPoint(new Vector3(.5f, 1f)));
+
+        var ahead = GamePlane.WorldPointToPlane(subject.transform.position)
+                    + GamePlane.WorldDirToPlane(GamePlane.Right) * feel.cursorLead;
+        yield return CameraSettlesOn(ahead);
     }
 
     [UnityTest]
