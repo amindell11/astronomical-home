@@ -42,7 +42,8 @@ namespace Tests.PlayMode.Hangar
             offer.ships = new[] { valis, nightshade };
             console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
             var launched = false;
-            console.Show(offer, new ShipLoadout(valis, null, null), _ => true, () => launched = true);
+            console.Show(offer, new ShipLoadout(valis, null, null), _ => true, tutorial: false, greet: null,
+                () => launched = true);
             yield return null;
 
             Press(keyboard.rightArrowKey);

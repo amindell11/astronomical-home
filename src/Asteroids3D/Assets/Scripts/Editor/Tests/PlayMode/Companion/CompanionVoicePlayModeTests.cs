@@ -98,6 +98,20 @@ namespace Tests.PlayMode.Companion
         }
 
         [UnityTest]
+        public IEnumerator SpeakNow_PutsTheHangarLineOnTheGivenCommLine()
+        {
+            BuildVoice((HangarOpened.TutorialSlot, true, new[] { "Bay's yours." }));
+            var bay = CommLine.Create(hud.transform, TestAssets.Load<Font>(FontPath), null);
+
+            voice.SpeakNow(new HangarOpened(), bay);
+            yield return null;
+
+            Assert.IsTrue(bay.Speaking, "the bay's comm line speaks");
+            Assert.AreEqual("Bay's yours.", bay.Line);
+            Assert.IsFalse(display.Speaking, "the run's comm line stays quiet");
+        }
+
+        [UnityTest]
         public IEnumerator EmptyLineSlotsWithoutDebugLabels_ShowNothing()
         {
             BuildVoice(RunStarted.AllSlots.Append(PlayerDied.DeathSlot)

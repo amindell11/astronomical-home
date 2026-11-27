@@ -5,6 +5,7 @@ using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
+using UI.Comms;
 using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
 using UI.Hangar.Selection;
@@ -353,7 +354,54 @@ namespace Tests.PlayMode.Hangar
             }
         }
 
-        private Ship Open(System.Func<Ship, bool> earned, out Ship second)
+        [UnityTest]
+        public IEnumerator ShowWithTutorial_ShowsTheChecklist_HintsTheBracketedScreen_AndGreetsOnce()
+        {
+            var greeted = new List<CommLine>();
+            Open(_ => true, out _, tutorial: true, greeted.Add);
+            yield return null;
+
+            var main = console.GetComponentInChildren<HangarMainDisplayView>();
+            var primary = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>();
+            var ordnance = console.OrdnanceDisplay.GetComponent<HangarWeaponDisplayView>();
+            Assert.IsTrue(console.ChecklistShown, "the bay checklist is up");
+            Assert.IsTrue(main.Hinted, "the bracketed ship screen names its keys");
+            Assert.IsFalse(primary.Hinted);
+            Assert.IsFalse(ordnance.Hinted);
+
+            console.Selection.Select(HangarSlot.Weapon);
+            Assert.IsFalse(main.Hinted);
+            Assert.IsTrue(primary.Hinted, "the hint follows the bracket");
+
+            yield return Elapsed(GreetWait);
+            Assert.AreEqual(1, greeted.Count, "the bay greets once per visit");
+            Assert.AreSame(console.CommLine, greeted[0], "the greeting is handed the bay's comm line");
+        }
+
+        [UnityTest]
+        public IEnumerator ShowWithoutTutorial_ShowsNoChecklistOrHint_AndNeverGreets()
+        {
+            var greeted = new List<CommLine>();
+            Open(_ => true, out _, tutorial: false, greeted.Add);
+            yield return null;
+
+            Assert.IsFalse(console.ChecklistShown);
+            Assert.IsFalse(console.GetComponentInChildren<HangarMainDisplayView>().Hinted);
+            Assert.IsFalse(console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>().Hinted);
+            yield return Elapsed(GreetWait);
+            Assert.IsEmpty(greeted, "no tutorial, no greeting");
+        }
+
+        private const float GreetWait = 2.5f;
+
+        private static IEnumerator Elapsed(float seconds)
+        {
+            var start = Time.unscaledTime;
+            while (Time.unscaledTime - start < seconds) yield return null;
+        }
+
+        private Ship Open(System.Func<Ship, bool> earned, out Ship second, bool tutorial = false,
+            System.Action<CommLine> greet = null)
         {
             var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
             second = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
@@ -363,7 +411,7 @@ namespace Tests.PlayMode.Hangar
             console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
             knobRest = console.SelectorKnob.localRotation;
             launches = 0;
-            console.Show(offer, new ShipLoadout(vanguard, null, null), earned, () => launches++);
+            console.Show(offer, new ShipLoadout(vanguard, null, null), earned, tutorial, greet, () => launches++);
             return vanguard;
         }
 
@@ -374,7 +422,8 @@ namespace Tests.PlayMode.Hangar
             launches = 0;
             System.Func<Ship, bool> earned = _ => true;
             if (onlyStarter) earned = ship => ship == catalog.starter;
-            console.Show(catalog, new ShipLoadout(catalog.starter, null, null), earned, () => launches++);
+            console.Show(catalog, new ShipLoadout(catalog.starter, null, null), earned, tutorial: false, greet: null,
+                () => launches++);
             return catalog;
         }
 

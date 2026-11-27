@@ -100,6 +100,8 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | RD6 | run-start.after-death |  | Companion |  | Welcome back. Clone {clone}. Last time you made it to sector {last_sector}. | Draft | Works today: clone and last_sector are real RunStarted facts |
 | RD7 | run-start.after-death |  | Companion |  | Clone {clone}. Let's see if this one lasts longer. | Draft | Works today: clone is a real RunStarted fact |
 | RD8 | run-start.after-death |  | Companion |  | Clone {clone}. You won't remember the last run - sync cutoff. I do. Lucky me. | Draft | Teaches the memory-gap mechanic. Works today: clone is a real RunStarted fact |
+| HT1a | hangar.tutorial |  | Companion |  | Bay's yours. Pick a hull and what it shoots, or take her out as she is. I'm riding along either way. | Draft | Hangar tutorial greeting, plays once per hangar visit while Tutorial prompts is on. Draft wording, owner rewrites |
+| HT1b | hangar.tutorial |  | Companion |  | Arrows change what's lit, up and down move between screens. When you're happy, launch. | Draft | Same slot as HT1a, a control-focused variant. Draft wording, owner rewrites |
 | RP1a | station-arrived-repair |  | Repair crew |  | Hold still in the cradle, we'll patch what we can. Mind the supply light. | In game | Station set: repair is a dwell, exchanges can breathe here |
 | RP1b | station-arrived-repair |  | Repair crew |  | Cradle's live. Repairs come out of station supply, so don't get greedy. | In game |  |
 | RP2a | station-arrived-repair |  | Companion | any | Sitting still. My favourite. Nothing bad happens to ships that sit still. | In game |  |

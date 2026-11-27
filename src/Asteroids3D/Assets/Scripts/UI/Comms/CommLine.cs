@@ -21,7 +21,7 @@ namespace UI.Comms
         public string Line => shown?.Plain ?? string.Empty;
         public Color SpeakerColor => shown?.SpeakerColor ?? Color.clear;
 
-        public static CommLine Create(Transform parent, Font font, Material textMaterial)
+        public static CommLine Create(Transform parent, Font font, Material textMaterial, float bottom = BottomY)
         {
             var go = new GameObject("Comm line", typeof(RectTransform));
             go.layer = parent.gameObject.layer;
@@ -54,7 +54,7 @@ namespace UI.Comms
             var textRect = line.text.rectTransform;
             textRect.anchorMin = textRect.anchorMax = new Vector2(.5f, 0f);
             textRect.pivot = new Vector2(.5f, 0f);
-            textRect.anchoredPosition = new Vector2(0f, BottomY);
+            textRect.anchoredPosition = new Vector2(0f, bottom);
             textRect.sizeDelta = new Vector2(Width, Height);
             return line;
         }
