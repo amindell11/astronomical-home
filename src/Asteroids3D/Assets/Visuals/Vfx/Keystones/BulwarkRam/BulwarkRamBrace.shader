@@ -3,7 +3,7 @@ Shader "Astronomical/Vfx/Bulwark Ram Brace"
     Properties
     {
         _Color ("Plate", Color) = (1, 0.6, 0.1, 1)
-        _HotColor ("Hit", Color) = (1, 0.95, 0.8, 1)
+        _HotColor ("Hit", Color) = (1, 0.85, 0.55, 1)
         _Plates ("Plates", Float) = 5
         _Thickness ("Band Width", Range(0.02, 0.4)) = 0.22
         _Opacity ("Opacity", Range(0, 1)) = 0.85
@@ -112,7 +112,8 @@ Shader "Astronomical/Vfx/Bulwark Ram Brace"
 
                 float plate = face * 0.5 + rim * 0.9 + halo * 0.25 + sheen * face * 0.9;
                 float body = plate * seam * inArc;
-                float hotPlate = saturate((flash + ripple * 0.6) * (face + rim)) * seam * inArc;
+                // Capped so a barrage keeps the plates amber instead of washing them white.
+                float hotPlate = min(saturate((flash + ripple * 0.6) * (face + rim)), 0.7) * seam * inArc;
                 float hot = saturate(hotPlate + sparks);
 
                 // The plates fade with the brace; a hit already landed finishes its own fade.
