@@ -144,8 +144,8 @@ MonoBehaviour:
     columns: 4
     rows: 1
     frames: 4
-    width: 0.7213
-    length: 0.7213
+    width: 2.1639
+    length: 1.2459
     centreAhead: -0.3317
     anchorAhead: 0
     depth: -0.5
