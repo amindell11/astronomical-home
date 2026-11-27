@@ -172,10 +172,11 @@
       0.008,
       0.012
     ],
-    "emission_blend": 1,
+    "emission_blend": 0,
     "lighting": {
       "_SpecularStrength": 0,
-      "_PaletteLighting": 1
+      "_PaletteLighting": 1,
+      "_EmissionStrength": 1.0
     }
   },
   "paint_space": "signed"

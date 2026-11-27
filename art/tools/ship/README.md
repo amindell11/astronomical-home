@@ -122,11 +122,12 @@ naming the same regions. Regions come from material slots and optional authored 
 - **Accents.** `where` bounds (folded x, y, z; `null` is open) on one part. `light` and `ink`
   set that mask to `value`; `emission` writes `Emission.png` and gives the part's regions the
   accent's linear `color` as painted indicators (`_PaintEmissionBlend` =
-  `material.emission_blend`). One emission colour per region.
+  `material.emission_blend`). One emission colour per region. At `emission_blend` 0 the mask
+  emits light instead, scaled by `lighting._EmissionStrength`; that is the path that blooms.
 - **Material.** The Unity strengths, the per-region light colour (`_PaintLightColor` is the
   region colour lifted toward white by `light_lift`), the ink colour, and `lighting`: any of
   `_ShadowThreshold`, `_ShadowSoftness`, `_CastShadowStrength`, `_AmbientStrength`,
-  `_PaletteLighting`, `_SpecularStrength`, `_PaintSaturation`, `_ShadowColor` (Valis's values
+  `_PaletteLighting`, `_SpecularStrength`, `_PaintSaturation`, `_EmissionStrength`, `_ShadowColor` (Valis's values
   are the defaults).
 
 **Outputs.** Beside the source: `layers/Shadow.png`, `Light.png`, `Ink.png`, `Emission.png`

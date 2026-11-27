@@ -67,11 +67,11 @@ Material:
     - _CastShadowStrength: 0.6
     - _DebrisVisibility: 1
     - _DetailAlbedoMapScale: 0
-    - _EmissionStrength: 0.35
+    - _EmissionStrength: 1
     - _LineSoftness: 0.08
     - _LineStrength: 0
     - _LineThreshold: 0.12
-    - _PaintEmissionBlend: 1
+    - _PaintEmissionBlend: 0
     - _PaintInkStrength: 0.75
     - _PaintLayers: 1
     - _PaintLightStrength: 0.65
