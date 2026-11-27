@@ -48,12 +48,16 @@ namespace Ships.Weapons
         private LullModStack mods;
         private StatusEffects status;
         private Turret turret;
+        private Quaternion centreAuthored, leftAuthored, rightAuthored;
 
         private void Awake()
         {
             RequireSocket(centreSocket, "Centre");
             RequireSocket(leftSocket, "Left");
             RequireSocket(rightSocket, "Right");
+            centreAuthored = centreSocket.localRotation;
+            leftAuthored = leftSocket.localRotation;
+            rightAuthored = rightSocket.localRotation;
             RequireKinds(name, primaryMount, secondaryMount);
             Primary = ReplaceMount(null, primaryMount);
             Secondary = ReplaceMount(null, secondaryMount);
@@ -180,9 +184,9 @@ namespace Ships.Weapons
 
         private void AimSockets(Vector3 targetPoint)
         {
-            turret.Aim(centreSocket, targetPoint);
-            turret.Aim(leftSocket, targetPoint);
-            turret.Aim(rightSocket, targetPoint);
+            turret.Aim(centreSocket, centreAuthored, targetPoint);
+            turret.Aim(leftSocket, leftAuthored, targetPoint);
+            turret.Aim(rightSocket, rightAuthored, targetPoint);
         }
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab)

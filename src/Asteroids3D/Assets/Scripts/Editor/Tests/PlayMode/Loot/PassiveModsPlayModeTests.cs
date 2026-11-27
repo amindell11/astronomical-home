@@ -22,7 +22,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Loot
 {
-    /// <summary>The passives on shipped prefabs and keys: a Backstab holder's rear hit skips a live ship's shield, a rock a Shrapnel rocks holder breaks throws its fragments away from it, armed against other ships, a Turret holder's guns swing to the aim point while its hull turns at half rate, a Lie in wait holder hides beside a heavy rock and shows when it thrusts, and a Duck and load holder's guns cool faster while nothing sights it.</summary>
+    /// <summary>The passives on shipped prefabs and keys: a Backstab holder's rear hit skips a live ship's shield, a rock a Shrapnel rocks holder breaks throws its fragments away from it, armed against other ships, a Turret holder's guns swing to the aim point while its hull turns at half rate, and return to the nose when the run's mods clear, a Lie in wait holder hides beside a heavy rock and shows when it thrusts, and a Duck and load holder's guns cool faster while nothing sights it.</summary>
     [Category("Ships")]
     public class PassiveModsPlayModeTests : PlayModeWorldFixture
     {
@@ -119,6 +119,7 @@ namespace Tests.PlayMode.Loot
             Assert.AreEqual(plain.Stats.reverseForce * 2.5f, turret.Stats.reverseForce, 1e-2f, "reverse thrust is stronger");
 
             var plainFacing = plain.Weapons.Primary.FireDirection;
+            var turretNose = turret.Weapons.Primary.FireDirection;
             var aside = GamePlane.Right * 30f;
             Aim(turret, turret.transform.position + aside);
             Aim(plain, plain.transform.position + aside);
@@ -128,6 +129,13 @@ namespace Tests.PlayMode.Loot
             var toAim = GamePlane.WorldDirOnPlane(turret.transform.position + aside - gun.FireOrigin);
             Assert.Less(Vector3.Angle(gun.FireDirection, toAim), 1f, "the Turret's guns point at the aim point");
             Assert.Less(Vector3.Angle(plain.Weapons.Primary.FireDirection, plainFacing), 1f, "a plain ship's guns keep to the nose");
+
+            turret.Mods.Clear();
+            Aim(turret, turret.transform.position + aside);
+            yield return null;
+            Assert.Less(Vector3.Angle(turret.Weapons.Primary.FireDirection, turretNose), 1f,
+                "once the run's mods clear, the guns return to the nose");
+            Assert.AreEqual(plain.MaxYawRate, turret.MaxYawRate, 1e-3f, "and the hull turns at its own rate");
         }
 
         private void Aim(Ship ship, Vector3 point) =>

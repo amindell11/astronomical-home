@@ -32,8 +32,10 @@ namespace Ships.Mods
             stats.reverseForce *= reverseThrustScale;
         }
 
-        public void Aim(Transform socket, Vector3 targetPoint)
+        /// <summary>Puts <paramref name="socket"/> back at its <paramref name="authored"/> local rotation, then, while held, swings it to face <paramref name="targetPoint"/>.</summary>
+        public void Aim(Transform socket, Quaternion authored, Vector3 targetPoint)
         {
+            socket.localRotation = authored;
             if (!Held) return;
             var facing = GamePlane.WorldDirOnPlane(socket.up);
             var toTarget = GamePlane.WorldDirOnPlane(targetPoint - socket.position);

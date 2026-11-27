@@ -194,10 +194,11 @@ namespace Tests.EditMode.Ships
             made.Add(socket.gameObject);
             socket.SetPositionAndRotation(new Vector3(1f, 1f, 0f), GamePlane.Rotation);
             var nose = socket.up;
+            var authored = socket.localRotation;
             var target = socket.position + GamePlane.Right * 10f;
 
             turret.Read(new HeldBehaviours());
-            turret.Aim(socket, target);
+            turret.Aim(socket, authored, target);
             Assert.AreEqual(0f, Vector3.Angle(nose, socket.up), 1e-3f, "not held: the socket keeps to the nose");
 
             turret.Read(Holding(key));
@@ -206,7 +207,7 @@ namespace Tests.EditMode.Ships
             Assert.AreEqual((100f, 4000f, 5000f, 6000f),
                 (stats.maxYawRate, stats.yawTorque, stats.reverseForce, stats.forwardForce));
 
-            turret.Aim(socket, target);
+            turret.Aim(socket, authored, target);
             Assert.AreEqual(0f, Vector3.Angle(GamePlane.Right, GamePlane.WorldDirOnPlane(socket.up)), 1e-2f,
                 "held: the socket points at the aim point");
         }
