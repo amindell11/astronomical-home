@@ -401,7 +401,7 @@ namespace Cameras
         internal float Trauma => trauma;
         internal int ShakeLayerCount => layers.Count;
         internal Vector2 VelocityLead => lead;
-        internal Vector2 CursorLead => cursorLead;
+        internal Vector2 CursorLead => FromView(cursorLead);
         internal Vector2 FightShift => fightShift;
         internal IReadOnlyCollection<Transform> Engaged => engaged;
         internal float BaseZoom => hull != null
