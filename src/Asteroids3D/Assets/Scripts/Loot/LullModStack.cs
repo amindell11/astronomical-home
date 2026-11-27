@@ -82,8 +82,10 @@ namespace Loot
         {
             var held = new List<BehaviourMod>();
             foreach (var pick in picks)
-                if (pick is BehaviourMod mod && !held.Contains(mod) && landsOn(mod))
-                    held.Add(mod);
+            {
+                var mod = pick as BehaviourMod;
+                if (mod && !held.Contains(mod) && landsOn(mod)) held.Add(mod);
+            }
             return held;
         }
 
@@ -102,12 +104,13 @@ namespace Loot
             return any ? new ShipMods(bonus) : ShipMods.None;
         }
 
-        private static bool Fits(LullMod pick, WeaponComponent weapon) => pick switch
+        private static bool Fits(LullMod pick, WeaponComponent weapon)
         {
-            WeaponMod mod => mod.Fits(weapon, weapon),
-            BehaviourMod mod => mod.LandsOn(weapon),
-            _ => false,
-        };
+            var stat = pick as WeaponMod;
+            if (stat) return stat.Fits(weapon, weapon);
+            var behaviour = pick as BehaviourMod;
+            return behaviour && behaviour.LandsOn(weapon);
+        }
 
         private List<HeldMod> Held(Func<LullMod, bool> include)
         {

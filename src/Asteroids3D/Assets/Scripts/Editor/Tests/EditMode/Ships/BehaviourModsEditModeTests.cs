@@ -155,7 +155,8 @@ namespace Tests.EditMode.Ships
         {
             var pool = AssetDatabase.LoadAssetAtPath<LullModPool>(PoolPath);
             var cache = AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>(CacheFeelPath);
-            Assert.IsFalse(pool.mods.Concat(cache.bonuses).Any(mod => mod is WeaponMod or ShipMod),
+            var statKinds = new[] { typeof(WeaponMod), typeof(ShipMod) };
+            Assert.IsFalse(pool.mods.Concat(cache.bonuses).Any(mod => statKinds.Contains(mod.GetType())),
                 "no stat mod is left in an offer pool");
 
             CollectionAssert.AreEquivalent(new[]
