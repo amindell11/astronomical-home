@@ -70,9 +70,10 @@ namespace Ships.Keystones.Kits
             return default;
         }
 
+        // Step tests the press before Sustain, so the chance closes a step early, on the window's last step.
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
-            if ((!secondPending && !secondArmed) || SinceActivation < doubleDashWindow) return default;
+            if ((!secondPending && !secondArmed) || SinceActivation + dt < doubleDashWindow) return default;
             secondPending = false;
             secondArmed = false;
             RestartCooldown();
