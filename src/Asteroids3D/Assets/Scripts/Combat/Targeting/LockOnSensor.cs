@@ -130,6 +130,8 @@ namespace Combat.Targeting
         {
             if (registry == null)
                 return;
+            if (!selfShip.Status.CanLock && State is LockState.Locking or LockState.Locked)
+                targetLock.Cancel();
             targetLock.Update(Time.deltaTime, IsAcquired(CurrentTarget));
         }
 
