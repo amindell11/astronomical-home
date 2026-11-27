@@ -562,7 +562,7 @@ Format: **term** — definition. *(authority)*
   pans and zooms onto the rival, and the `rival-introduced` lines (a companion warning,
   the rival's hail as reply) speak in place of combat start. Every run, not once per
   save, ruled by the game lead on 2026-11-27.
-  *(GameHost.closeUpFeel, RivalCloseUp)*
+  *(GameHost.closeUpFeel, CloseUp)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap

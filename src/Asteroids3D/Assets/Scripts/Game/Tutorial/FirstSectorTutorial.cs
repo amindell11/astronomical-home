@@ -9,14 +9,16 @@ namespace Game.Tutorial
 {
     /// <summary>
     /// The guided first sector, one step at a time: movement prompts, then the weapon and keystone prompts, then the
-    /// hunt intro, then the waves card at the first alarm. Each prompt step ends when the player has used every key it
+    /// hunt intro (the stations, then a patrol), then the waves card at the first alarm. Each prompt step ends when the player has used every key it
     /// shows. The host holds the hunt from the start, runs the intro's camera move when <see cref="IntroDue"/>, and
     /// resumes the hunt after it. The design and rulings: https://github.com/amindell11/astronomical-home/issues/1761
     /// </summary>
     internal sealed class FirstSectorTutorial
     {
-        public const string IntroText =
-            "EXPLORE THE SECTOR AND LOOK FOR UPGRADES. ENEMIES ARE PATROLLING AND CAN SENSE YOU, SO STAY ON THE LOOKOUT.";
+        public const string StationsText =
+            "STATIONS ARE MARKED ON YOUR MAP. REPAIR FIXES YOUR HULL, MOD ADDS AN UPGRADE AND ARMORY SWAPS YOUR WEAPON. " +
+            "FLY INTO ONE TO USE IT BEFORE THE ALARM SOUNDS.";
+        public const string IntroText = "ENEMIES ARE PATROLLING AND CAN SENSE YOU, SO STAY ON THE LOOKOUT.";
         public const string WavesText = "WAVES OF ENEMIES ARE COMING. SURVIVE THEM AND REACH EXTRACTION.";
 
         private enum Step { Movement, Weapons, Intro, Hunting, Done }
