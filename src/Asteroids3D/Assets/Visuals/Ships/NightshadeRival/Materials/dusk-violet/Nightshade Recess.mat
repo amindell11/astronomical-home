@@ -98,7 +98,7 @@ Material:
     - _WearStrength: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 0.451805, g: 1, b: 0.072967, a: 1}
+    - _EmissionColor: {r: 0.271083, g: 0.6, b: 0.04378, a: 1}
     - _OrangeGain: {r: 1, g: 1, b: 1, a: 1}
     - _PaintInkColor: {r: 0.050708714, g: 0.03876, b: 0.11207494, a: 1}
     - _PaintLightColor: {r: 0.48752721, g: 0.48670635, b: 0.49426142, a: 1}
