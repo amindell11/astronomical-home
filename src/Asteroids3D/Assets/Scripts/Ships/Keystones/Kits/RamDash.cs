@@ -86,6 +86,9 @@ namespace Ships.Keystones.Kits
         public override string DisplayName => "Ram";
         public float Window => window;
         public float ShipDamage => shipDamage;
+        public float BraceAngle => braceAngle;
+        public int BracedHits { get; private set; }
+        public Vector3 LastBracedPoint { get; private set; }
         public bool Braking => brakeStepsLeft != -1;
         private float SinceLaunch => SinceActivation - launchedAt;
         public bool RamLive => launched && SinceLaunch < window && (!resolved || SinceLaunch == resolvedAt);
@@ -106,7 +109,10 @@ namespace Ships.Keystones.Kits
         {
             if (!Braking) return 1f;
             var toHit = GamePlane.WorldPointToPlane(hit.HitPoint) - GamePlane.WorldPointToPlane(Body.worldCenterOfMass);
-            return Vector2.Angle(nose, toHit) <= braceAngle ? braceScale : 1f;
+            if (Vector2.Angle(nose, toHit) > braceAngle) return 1f;
+            BracedHits++;
+            LastBracedPoint = hit.HitPoint;
+            return braceScale;
         }
 
         public override bool ShouldActivate(in KeystoneContext context)
