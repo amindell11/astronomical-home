@@ -18,6 +18,7 @@ using Game.Player;
 using Game.Player.Recorders;
 using Game.Runs;
 using Game.Travel;
+using Game.Tutorial;
 using Loot;
 using Substrate;
 using Substrate.Presentation;
@@ -32,6 +33,7 @@ using Ships.Loadout;
 using Ships.Weapons;
 using UI;
 using UI.Hangar.Hardware;
+using UI.Prompts;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -152,6 +154,12 @@ namespace Game
         [Tooltip("How each sector's first wave shows its rival: time slows while the camera pans and zooms onto " +
                  "it. Presentation only.")]
         [SerializeField] internal CloseUpFeel closeUpFeel = new CloseUpFeel();
+
+        [Header("Guided first sector")]
+        [Tooltip("Teach the controls and the hunt in sector 1, holding the hunt until the player has done every " +
+                 "step, while the player's Tutorial prompts setting is on. Presentation only.")]
+        [SerializeField] internal bool teachFirstSector;
+        [SerializeField] internal TutorialFeel tutorialFeel = new TutorialFeel();
 
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
@@ -377,6 +385,10 @@ namespace Game
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
                     var spine = session.ActiveSector.Module<PhaseSpineModule>();
                     if (rigInstance) rigInstance.EnterSector(spine);
+                    var tutorial = Teaches(index, presentation, spine)
+                        ? new FirstSectorTutorial(rigInstance.Overlay, spine.Hunt, tutorialFeel.wavesCardSeconds)
+                        : null;
+                    if (tutorial != null) spine.Hunt.Hold();
                     var sectorStartTime = Time.time;
                     OpenSector(index);
                     var modStations = presentation && lullMods && rigInstance
@@ -424,6 +436,17 @@ namespace Game
                                 cachesClaimed++;
                                 moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
                             }
+                            if (tutorial != null)
+                            {
+                                tutorial.Tick();
+                                if (tutorial.IntroDue)
+                                {
+                                    yield return RunTutorialIntro(tutorial.Patrol);
+                                    tutorial.IntroDone();
+                                    spine.Hunt.Resume();
+                                    if (pauseRequested) continue;
+                                }
+                            }
                             if (closeUpRival)
                             {
                                 var rival = closeUpRival;
@@ -442,6 +465,7 @@ namespace Game
                         if (station) station.Arrived -= onStationArrived;
                     sectorMoments.Dispose();
                     closeCalls?.Dispose();
+                    tutorial?.End();
                     if (shutdownRequested) yield break;
                     CloseOpenSector();
 
@@ -512,6 +536,8 @@ namespace Game
         {
             sectorEndTime = Time.time;
             sectorEnded = true;
+            if (result.Success && activeSectorIndex == 0 && teachFirstSector && sessionProfile.presentation && rigInstance)
+                TutorialSetting.NoteFirstSectorCleared();
             if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
                 activeSectorIndex == sessionProfile.run.Sectors.Count - 1) return;
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
@@ -693,6 +719,7 @@ namespace Game
                 AssistSetting.Set(on);
                 if (rigInstance) rigInstance.SetAssist(on);
             }));
+            rows.Add(SettingsRow.Toggle("TUTORIAL PROMPTS", TutorialSetting.On, TutorialSetting.Set));
             rows.Add(SettingsRow.Slider("SCREEN SHAKE", CameraSettings.ShakeScale, v => CameraSettings.ShakeScale = v));
             rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
                 on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
@@ -1085,6 +1112,51 @@ namespace Game
         private void OnMomentRaised(IRunMoment moment)
         {
             if (moment is RivalIntroduced introduced) closeUpRival = introduced.Rival;
+        }
+
+        private bool Teaches(int sectorIndex, bool presentation, PhaseSpineModule spine) =>
+            sectorIndex == 0 && teachFirstSector && presentation && TutorialSetting.On && rigInstance &&
+            rigInstance.Overlay && spine && spine.Hunt;
+
+        // Fire skips only after the delay and a release, so held fire never skips.
+        // Its own action, because the frozen ship's flight input is disabled.
+        private IEnumerator RunTutorialIntro(Ship patrol)
+        {
+            var fire = new InputAction("TutorialSkip", InputActionType.Button, "<Mouse>/leftButton");
+            fire.Enable();
+            var shownAt = Time.unscaledTime;
+            var released = false;
+            var skipped = false;
+            var showing = true;
+            bool Skippable() => Time.unscaledTime - shownAt >= tutorialFeel.introSkipDelaySeconds;
+            bool Cancelled()
+            {
+                if (Skippable() && !skipped)
+                {
+                    if (!fire.IsPressed()) released = true;
+                    else if (released) skipped = true;
+                }
+                return skipped || playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested;
+            }
+
+            rigInstance.Overlay.ShowTutorialCard(FirstSectorTutorial.IntroText, TutorialCard.Spot.High,
+                () => !showing, Skippable);
+            rigInstance.SetInputEnabled(false);
+            try
+            {
+                if (patrol)
+                    yield return RivalCloseUp.Run(tutorialFeel.introPan, observer, rigInstance.Player.transform, patrol,
+                        clock.Slow(1f), Cancelled);
+                else
+                    for (var t = 0f; t < tutorialFeel.introPan.holdSeconds && !Cancelled(); t += Time.unscaledDeltaTime)
+                        yield return null;
+            }
+            finally
+            {
+                showing = false;
+                fire.Dispose();
+                rigInstance.SetInputEnabled(true);
+            }
         }
 
         private IEnumerator RunCloseUp(Ship rival)

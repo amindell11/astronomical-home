@@ -9,6 +9,7 @@ namespace Game.Player
 
         public float Thrust => controls.Flight.Thrust.ReadValue<float>();
         public float Strafe => controls.Flight.Strafe.ReadValue<float>();
+        public Vector2 AimScreenPoint => controls.Flight.AimPoint.ReadValue<Vector2>();
         public bool BoostDown => controls.Flight.Boost.WasPressedThisFrame();
         // Both triggers report the held (level) state; the weapon decides auto vs semi-auto,
         // and PlayerCommander derives the press edge for semi-auto weapons.
@@ -37,7 +38,7 @@ namespace Game.Player
 
         public Vector3 GetMouseWorldPosition()
         {
-            return screenToGamePlane(controls.Flight.AimPoint.ReadValue<Vector2>());
+            return screenToGamePlane(AimScreenPoint);
         }
 
         public void Enable() => controls.Flight.Enable();
