@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Ships.Keystones.Tells
 {
     /// <summary>
-    /// The ram's brace tell: while the ram brakes, armour plates unfold across the arc it braces, so
+    /// The ram's brace tell: while the ram braces, armour plates unfold across the arc it guards, so
     /// a hit from ahead visibly lands on armour. A braced hit flashes its plate and glances sparks off.
     /// The arc spans the kit's own brace angle, so the drawing stays true to the stat.
     /// </summary>
@@ -103,7 +103,7 @@ namespace Ships.Keystones.Tells
                 nextHit = (nextHit + 1) % ShownHits;
             }
 
-            if (ram.Braking)
+            if (ram.Bracing)
             {
                 if (releasedFor > 0f) bracedFor = 0f;
                 bracedFor += Time.deltaTime;
@@ -111,7 +111,7 @@ namespace Ships.Keystones.Tells
             }
             else releasedFor += Time.deltaTime;
 
-            var fade = ram.Braking ? 1f : fadeOut > 0f ? Mathf.Max(0f, 1f - releasedFor / fadeOut) : 0f;
+            var fade = ram.Bracing ? 1f : fadeOut > 0f ? Mathf.Max(0f, 1f - releasedFor / fadeOut) : 0f;
             var hitFade = material.GetFloat(HitFadeId);
             var hitAges = new Vector4(
                 Time.time - hitAt[0], Time.time - hitAt[1], Time.time - hitAt[2], Time.time - hitAt[3]);
