@@ -82,6 +82,9 @@ namespace AI.Tactics
 
         private void OnValidate()
         {
+            foreach (var play in plays)
+                if (!play)
+                    throw new InvalidOperationException($"{name}: a temper cannot list an empty play");
             if (home == Tactic.BreakOff)
                 throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
             if (home == Tactic.Charge)

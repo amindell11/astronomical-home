@@ -30,7 +30,7 @@ namespace AI.Plays
         [Min(0f)] public float answerSeconds = 3f;
 
         [Tooltip("Seconds each ship's turn to fire lasts.")]
-        [Min(0f)] public float rippleSlot = 0.4f;
+        [Min(0.05f)] public float rippleSlot = 0.4f;
 
         internal override float AnswerSeconds => answerSeconds;
 
