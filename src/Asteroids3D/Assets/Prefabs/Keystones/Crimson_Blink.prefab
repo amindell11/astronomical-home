@@ -54,6 +54,8 @@ MonoBehaviour:
   sightMinimum: 6
   recall: {fileID: 11400000, guid: 41587edc8a8d4ce5b8864abcf0bd7620, type: 2}
   recallWindow: 3
+  shieldBash: {fileID: 11400000, guid: d3c06c4effd9492bb5d33cfcb6773e54, type: 2}
+  shieldBashStun: 1
 --- !u!114 &7820964930999108482
 MonoBehaviour:
   m_ObjectHideFlags: 0

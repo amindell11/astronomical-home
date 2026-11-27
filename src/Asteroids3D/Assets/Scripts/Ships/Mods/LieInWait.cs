@@ -39,7 +39,7 @@ namespace Ships.Mods
 
         public void Read(HeldBehaviours held) => Held = held.Holds(key);
 
-        public void NotifyFired() => fired = true;
+        public void NotifyFired(WeaponSlot _) => fired = true;
 
         public void Step(float dt, Vector3 position, float radius, float mass, Vector2 velocity, in PilotCommand command,
             LockChannel sight)

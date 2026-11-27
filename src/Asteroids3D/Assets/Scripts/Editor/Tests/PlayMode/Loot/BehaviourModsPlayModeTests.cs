@@ -148,7 +148,7 @@ namespace Tests.PlayMode.Loot
             SpawnCrimson(TestAssets.Load<WeaponComponent>(LasersPath), null);
             yield return new WaitForFixedUpdate();
             var fired = 0;
-            ship.Weapons.Fired += () => fired++;
+            ship.Weapons.Fired += _ => fired++;
             var weapons = ship.Weapons.Arm(Projectiles);
             ship.Status.Apply(StatusEffect.Stunned, 2f);
 

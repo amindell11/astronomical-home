@@ -15,6 +15,7 @@ using Ships.Keystones;
 using Ships.Keystones.Kits;
 using Ships.Mods;
 using Ships.Registry;
+using Ships.Status;
 using Substrate;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
@@ -33,9 +34,11 @@ namespace Tests.PlayMode.Keystones
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
         private const string RecallPath = "Assets/Settings/Ships/Keystones/Mods/Recall.asset";
+        private const string ShieldBashPath = "Assets/Settings/Ships/Keystones/Mods/ShieldBash.asset";
 
         private readonly List<GameObject> spawned = new();
         private Ship crimson;
+        private Ship rival;
         private Blink blink;
 
         private sealed class StubShooter : MonoBehaviour, IShooter
@@ -48,6 +51,7 @@ namespace Tests.PlayMode.Keystones
         public override void TearDown()
         {
             ShipTestFactory.DestroyShip(crimson);
+            ShipTestFactory.DestroyShip(rival);
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -159,6 +163,39 @@ namespace Tests.PlayMode.Keystones
             yield return new WaitForFixedUpdate();
 
             Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), landed), Is.LessThan(0.5f), "no jump back");
+        }
+
+        [UnityTest]
+        public IEnumerator ShieldBash_StunsAnEnemyTheBlinkPassesThrough_AndTheRecallBack([Values] bool held)
+        {
+            yield return SpawnCrimson();
+            var mods = new List<BehaviourMod> { TestAssets.Load<KeystoneMod>(RecallPath) };
+            if (held) mods.Add(TestAssets.Load<KeystoneMod>(ShieldBashPath));
+            blink.Behaviours.Set(mods.ToArray());
+            var start = Plane(crimson.Rigidbody.position);
+            rival = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), GamePlane.PlanePointToWorld(start + new Vector2(6f, 0f)),
+                GamePlane.Rotation);
+            rival.Initialize(1, 0, Projectiles);
+            yield return new WaitForFixedUpdate();
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            Assert.That(Plane(crimson.Rigidbody.position).x - start.x, Is.GreaterThan(blink.Range - 1f),
+                "test premise: the blink jumps clean past the enemy");
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.EqualTo(held),
+                held ? "the blink stuns the enemy it passes through" : "without Shield bash it flies on");
+            var stun = new SerializedObject(blink).FindProperty("shieldBashStun").floatValue;
+            if (held)
+                Assert.That(rival.Status.Remaining(StatusEffect.Stunned), Is.EqualTo(stun).Within(0.05f), "for the stun's length");
+
+            for (var i = 0; i < Mathf.CeilToInt(stun / Time.fixedDeltaTime) + 2; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.False, "the stun wears off");
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.LessThan(1f), "test premise: recalled");
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.EqualTo(held), "the recall back through it stuns it again");
         }
 
         [UnityTest]

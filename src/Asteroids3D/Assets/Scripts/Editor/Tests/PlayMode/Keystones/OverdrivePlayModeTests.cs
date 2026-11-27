@@ -10,6 +10,7 @@ using Ships.Keystones.Kits;
 using Ships.Mods;
 using Substrate;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -21,15 +22,18 @@ namespace Tests.PlayMode.Keystones
         private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
         private const string KitPath = "Assets/Prefabs/Keystones/Valis_Overdrive.prefab";
         private const string OrbitPath = "Assets/Settings/Ships/Keystones/Mods/Orbit.asset";
+        private const string RelentlessPath = "Assets/Settings/Ships/Keystones/Mods/Relentless.asset";
         private const float RockRadius = 4f;
         private const float Speed = 30f;
         private Ship valis;
+        private Ship rival;
         private GameObject kitHost;
         private GameObject rock;
 
         public override void TearDown()
         {
             ShipTestFactory.DestroyShip(valis);
+            ShipTestFactory.DestroyShip(rival);
             if (kitHost) Object.DestroyImmediate(kitHost);
             if (rock) Object.DestroyImmediate(rock);
             base.TearDown();
@@ -78,6 +82,42 @@ namespace Tests.PlayMode.Keystones
             }
             Assert.That(bend, Is.GreaterThan(90f), "the course bends around the rock");
             Assert.That(closest, Is.GreaterThan(RockRadius + 1f), "skimming it, never into it");
+        }
+
+        [UnityTest]
+        public IEnumerator Relentless_StrengthensThrustTowardTheNearestEnemy_AndWeakensItAway([Values] bool held)
+        {
+            valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
+            valis.Initialize(0, 0, Projectiles);
+            var overdrive = (Overdrive)valis.Keystone;
+            if (held) overdrive.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RelentlessPath) });
+            var tunables = new SerializedObject(overdrive);
+            var thrustScale = tunables.FindProperty("thrustScale").floatValue;
+            var gain = held ? tunables.FindProperty("relentlessGain").floatValue : 0f;
+            var nose = GamePlane.PlaneDirToWorld(valis.Kinematics.Forward);
+            rival = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), nose * 20f, GamePlane.Rotation);
+            rival.Initialize(1, 0, Projectiles);
+            yield return new WaitForFixedUpdate();
+
+            valis.Movement.Drive(new PilotCommand { thrust = 1f, boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(overdrive.Active, Is.True);
+            var towardScale = overdrive.ThrustScale;
+            var toward = valis.Movement.dbgThrust.magnitude;
+
+            var behind = valis.Rigidbody.position - nose * 20f;
+            rival.transform.position = behind;
+            rival.Rigidbody.position = behind;
+            Physics.SyncTransforms();
+            valis.Rigidbody.linearVelocity = Vector3.zero;
+            valis.Movement.Drive(new PilotCommand { thrust = 1f });
+            yield return new WaitForFixedUpdate();
+            var awayScale = overdrive.ThrustScale;
+            var away = valis.Movement.dbgThrust.magnitude;
+
+            Assert.That(towardScale, Is.EqualTo(thrustScale * (1f + gain)).Within(0.02f), "nose on the enemy");
+            Assert.That(awayScale, Is.EqualTo(thrustScale * (1f - gain)).Within(0.02f), "nose away from it");
+            Assert.That(away / toward, Is.EqualTo((1f - gain) / (1f + gain)).Within(0.05f), "the engines push as the scale says");
         }
 
         [UnityTest]

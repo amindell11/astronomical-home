@@ -54,6 +54,8 @@ MonoBehaviour:
   window: 0.4
   riposte: {fileID: 11400000, guid: 468d097226ea409081088ce49ca48c54, type: 2}
   riposteShot: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff, type: 3}
+  doubleDash: {fileID: 11400000, guid: d248690f3a3f4b3ca0616def6f716253, type: 2}
+  doubleDashWindow: 1
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0
