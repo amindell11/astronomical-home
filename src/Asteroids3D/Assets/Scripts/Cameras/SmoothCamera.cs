@@ -40,6 +40,9 @@ namespace Cameras
 
         protected abstract void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize);
 
+        // A subclass that already shaped the size's motion takes it as given, unsmoothed.
+        protected virtual bool SizeIsShaped => false;
+
         protected Vector3 ComputeWorldPosition(Vector2 center2D)
         {
             var worldCenter = GamePlane.PlanePointToWorld(center2D);
@@ -64,11 +67,16 @@ namespace Cameras
                 Velocity = Vector3.zero;
             }
 
-            if (desiredSize.HasValue)
+            if (desiredSize.HasValue && !SizeIsShaped)
             {
                 Cam.orthographicSize = Mathf.SmoothDamp(
                     Cam.orthographicSize, desiredSize.Value, ref zoomVelocity, smoothTime,
                     float.PositiveInfinity, Time.unscaledDeltaTime);
+            }
+            else if (desiredSize.HasValue)
+            {
+                Cam.orthographicSize = desiredSize.Value;
+                zoomVelocity = 0f;
             }
         }
 
