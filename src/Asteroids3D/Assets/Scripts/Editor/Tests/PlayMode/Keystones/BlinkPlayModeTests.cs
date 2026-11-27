@@ -17,8 +17,10 @@ using Ships.Mods;
 using Ships.Registry;
 using Substrate;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Keystones
@@ -97,6 +99,45 @@ namespace Tests.PlayMode.Keystones
             Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, before), Is.LessThan(0.5f), "keeping its velocity");
             Assert.That(blink.Activations, Is.EqualTo(1), "a recall is not a second blink");
             Assert.That(blink.Marker, Is.Null, "the marker is spent");
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_ReachesTheKit_FromThePlayersSpaceBar_WhileTheBlinkIsOnCooldown()
+        {
+            var input = new PlayModeInputTestFixture();
+            input.Setup();
+            try
+            {
+                var keyboard = InputSystem.AddDevice<Keyboard>();
+                yield return SpawnCrimson();
+                blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+                crimson.AddCommander(TestAssets.LoadPlayerPilot());
+                var start = Plane(crimson.Rigidbody.position);
+
+                yield return Tap(input, keyboard, () => blink.Activations == 1, "the first press blinks");
+                for (var i = 0; i < 3; i++)
+                    yield return new WaitForFixedUpdate();
+                Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.GreaterThan(blink.Range - 1f));
+                Assert.That(blink.Ready, Is.False, "test premise: the blink is on cooldown");
+
+                yield return Tap(input, keyboard, () => !blink.Marker.HasValue, "the second press recalls");
+                Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.LessThan(1f), "back at the start");
+                Assert.That(blink.Activations, Is.EqualTo(1));
+                Assert.That(crimson.KeystoneTakesPress, Is.False, "with the marker spent, a press waits for the cooldown");
+            }
+            finally
+            {
+                input.TearDown();
+            }
+        }
+
+        private static IEnumerator Tap(PlayModeInputTestFixture input, Keyboard keyboard, System.Func<bool> done, string what)
+        {
+            input.Press(keyboard.spaceKey);
+            for (var i = 0; i < 30 && !done(); i++)
+                yield return new WaitForFixedUpdate();
+            input.Release(keyboard.spaceKey);
+            Assert.That(done(), Is.True, what);
         }
 
         [UnityTest]

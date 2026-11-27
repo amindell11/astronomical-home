@@ -117,6 +117,7 @@ namespace Ships
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
         public bool BoostAvailable => Keystone && Keystone.Ready;
+        public bool KeystoneTakesPress => Keystone && Keystone.TakesPress;
         public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
         public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;

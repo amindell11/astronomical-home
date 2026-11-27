@@ -43,6 +43,7 @@ namespace Ships.Keystones.Kits
         public override string DisplayName => "Blink";
         public float Range => range;
         public Vector2? Marker => marker;
+        protected override bool TakesPressOnCooldown => marker.HasValue && SinceActivation <= recallWindow;
         public override bool Active => SinceActivation < TellSeconds;
 
         public override bool ShouldActivate(in KeystoneContext context) =>

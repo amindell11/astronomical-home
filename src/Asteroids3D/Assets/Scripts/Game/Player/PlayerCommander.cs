@@ -142,7 +142,7 @@ namespace Game.Player
             {
                 thrust = Assisted(thrustInput, thrustInputAt, forward),
                 strafe = Assisted(strafeInput, strafeInputAt, new Vector2(forward.y, -forward.x)),
-                boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
+                boost = (boostInput && context.KeystoneTakesPress) ? 1f : 0f,
                 yawTorque = wantsRotate ? GetMouseRotationTorque() : 0f,
                 abilityTarget = hasScreenProjector ? (Vector2?)GamePlane.WorldPointToPlane(cursorPoint) : null,
             };

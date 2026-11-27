@@ -35,6 +35,9 @@ namespace Ships.Keystones
         public Sprite Icon => icon;
         public float Cooldown => cooldown;
         public bool Ready => clock >= readyAt;
+
+        /// <summary>Whether a press now does something: the kit is ready, or it takes one on cooldown.</summary>
+        public bool TakesPress => Ready || TakesPressOnCooldown;
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
@@ -152,6 +155,8 @@ namespace Ships.Keystones
 
         /// <summary>Each step the input does not activate the kit, with that input: pressed on cooldown, or released.</summary>
         protected virtual KeystoneEffect Idle(in Kinematics kinematics, float input) => default;
+
+        protected virtual bool TakesPressOnCooldown => false;
 
         protected virtual void OnReset() { }
 
