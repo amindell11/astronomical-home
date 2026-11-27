@@ -49,6 +49,7 @@ namespace Tests.PlayMode.Hangar
             InputSystem.Update();
             yield return null;
             Assert.AreSame(nightshade, console.Selection.Ship, "Right steps the selected ship");
+            Release(keyboard.rightArrowKey);
 
             Press(keyboard.downArrowKey);
             InputSystem.Update();
