@@ -1,30 +1,77 @@
 using System;
 using System.Collections.Generic;
-using Ships.Command;
+using Ships.Movement;
 using Ships.Presentation;
 using UnityEngine;
 
 namespace Ships.Visuals
 {
+    /// <summary>
+    /// Drives the main exhaust and the RCS jets from the thrust the movement system applied.
+    /// A jet lights when its push and its torque about the ship help that thrust, and stays on
+    /// for a minimum time.
+    /// </summary>
     public class ThrusterVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
         public ParticleSystem[] thrustParticles;
+
+        [Tooltip("Manoeuvring jets. Each pushes the ship along its socket's +Y; its flame points down the socket's −Y.")]
+        [SerializeField] private ParticleSystem[] rcsJets = Array.Empty<ParticleSystem>();
+
+        [Tooltip("Demand, as a fraction of the ship's full authority, at which a jet lights.")]
+        [SerializeField] private float fireThreshold = 0.25f;
+
+        [Tooltip("Seconds a lit jet stays on, so small corrections don't flicker.")]
+        [SerializeField] private float minOnTime = 0.1f;
+
         private readonly List<(ParticleSystem system, ParticleSystemRenderer renderer)> flames = new();
-        private Func<PilotCommand> command;
+        private Func<AppliedThrust> thrust;
+        private Vector3[] push;
+        private float[] yawLever;
+        private float[] rollLever;
+        private float[] litUntil;
 
         // Each listed main thrust and the systems beside it in its exhaust, the small thrust among them.
         private void Awake()
         {
-            foreach (var thrust in thrustParticles)
+            foreach (var particle in thrustParticles)
             {
-                if (!thrust) continue;
-                foreach (Transform sibling in thrust.transform.parent)
+                if (!particle) continue;
+                foreach (Transform sibling in particle.transform.parent)
                     if (sibling.TryGetComponent(out ParticleSystem system) && !flames.Exists(flame => flame.system == system))
                         flames.Add((system, sibling.GetComponent<ParticleSystemRenderer>()));
             }
+
+            push = new Vector3[rcsJets.Length];
+            yawLever = new float[rcsJets.Length];
+            rollLever = new float[rcsJets.Length];
+            litUntil = new float[rcsJets.Length];
+            foreach (var jet in rcsJets)
+            {
+                if (!jet) continue;
+                if (flames.Exists(flame => flame.system == jet)) continue;
+                flames.Add((jet, jet.GetComponent<ParticleSystemRenderer>()));
+            }
         }
 
-        public void Bind(in ShipView view) => command = view.Command;
+        public void Bind(in ShipView view)
+        {
+            thrust = view.Thrust;
+            if (!view.Root) return;
+
+            for (var i = 0; i < rcsJets.Length; i++)
+            {
+                var jet = rcsJets[i];
+                if (!jet) continue;
+                var socket = jet.transform.parent;
+                var p = view.Root.InverseTransformPoint(socket.position);
+                var u = view.Root.InverseTransformDirection(socket.up).normalized;
+                var torque = Vector3.Cross(p, u) / Mathf.Max(p.magnitude, 1e-4f);
+                push[i] = u;
+                yawLever[i] = torque.z;
+                rollLever[i] = torque.y;
+            }
+        }
 
         public void Wear(in ShipLivery livery)
         {
@@ -40,10 +87,28 @@ namespace Ships.Visuals
 
         private void Update()
         {
-            if (thrustParticles == null || thrustParticles.Length == 0 || command == null) return;
+            if (thrust == null) return;
 
-            var shouldPlay = command().thrust > 0.05f;
-            UpdateThrustAnimations(shouldPlay);
+            var applied = thrust();
+            UpdateThrustAnimations(applied.Force.y > 0.05f);
+
+            for (var i = 0; i < rcsJets.Length; i++)
+            {
+                var demand = push[i].x * applied.Force.x + push[i].y * applied.Force.y
+                    + yawLever[i] * applied.Yaw + rollLever[i] * applied.Roll;
+                if (demand > fireThreshold)
+                    litUntil[i] = Time.time + minOnTime;
+
+                var ps = rcsJets[i];
+                if (!ps) continue;
+                if (Time.time < litUntil[i])
+                {
+                    if (!ps.isPlaying)
+                        ps.Play(true);
+                }
+                else if (ps.isPlaying)
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
         }
 
         private void UpdateThrustAnimations(bool shouldPlay)

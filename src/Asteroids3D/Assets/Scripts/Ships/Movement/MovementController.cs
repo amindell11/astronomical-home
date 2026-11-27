@@ -23,6 +23,8 @@ namespace Ships.Movement
         /// <summary>The piloting command applied on the most recent step (read by visuals/audio).</summary>
         public PilotCommand CurrentCommand => currentCommand;
 
+        public AppliedThrust Applied { get; private set; }
+
         /// <summary>IPilot: the commander pushes the next step's piloting command here.</summary>
         public void Drive(in PilotCommand cmd) => currentCommand = cmd;
 
@@ -71,6 +73,7 @@ namespace Ships.Movement
             rb.maxLinearVelocity = speedCap = settings.maxSpeed;
             rb.maxAngularVelocity = settings.maxYawRate * Mathf.Deg2Rad;
             currentCommand = default;
+            Applied = default;
         }
 
         private void FixedUpdate()
@@ -130,7 +133,15 @@ namespace Ships.Movement
 
             var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;
             var bankRate = Vector3.Dot(rb.angularVelocity, transform.up);
-            rb.AddTorque(transform.up * (bankError * settings.bankTorque - bankRate * settings.bankDamping), ForceMode.Force);
+            var bankTorqueApplied = bankError * settings.bankTorque - bankRate * settings.bankDamping;
+            rb.AddTorque(transform.up * bankTorqueApplied, ForceMode.Force);
+
+            var world = GamePlane.PlaneDirToWorld(thrust + strafe) + GamePlane.PlaneDirToWorld(boost) / Time.fixedDeltaTime + GamePlane.PlaneDirToWorld(acceleration) * rb.mass;
+            var local = transform.InverseTransformDirection(world);
+            Applied = new AppliedThrust(
+                new Vector2(local.x / settings.maxStrafeForce, local.y / (local.y >= 0f ? settings.forwardForce : settings.reverseForce)),
+                yawTorque / settings.yawTorque,
+                bankTorqueApplied / (settings.bankTorque * settings.maxBankAngle * Mathf.Deg2Rad));
 
 #if UNITY_EDITOR
             DebugForces(thrust, strafe, boost, yawTorque);
