@@ -159,9 +159,9 @@ MonoBehaviour:
     turnLag: 0
   - name: Ring
     show: 1
-    size: 0.93
+    size: 1
     opacity: 1
-    speed: 0.5
+    speed: 0.25
     endsAt: 0
     fadeOut: 0
     startsOn: 0
@@ -169,13 +169,13 @@ MonoBehaviour:
     loops: 0
     loopFrom: 0
     material: {fileID: 2100000, guid: 95c4f91cc21091044974dab400b1a9ef, type: 2}
-    columns: 5
-    rows: 2
-    frames: 10
-    width: 3.2787
-    length: 3.2787
-    centreAhead: 0
-    anchorAhead: 0
+    columns: 6
+    rows: 1
+    frames: 6
+    width: 2.1639
+    length: 1.5738
+    centreAhead: -0.405
+    anchorAhead: -0.405
     depth: 0.55
     staysAtLaunch: 0
     startsBehind: 0
