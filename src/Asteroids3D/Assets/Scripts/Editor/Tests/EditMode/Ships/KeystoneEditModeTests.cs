@@ -57,6 +57,8 @@ namespace Tests.EditMode.Ships
             so.FindProperty("cooldown").floatValue = Cooldown;
             var window = so.FindProperty("window");
             if (window != null) window.floatValue = Window;
+            WireKey(so, "riposte", "Riposte");
+            WireKey(so, "batteringRam", "BatteringRam");
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
         }
@@ -563,11 +565,18 @@ namespace Tests.EditMode.Ships
             so.FindProperty("thrustScale").floatValue = 1.5f;
             so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
-            so.FindProperty("snapTurn").objectReferenceValue = SnapTurn;
-            so.FindProperty("orbit").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<KeystoneMod>("Assets/Settings/Ships/Keystones/Mods/Orbit.asset");
+            WireKey(so, "snapTurn", "SnapTurn");
+            WireKey(so, "orbit", "Orbit");
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
+        }
+
+        private static void WireKey(SerializedObject kit, string field, string mod)
+        {
+            var key = kit.FindProperty(field);
+            if (key != null)
+                key.objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<KeystoneMod>($"Assets/Settings/Ships/Keystones/Mods/{mod}.asset");
         }
 
         private static KeystoneMod SnapTurn =>
