@@ -6,8 +6,11 @@ using Damage;
 using Loot;
 using NUnit.Framework;
 using Ships;
+using Ships.Damage;
 using Ships.Loadout;
 using Ships.Mods;
+using Ships.Registry;
+using Combat.Targeting;
 using Substrate;
 using Tests.Common;
 using UnityEngine;
@@ -15,13 +18,16 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Ships
 {
-    /// <summary>The pitch passives with no physics: Backstab skips the shield only on the rear arc, Shrapnel rocks throws fragments away from the thrower and boosts their hits on other ships, and a lull pick never re-offers a held behaviour key.</summary>
+    /// <summary>The passives with no physics: Backstab skips the shield only on the rear arc, Shrapnel rocks throws fragments away from the thrower and boosts their hits on other ships, Headstrong doubles the front shield and drops the rear one, Turret slows the turn and swings a socket to the aim point, Duck and load speeds recovery only while unsighted, concealment holds until every hider lets go, and a lull pick never re-offers a held behaviour key.</summary>
     [TestFixture]
     [Category("Ships")]
     public class PassiveModsEditModeTests
     {
         private static readonly MethodInfo ShipAwake =
             typeof(Ship).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private static readonly MethodInfo DamageAwake =
+            typeof(DamageController).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private readonly List<Object> made = new();
 
@@ -143,6 +149,100 @@ namespace Tests.EditMode.Ships
 
             fragment.Damage.Initialize(10f, law);
             Assert.AreEqual(15f, fragment.Damage.DamageTo(enemy.Damage, 10f), 1e-4f, "a respawned rock is ordinary again");
+        }
+
+        [Test]
+        public void AHeadstrongShip_ShieldsDoubleOnTheFrontArc_AndNotAtAllBehind()
+        {
+            var key = Passive("Headstrong");
+            var ship = BareShip(new Vector3(0f, 20f, 0f));
+            DamageAwake.Invoke(ship.Damage, null);
+            ship.Damage.PopulateSettings(new ResolvedShipStats
+            {
+                maxHealth = 100f, maxShield = 50f, shieldRegenRate = 10f, shieldRegenDelay = 1f,
+            });
+            ship.Headstrong.Configure(key, 90f, 2f);
+            DamageInfo At(float amount, Vector3 point) => new(amount, DamageKind.Laser, ShipId.Invalid, 0.1f, Vector3.zero, point);
+            var nose = ship.transform.position + ship.transform.up * 2f;
+            var tail = ship.transform.position - ship.transform.up * 2f;
+
+            ship.Damage.TakeDamage(At(20f, nose));
+            Assert.AreEqual((30f, 100f), (ship.Damage.Shield.CurrentValue, ship.Damage.Health.CurrentValue),
+                "not held: the shield takes a front hit point for point");
+
+            ship.Headstrong.Read(Holding(key));
+            ship.Damage.TakeDamage(At(20f, nose));
+            Assert.AreEqual((20f, 100f), (ship.Damage.Shield.CurrentValue, ship.Damage.Health.CurrentValue),
+                "held: each shield point absorbs two from the front");
+
+            ship.Damage.TakeDamage(At(20f, tail));
+            Assert.AreEqual((20f, 80f), (ship.Damage.Shield.CurrentValue, ship.Damage.Health.CurrentValue),
+                "a rear hit skips the shield");
+
+            ship.Damage.TakeDamage(At(60f, nose));
+            Assert.AreEqual((0f, 60f), (ship.Damage.Shield.CurrentValue, ship.Damage.Health.CurrentValue),
+                "a front hit past the doubled shield spills the rest onto the hull");
+        }
+
+        [Test]
+        public void Turret_SlowsTheTurn_HardensReverse_AndSwingsASocketToTheAimPoint()
+        {
+            var key = Passive("Turret");
+            var turret = new Turret();
+            turret.Configure(key, 0.5f, 2.5f);
+            var socket = new GameObject("Socket").transform;
+            made.Add(socket.gameObject);
+            socket.SetPositionAndRotation(new Vector3(1f, 1f, 0f), GamePlane.Rotation);
+            var nose = socket.up;
+            var authored = socket.localRotation;
+            var target = socket.position + GamePlane.Right * 10f;
+
+            turret.Read(new HeldBehaviours());
+            turret.Aim(socket, authored, target);
+            Assert.AreEqual(0f, Vector3.Angle(nose, socket.up), 1e-3f, "not held: the socket keeps to the nose");
+
+            turret.Read(Holding(key));
+            var stats = new ResolvedShipStats { maxYawRate = 200f, yawTorque = 8000f, reverseForce = 2000f, forwardForce = 6000f };
+            turret.Scale(stats);
+            Assert.AreEqual((100f, 4000f, 5000f, 6000f),
+                (stats.maxYawRate, stats.yawTorque, stats.reverseForce, stats.forwardForce));
+
+            turret.Aim(socket, authored, target);
+            Assert.AreEqual(0f, Vector3.Angle(GamePlane.Right, GamePlane.WorldDirOnPlane(socket.up)), 1e-2f,
+                "held: the socket points at the aim point");
+        }
+
+        [Test]
+        public void DuckAndLoad_SpeedsRecovery_OnlyOnceNoEnemyHasSightedTheShipLately()
+        {
+            var key = Passive("Duck and load");
+            var duck = new DuckAndLoad();
+            duck.Configure(key, 3f, 0.5f);
+            var sight = new LockChannel();
+
+            Assert.AreEqual(1f, duck.RecoveryScale(sight, 10f), "not held");
+            duck.Read(Holding(key));
+            Assert.AreEqual(3f, duck.RecoveryScale(sight, 10f), "never sighted");
+            sight.NoteSighted(10f);
+            Assert.AreEqual(1f, duck.RecoveryScale(sight, 10.3f), "sighted just now");
+            Assert.AreEqual(3f, duck.RecoveryScale(sight, 10.5f), "unseen long enough");
+        }
+
+        [Test]
+        public void Concealment_HoldsUntilEveryHiderLetsGo_AndAStrayRevealThrows()
+        {
+            var sight = new LockChannel();
+            var told = 0;
+            sight.Concealed += () => told++;
+
+            sight.Conceal();
+            sight.Conceal();
+            Assert.AreEqual(1, told, "the first hider conceals the target");
+            sight.Reveal();
+            Assert.IsTrue(sight.IsConcealed, "one hider still holds it");
+            sight.Reveal();
+            Assert.IsFalse(sight.IsConcealed);
+            Assert.Throws<System.InvalidOperationException>(sight.Reveal);
         }
 
         [Test]

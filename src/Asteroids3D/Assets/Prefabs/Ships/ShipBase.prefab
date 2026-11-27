@@ -98,6 +98,26 @@ MonoBehaviour:
     spreadScale: 2
     throwSpeed: 12
     enemyDamageScale: 3
+  headstrong:
+    key: {fileID: 11400000, guid: 14402d58878949528c70107cc255371e, type: 2}
+    frontArcHalfAngle: 90
+    frontShieldScale: 2
+  turret:
+    key: {fileID: 11400000, guid: 4c6fafe9a4e44767bdc200e1047e8357, type: 2}
+    turnScale: 0.5
+    reverseThrustScale: 2.5
+  lieInWait:
+    key: {fileID: 11400000, guid: 3acb648cc8ef45a58f8ef0eeabdb6ea7, type: 2}
+    holdSeconds: 1
+    stillSpeed: 1.5
+    heavyMassRatio: 4
+    contactGap: 2
+  cleanKill:
+    key: {fileID: 11400000, guid: 1ada1adba77e41b1a5f29e44241bfb1e, type: 2}
+  duckAndLoad:
+    key: {fileID: 11400000, guid: b5b0f81c5de24320bff1e9109ecd5021, type: 2}
+    recoveryScale: 3
+    unseenAfter: 0.5
   teamNumber: 0
 --- !u!114 &8752571619316856911
 MonoBehaviour:

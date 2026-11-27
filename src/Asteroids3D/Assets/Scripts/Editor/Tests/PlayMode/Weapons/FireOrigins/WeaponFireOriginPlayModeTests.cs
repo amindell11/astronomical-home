@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Ships.Mods;
 using Ships.Status;
 using System.Collections;
 using System.Collections.Generic;
@@ -101,7 +102,7 @@ namespace Tests.PlayMode.Weapons.FireOrigins
         {
             var controller = NewRig(Prefab("TurboLasers"));
             controller.gameObject.SetActive(true);
-            controller.Initialize(() => default, new StatusEffects());
+            controller.Initialize(() => default, new StatusEffects(), new Turret());
             var lasers = (Lasers)controller.Primary;
             var fireEvents = new List<Vector3>();
             lasers.OnFire += () => fireEvents.Add(lasers.firePoint.position);

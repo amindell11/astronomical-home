@@ -21,5 +21,8 @@ namespace Combat
 
         /// <summary>Multiplier on every hit this shooter's shots deal, read as each shot leaves.</summary>
         float ShotDamageScale => 1f;
+
+        /// <summary>Multiplier on how fast this shooter's weapons reload and cool, read each frame.</summary>
+        float RecoveryScale => 1f;
     }
 }
