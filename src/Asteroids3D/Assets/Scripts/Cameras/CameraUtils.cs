@@ -68,9 +68,6 @@ namespace Cameras
             return Mathf.SmoothDamp(current, target, ref velocity, smoothTime, float.PositiveInfinity, deltaTime);
         }
 
-        public static Vector2 RotateAbout(Vector2 point, Vector2 pivot, float degrees) =>
-            pivot + (Vector2)(Quaternion.Euler(0f, 0f, degrees) * (point - pivot));
-
         public static Vector2 CursorLead(Vector2 viewportPoint, float deadZone, float distance)
         {
             if (viewportPoint.x < 0f || viewportPoint.x > 1f || viewportPoint.y < 0f || viewportPoint.y > 1f)

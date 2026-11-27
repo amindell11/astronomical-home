@@ -81,11 +81,9 @@ namespace Cameras
         }
 
 
-        protected virtual Vector3 ViewUp => GamePlane.Forward;
-
         private void ApplyCameraOrientation()
         {
-            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, ViewUp);
+            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
         }
 
         protected float ClampZoom(float size) => Mathf.Clamp(size, minZoom, maxZoom);

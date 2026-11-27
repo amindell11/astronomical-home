@@ -31,7 +31,6 @@ MonoBehaviour:
   cursorLead: 6
   cursorDeadZone: 0.4
   cursorLeadSmoothTime: 0.4
-  headingSmoothTime: 0.15
   overspeedRange: 0.3
   overspeedZoomOut: 6
   overspeedLead: 6

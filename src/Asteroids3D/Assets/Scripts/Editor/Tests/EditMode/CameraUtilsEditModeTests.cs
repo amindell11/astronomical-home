@@ -145,10 +145,6 @@ namespace Tests.EditMode
             AssertLead(new Vector2(0f, -LeadDistance / 2f), CameraUtils.CursorLead(new Vector2(.5f, .25f), 0f, LeadDistance));
         }
 
-        [Test]
-        public void RotateAbout_TurnsCounterclockwiseAroundThePivot() =>
-            AssertLead(new Vector2(1f, 2f), CameraUtils.RotateAbout(new Vector2(2f, 1f), Vector2.one, 90f));
-
         private static void AssertLead(Vector2 expected, Vector2 actual) =>
             Assert.That(Vector2.Distance(expected, actual), Is.LessThan(1e-4f), $"lead {actual}, expected {expected}");
 

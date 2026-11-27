@@ -62,9 +62,6 @@ namespace Cameras
         [Tooltip("Seconds the cursor lead takes to follow the cursor.")]
         [Min(0f)] public float cursorLeadSmoothTime = 0.4f;
 
-        [Tooltip("Seconds the ship-up view takes to turn after the ship's heading.")]
-        [Min(0f)] public float headingSmoothTime = 0.15f;
-
         [Header("Overspeed")]
         [Tooltip("Fraction past the hull's top speed at which the overspeed headroom is full. Overdrive raises the cap by about this much.")]
         [Min(0.01f)] public float overspeedRange = 0.3f;
