@@ -291,16 +291,16 @@ namespace UI.Hangar.Hardware
             group.blocksRaycasts = false;
             var titles = AssetDatabase.LoadAssetAtPath<Font>(TitleFontPath);
             var labels = AssetDatabase.LoadAssetAtPath<Font>(LabelFontPath);
-            ChecklistLine(go.transform, "Heading", "SELECT HULL AND WEAPONS LOADOUT", titles, 11, Color.white, 40f, 16f);
+            ChecklistLine(go.transform, "Heading", "PRE-LAUNCH CHECK", titles, 11, Color.white, 40f, 16f);
             var rule = (RectTransform)new GameObject("Rule", typeof(RectTransform), typeof(Image)).transform;
             rule.SetParent(go.transform, false);
             rule.anchorMin = rule.anchorMax = rule.pivot = new Vector2(.5f, 1f);
             rule.anchoredPosition = new Vector2(0f, -58f);
-            rule.sizeDelta = new Vector2(270f, .75f);
+            rule.sizeDelta = new Vector2(150f, .75f);
             var ruleImage = rule.GetComponent<Image>();
             ruleImage.color = new Color(1f, 1f, 1f, .42f);
             ruleImage.raycastTarget = false;
-            ChecklistLine(go.transform, "Steps", "OR LAUNCH AS YOU ARE", labels, 9, Color.white, 61f, 14f);
+            ChecklistLine(go.transform, "Steps", "SELECT HULL AND WEAPONS LOADOUT", labels, 9, Color.white, 61f, 14f);
             ChecklistLine(go.transform, "Keys", "W / S or the knob: next screen", labels, 8,
                 new Color(1f, 1f, 1f, .58f), 74f, 12f);
             go.SetActive(false);
