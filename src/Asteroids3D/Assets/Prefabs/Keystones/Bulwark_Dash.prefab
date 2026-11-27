@@ -54,7 +54,6 @@ MonoBehaviour:
   impulse: 19500
   brake: 0.4
   braceAngle: 60
-  braceScale: 0.5
   window: 0.45
   hitCooldown: 3.5
   missDump: 0.3
