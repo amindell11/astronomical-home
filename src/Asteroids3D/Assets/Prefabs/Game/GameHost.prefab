@@ -91,6 +91,20 @@ MonoBehaviour:
       holdSeconds: 6
       easeOutSeconds: 0.8
       closeSize: 9
+    stationsZoom:
+      slowScale: 0.25
+      easeInSeconds: 1
+      holdSeconds: 6
+      easeOutSeconds: 1
+      closeSize: 7
+    stationsMargin: 12
+    stationsBand:
+      serializedVersion: 2
+      x: 0.04
+      y: 0.22
+      width: 0.74
+      height: 0.28
+    patrolScreenHeight: 0.36
     introSkipDelaySeconds: 0.6
     wavesCardSeconds: 7
 --- !u!114 &7632041640955592545
