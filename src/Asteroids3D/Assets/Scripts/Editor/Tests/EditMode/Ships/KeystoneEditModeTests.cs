@@ -110,28 +110,38 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
-        public void RamDash_BlocksOnlyCollisions_WhileLive()
+        public void RamDash_AbsorbsEveryFrontalHit_ThroughTheBrakeAndTheLiveRam()
         {
             var ram = NewRam();
             var kin = Facing(0f);
-            var collision = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
-            Assert.That(ram.Blocks(in collision), Is.False, "not live before activating");
+            Assert.That(ram.Blocks(Hit(DamageKind.Laser, Vector2.up)), Is.False, "nothing is braced before activating");
 
             ram.Step(in kin, 1f, Dt, out _);
             Assert.That(ram.Braking, Is.True);
-            Assert.That(ram.Active, Is.False);
-            Assert.That(ram.Blocks(in collision), Is.False, "no protection during the brake");
+            AssertBracesOnlyTheFront("during the brake");
 
             while (ram.Braking)
                 ram.Step(in kin, 0f, Dt, out _);
-
             Assert.That(ram.RamLive, Is.True);
-            Assert.That(ram.Blocks(in collision), Is.True, "collision damage is dropped while the ram is live");
-            Assert.That(ram.Blocks(in AnyHit), Is.False, "a missile still lands on a charging Bulwark");
+            AssertBracesOnlyTheFront("while the ram is live");
 
             while (ram.RamLive)
                 ram.Step(in kin, 0f, Dt, out _);
-            Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
+            Assert.That(ram.Blocks(Hit(DamageKind.Collision, Vector2.up)), Is.False, "an unspent ram expires after its window");
+
+            void AssertBracesOnlyTheFront(string phase)
+            {
+                foreach (var kind in new[] { DamageKind.Laser, DamageKind.Collision })
+                {
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.up)), Is.True, $"{kind} ahead of the nose, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, new Vector2(0.8f, 1f))), Is.True, $"{kind} inside the brace angle, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.right)), Is.False, $"{kind} beside the ship, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.down)), Is.False, $"{kind} behind the ship, {phase}");
+                }
+            }
+
+            DamageInfo Hit(DamageKind kind, Vector2 dir) => new(10f, kind, ShipId.Invalid, 0f, Vector3.zero,
+                ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));
         }
 
         [Test]
@@ -361,25 +371,17 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
-        public void RamDash_Brace_HalvesFrontalHits_DuringTheBrakeOnly()
+        public void RamDash_RecordsOnlyTheHitsItsBraceAbsorbed()
         {
             var ram = NewRam();
             var ahead = From(Vector2.up);
-            var beside = From(Vector2.right);
-            var behind = From(Vector2.down);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "before activation");
-
             var kin = Facing(0f);
             ram.Step(in kin, 1f, Dt, out _);
-            Assert.That(ram.Braking, Is.True);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(0.5f), "ahead of the nose");
-            Assert.That(ram.DamageScale(in beside), Is.EqualTo(1f), "beside the ship");
-            Assert.That(ram.DamageScale(in behind), Is.EqualTo(1f), "behind the ship");
 
-            while (ram.Braking)
-                ram.Step(in kin, 0f, Dt, out _);
-            Assert.That(ram.RamLive, Is.True);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "after launch");
+            ram.NotifyBlocked(ahead);
+            ram.NotifyBlocked(From(Vector2.down));
+            Assert.That(ram.BracedHits, Is.EqualTo(1), "a hit blocked by something else is not the brace's");
+            Assert.That(ram.LastBracedPoint, Is.EqualTo(ahead.HitPoint), "the tell lights where it landed");
 
             DamageInfo From(Vector2 dir) => new(20f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero,
                 ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));

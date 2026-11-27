@@ -22,14 +22,14 @@ namespace UI.Prompts
         public string Action { get; private set; }
 
         public static KeyPrompt Create(Transform parent, Font keyFont, Font wordFont, Material textMaterial,
-            string key, string action)
+            string key, string action, string verb = "PRESS")
         {
             var go = new GameObject("KeyPrompt", typeof(RectTransform));
             go.layer = parent.gameObject.layer;
             go.transform.SetParent(parent, false);
             var prompt = go.AddComponent<KeyPrompt>();
             prompt.press = CreateText(go.transform, "Press", wordFont, textMaterial, WordSize);
-            prompt.press.text = "PRESS";
+            prompt.press.text = verb;
 
             prompt.cap = (RectTransform)new GameObject("Key cap", typeof(RectTransform)).transform;
             prompt.cap.gameObject.layer = go.layer;

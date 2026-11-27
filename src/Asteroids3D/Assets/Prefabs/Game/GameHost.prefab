@@ -77,6 +77,22 @@ MonoBehaviour:
   lullMods: {fileID: 11400000, guid: 39cc47f84df34c5589e2267bff2200d2, type: 2}
   companionLines: {fileID: 11400000, guid: c5fa908d79cd4ebea0dc1d1d998e41f0, type: 2}
   companionFeel: {fileID: 11400000, guid: 1429d475f64d411c84eb4b31ec6d6256, type: 2}
+  closeUpFeel:
+    slowScale: 0.15
+    easeInSeconds: 0.6
+    holdSeconds: 1.8
+    easeOutSeconds: 0.6
+    closeSize: 7
+  teachFirstSector: 1
+  tutorialFeel:
+    introPan:
+      slowScale: 0.25
+      easeInSeconds: 0.8
+      holdSeconds: 6
+      easeOutSeconds: 0.8
+      closeSize: 9
+    introSkipDelaySeconds: 0.6
+    wavesCardSeconds: 7
 --- !u!114 &7632041640955592545
 MonoBehaviour:
   m_ObjectHideFlags: 0
