@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using Combat.Weapons.Mods;
-using Loot;
 using NUnit.Framework;
 using Ships.Mods;
 using Substrate.Sectors;
@@ -12,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one beacon cache, set up after its spine and reading it, on the shared feel: 20 s bonuses from damage +100%, fire rate +60% and shield regen +100%, none of them a lull pick, and a 30% hull patch that ships with a roll weight of 0; the roll maps a uniform draw onto those weights.</summary>
+    /// <summary>Each trial sector carries one beacon cache, set up after its spine and reading it, on the shared feel: no mod bonuses, so every claim rolls the 30% hull patch; the roll maps a uniform draw onto the bonus and patch weights.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class BeaconCacheEditModeTests
@@ -36,25 +34,14 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void TheFeel_RollsTwentySecondBonuses_FromItsOwnList()
+        public void TheFeel_RollsOnlyTheHullPatch()
         {
             var feel = AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>(FeelPath);
-            Assert.AreEqual(20f, feel.cacheSeconds);
-            Assert.AreEqual(3, feel.bonuses.Length);
-
-            var damage = (WeaponMod)feel.bonuses[0];
-            Assert.AreEqual((WeaponModField.Damage, 1f), (damage.Field, damage.Amount));
-            var fireRate = (WeaponMod)feel.bonuses[1];
-            Assert.AreEqual((WeaponModField.FireRate, .6f), (fireRate.Field, fireRate.Amount));
-            var shield = (ShipMod)feel.bonuses[2];
-            Assert.AreEqual((ShipModField.ShieldRegen, 1f), (shield.Field, shield.Amount));
+            Assert.IsEmpty(feel.bonuses, "The stat surges are pulled, so a claim lends no mod.");
             Assert.AreEqual(.3f, feel.hullRestore, 1e-6f, "The hull patch restores 30% of a full hull.");
-            Assert.AreEqual(0f, feel.hullWeight, "The hull patch ships off the roll.");
+            Assert.AreEqual(1f, feel.hullWeight, "The hull patch is the whole roll.");
             Assert.IsFalse(feel.leanToHull, "The low-hull lean ships off.");
             Assert.AreEqual((.35f, 3f), (feel.lowHullThreshold, feel.lowHullWeightMultiplier));
-
-            var pool = AssetDatabase.LoadAssetAtPath<LullModPool>("Assets/Settings/Weapons/Mods/LullMods.asset");
-            Assert.IsFalse(feel.bonuses.Any(bonus => pool.mods.Contains(bonus)), "The cache's bonuses are never lull picks.");
         }
 
         [TestCase(.1f, 0)]
@@ -93,11 +80,8 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void EachShippedBonus_HasItsCompanionKey_AndAnUnkeyedBonusThrows()
+        public void AnUnkeyedBonus_Throws()
         {
-            var feel = AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>(FeelPath);
-            Assert.AreEqual(new[] { "damage", "fire-rate", "shield" }, feel.bonuses.Select(BeaconCache.KeyOf));
-
             var unkeyed = ScriptableObject.CreateInstance<ShipMod>();
             try
             {

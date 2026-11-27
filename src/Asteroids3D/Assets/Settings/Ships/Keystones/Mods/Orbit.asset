@@ -9,9 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 704ef78211f047f3a8cb49a66625321a, type: 3}
-  m_Name: ShieldSurge
+  m_Script: {fileID: 11500000, guid: 6499e2679e294913b8df649cf19fd54d, type: 3}
+  m_Name: Orbit
   m_EditorClassIdentifier: 
-  displayName: Shield surge
-  field: 5
-  amount: 1
+  displayName: Orbit
+  icon: {fileID: 0}
+  effect: Overdrive bends your course around rocks
+  fits:
+  - {fileID: 5512903418735166201, guid: b64c454ae5ac494db3caf3c314153dc4, type: 3}

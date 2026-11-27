@@ -1,3 +1,4 @@
+using Ships.Status;
 using System.Collections.Generic;
 using Combat.Projectiles;
 using Combat.Targeting;
@@ -66,7 +67,7 @@ namespace Tests.PlayMode
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);
-            controller.Initialize(() => default);
+            controller.Initialize(() => default, new StatusEffects());
             return controller;
         }
 

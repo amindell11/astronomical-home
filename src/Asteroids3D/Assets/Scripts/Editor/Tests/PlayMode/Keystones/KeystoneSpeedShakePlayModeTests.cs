@@ -39,7 +39,7 @@ namespace Tests.PlayMode.Keystones
             kit.Initialize(new KeystoneHost(ship.Rigidbody, 1f, ship.Lock));
             motion = Still;
             (raises, scales, scaledStrength, releases) = (0, 0, 0f, 0);
-            ship.Movement.Initialize(ship.Stats, () => motion, kit, null);
+            ship.Movement.Initialize(ship.Stats, () => motion, kit, null, ship.Status);
             Assert.Greater(ship.MaxSpeed, 0f);
             UseFixedCurveProfile(kit);
 

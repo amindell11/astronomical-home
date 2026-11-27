@@ -9,10 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c22b766eeacb4e9db44c8846c6523696, type: 3}
-  m_Name: FireRateSurge
+  m_Script: {fileID: 11500000, guid: 16c19b56d534485fbf265ba33fbe242c, type: 3}
+  m_Name: DeepStrike
   m_EditorClassIdentifier: 
-  displayName: Fire-rate surge
-  field: 0
-  amount: 0.6
-  fits: []
+  displayName: Deep strike
+  icon: {fileID: 0}
+  effect: The beam hits the farthest target first
+  fits:
+  - {fileID: -8301958025146036882, guid: 3fc089f1b126427bbc347956f599714b, type: 3}

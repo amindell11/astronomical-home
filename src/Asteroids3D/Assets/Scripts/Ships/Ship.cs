@@ -17,6 +17,7 @@ using Ships.Weapons;
 using Movement;
 using UnityEngine;
 using Ships.Registry;
+using Ships.Status;
 using Substrate.Services.Projectiles;
 using Cameras.Shake;
 
@@ -101,6 +102,10 @@ namespace Ships
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public ShakeChannel Shake { get; } = new ShakeChannel();
+        public StatusEffects Status { get; } = new StatusEffects();
+
+        /// <summary>The held passive mods, which ship-level consumers read.</summary>
+        public HeldBehaviours Behaviours { get; } = new HeldBehaviours();
         public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
@@ -137,7 +142,7 @@ namespace Ships
             Rigidbody        = GetComponent<Rigidbody>();
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
-            if (weapons) weapons.Initialize(() => Kinematics);
+            if (weapons) weapons.Initialize(() => Kinematics, Status);
             if (keystone) Keystone = Instantiate(keystone, transform);
         }
 
@@ -180,6 +185,8 @@ namespace Ships
         private void OnModsChanged()
         {
             if (Weapons) Weapons.SetMods(mods);
+            if (Keystone) Keystone.Behaviours.Set(mods.Behaviours(mod => mod.LandsOn(keystone)));
+            Behaviours.Set(mods.Behaviours(mod => mod.LandsOnShip));
             ReResolve(Vitals.Rescale);
         }
 
@@ -246,7 +253,7 @@ namespace Ships
             this.scale = scale ?? ShipScale.One;
             transform.localScale *= this.scale.Size;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons, Status);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
             if (Weapons) Weapons.Fired += Keystone.NotifyFired;
@@ -286,6 +293,7 @@ namespace Ships
 
         private void FixedUpdate()
         {
+            Status.Tick(Time.fixedDeltaTime);
             if (isInitialized && Keystone && Keystone.ContactsByHull)
                 ReportHullContacts();
         }
@@ -380,6 +388,7 @@ namespace Ships
             Weapons?.ResetSystem();
             Movement.ResetMovement();
             Keystone.ResetKeystone();
+            Status.Clear();
             Damage.ResetDamageState();
             KinematicsPoller?.Poll();
             gameObject.SetActive(true);

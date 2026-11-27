@@ -218,13 +218,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OfSetting_MovesWhenALullModsMagnitudeChanges()
+        public void OfSetting_MovesWhenALullModsFitListChanges()
         {
             var offer = HangarOffer();
             var rows = new[] { ScratchRow(PhaseWaveEvery) };
             var pool = AssetDatabase.LoadAssetAtPath<LullModPool>(LullModsPath);
             Assert.IsNotNull(pool, $"Lull mod pool missing at {LullModsPath}");
-            var mod = pool.mods.OfType<WeaponMod>().First();
+            var mod = pool.mods.OfType<WeaponBehaviourMod>().First();
             var baseline = StatHash.OfSetting(offer, pool, rows, MinionKillHeal, RivalKillHeal);
 
             var copy = Object.Instantiate(pool);
@@ -235,9 +235,9 @@ namespace Tests.EditMode
             Assert.AreEqual(baseline, StatHash.OfSetting(offer, copy, rows, MinionKillHeal, RivalKillHeal),
                 "A copy with the same name and numbers is the same pool.");
 
-            SetSerialized(scratchMod, "amount", property => property.floatValue += 0.05f);
+            SetSerialized(scratchMod, "fits", property => property.arraySize = 0);
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, copy, rows, MinionKillHeal, RivalKillHeal),
-                "A lull mod's magnitude must move the fingerprint.");
+                "A lull mod's fit list must move the fingerprint.");
         }
 
         [Test]

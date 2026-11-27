@@ -584,7 +584,7 @@ namespace Tests.PlayMode.Sectors
         {
             var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
             // After the alarm the patrols hunt this hero by sight, so its kinematics must read.
-            hero.Movement.Initialize(null, () => hero.KinematicsPoller.Kinematics, null, null);
+            hero.Movement.Initialize(null, () => hero.KinematicsPoller.Kinematics, null, null, hero.Status);
             return hero;
         }
 

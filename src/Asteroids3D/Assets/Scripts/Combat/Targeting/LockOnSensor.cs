@@ -101,7 +101,7 @@ namespace Combat.Targeting
 
         private bool CanLock()
         {
-            return weapon && weapon.CanFire();
+            return weapon && weapon.CanFire() && selfShip.Status.CanLock;
         }
 
         private void OnEnable()
