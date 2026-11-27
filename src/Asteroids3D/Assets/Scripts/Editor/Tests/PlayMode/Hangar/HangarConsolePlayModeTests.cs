@@ -23,6 +23,7 @@ namespace Tests.PlayMode.Hangar
         private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
         private const float SettleTimeout = 2f;
+        private const float GreetWait = 2.5f;
 
         private HangarConsole console;
         private ItemSubset offer;
@@ -391,8 +392,6 @@ namespace Tests.PlayMode.Hangar
             yield return Elapsed(GreetWait);
             Assert.IsEmpty(greeted, "no tutorial, no greeting");
         }
-
-        private const float GreetWait = 2.5f;
 
         private static IEnumerator Elapsed(float seconds)
         {
