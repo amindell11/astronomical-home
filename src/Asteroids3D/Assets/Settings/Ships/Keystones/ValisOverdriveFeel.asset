@@ -149,7 +149,35 @@ MonoBehaviour:
     centreAhead: -0.3317
     anchorAhead: 0
     depth: -0.5
-    staysAtLaunch: 1
+    staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
+  - name: Ring
+    show: 1
+    size: 0.93
+    opacity: 1
+    speed: 0.5
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    loops: 0
+    loopFrom: 0
+    material: {fileID: 2100000, guid: 95c4f91cc21091044974dab400b1a9ef, type: 2}
+    columns: 5
+    rows: 2
+    frames: 10
+    width: 3.2787
+    length: 3.2787
+    centreAhead: 0
+    anchorAhead: 0
+    depth: 0.55
+    staysAtLaunch: 0
     startsBehind: 0
     followsTravel: 0
     goneAtSpeed: 0
