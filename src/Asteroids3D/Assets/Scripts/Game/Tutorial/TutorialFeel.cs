@@ -28,11 +28,11 @@ namespace Game.Tutorial
         };
 
         [Tooltip("World units of room the stations zoom leaves around the player and the outermost stations.")]
-        [Min(0f)] public float stationsMargin = 20f;
+        [Min(0f)] public float stationsMargin = 12f;
 
         [Tooltip("The part of the screen, in viewport fractions from the bottom left, the stations zoom fits the " +
                  "stations into: clear of the weapon dials below, the card and clock above, and the minimap.")]
-        public Rect stationsBand = new(.04f, .24f, .74f, .20f);
+        public Rect stationsBand = new(.04f, .22f, .74f, .28f);
 
         [Tooltip("Height on screen, as a fraction from the bottom, the patrol pan holds the patrol at, below the card.")]
         [Range(0f, 1f)] public float patrolScreenHeight = .36f;
