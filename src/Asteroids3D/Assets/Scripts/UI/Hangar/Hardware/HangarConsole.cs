@@ -50,7 +50,7 @@ namespace UI.Hangar.Hardware
         private const float StatusLampNoiseRowSpacing = .37f;
         private const float StatusLampNoiseRowOrigin = .5f;
         private const float GreetDelaySeconds = 1.5f;
-        private const float CommLineBottom = 340f;
+        private const float CommLineBottom = 8f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
