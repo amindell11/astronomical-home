@@ -343,12 +343,13 @@ namespace Tests.PlayMode.Presentation.Breakup
             AssertGeometry(before, after);
             var canopy = AssetDatabase.LoadAssetAtPath<Material>(
                 "Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat");
-            var glass = materials.Single(m => m.shader.name == "Astronomical/Drawn/Canopy");
-            Assert.That(canopy.parent, Is.EqualTo(glass));
+            var glass = materials.SingleOrDefault(m => m.shader.name == "Astronomical/Drawn/Canopy");
+            Assert.That(glass != null, Is.EqualTo(name == "Valis"), "Only Valis wears the drawn canopy glass; its ranks paint the canopy as a region.");
+            if (glass) Assert.That(canopy.parent, Is.EqualTo(glass));
             foreach (var piece in pieces)
             {
                 var worn = piece.GetComponent<Renderer>().sharedMaterials;
-                Assert.That(worn.Contains(canopy), Is.EqualTo(piece.transform.parent.name == "Fuselage and canopy"), piece.transform.parent.name);
+                if (glass) Assert.That(worn.Contains(canopy), Is.EqualTo(piece.transform.parent.name == "Fuselage and canopy"), piece.transform.parent.name);
                 Assert.That(worn.Select(m => m == canopy ? glass : m).Except(materials), Is.Empty, piece.transform.parent.name);
             }
             var sourceUv = surfaces.SelectMany(s => Read(s).uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();

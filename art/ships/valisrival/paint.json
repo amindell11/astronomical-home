@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "shadow_coverage": 0.46,
+  "shadow_depth": 0.52,
+  "side_wall_depth": 0.85,
+  "brush": {
+    "image": "../bulwark/textures/painted-brush-source.png",
+    "scale": 0.13,
+    "contrast": 6.0,
+    "blend": 0.65
+  },
+  "ramp": [
+    [
+      0.1,
+      0.38
+    ],
+    [
+      0.55,
+      0.64
+    ],
+    [
+      0.92,
+      1
+    ]
+  ],
+  "sweep": {
+    "light_above": 0.66,
+    "jitter": 1.0,
+    "light": 0.55,
+    "angle_deg": 30
+  },
+  "ink": {
+    "inset": 0.025,
+    "rim": 0.055,
+    "rim_light": 0.25,
+    "wall_facing": 0.65
+  },
+  "plates": {
+    "cap_facing": 0.9,
+    "thin_wall": 0.12
+  },
+  "regions": {
+    "Ivory": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Cool gray": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Edge": {
+      "plate": true,
+      "sweep": false,
+      "ink_walls": true
+    },
+    "Graphite": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Lavender": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Engine": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Canopy": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    }
+  },
+  "canopy_glass": [
+    "02 black canopy"
+  ],
+  "canopy_frames": [],
+  "accents": [
+    {
+      "part": "64 exhaust rim",
+      "target": "emission",
+      "where": {
+        "z": [
+          -100.0,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.982251,
+        0.291771,
+        0.014444
+      ]
+    },
+    {
+      "part": "22 lower blade dark inner facets",
+      "target": "emission",
+      "where": {
+        "z": [
+          -100.0,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.982251,
+        0.291771,
+        0.014444
+      ]
+    }
+  ],
+  "material": {
+    "shadow_strength": 1.0,
+    "light_strength": 0.65,
+    "ink_strength": 0.75,
+    "light_lift": 0.2,
+    "ink_color": [
+      0.009,
+      0.008,
+      0.012
+    ],
+    "emission_blend": 0,
+    "lighting": {
+      "_SpecularStrength": 0,
+      "_PaletteLighting": 1,
+      "_EmissionStrength": 1.0
+    }
+  },
+  "paint_space": "signed"
+}

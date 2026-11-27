@@ -118,9 +118,9 @@ namespace Asteroids
             meshCollider.enabled = false;
         }
 
-        internal void HandleDestroyed(HitData hit)
+        internal void HandleDestroyed(HitData hit, Ships.Ship shrapnelThrower)
         {
-            Fragger.CreateFragments(this, breakSeed, hit, _ => CleanupAsteroid());
+            Fragger.CreateFragments(this, breakSeed, hit, shrapnelThrower, _ => CleanupAsteroid());
             OnDestroyed?.Invoke(transform.position);
         }
 

@@ -60,6 +60,11 @@ namespace Ships
                  "Null → the ship has no visuals.")]
         [SerializeField] private ShipVisualRig visualRig;
 
+        [Header("Passives")]
+        [Stat, SerializeField] private Backstab backstab = new();
+
+        [Stat, SerializeField] private ShrapnelRocks shrapnelRocks = new();
+
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
@@ -69,6 +74,10 @@ namespace Ships
         public ShipVisualRig VisualRig => visualRig;
 
         public Keystone KeystonePrefab => keystone;
+
+        public Backstab Backstab => backstab;
+
+        public ShrapnelRocks ShrapnelRocks => shrapnelRocks;
 
         /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
         public Keystone Keystone { get; private set; }
@@ -144,6 +153,13 @@ namespace Ships
             if (!weapons) weapons = GetComponent<WeaponsController>();
             if (weapons) weapons.Initialize(() => Kinematics, Status);
             if (keystone) Keystone = Instantiate(keystone, transform);
+            Behaviours.Changed += ReadPassives;
+        }
+
+        private void ReadPassives()
+        {
+            backstab.Read(Behaviours);
+            shrapnelRocks.Read(Behaviours);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -270,7 +286,7 @@ namespace Ships
             else if (Rigidbody) Rigidbody.inertiaTensor *= this.scale.Mass * this.scale.Size * this.scale.Size;
 
             Stats.shipRadius = DeriveShipRadius();
-            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));
+            Keystone.Initialize(new KeystoneHost(this, Rigidbody, Stats.shipRadius, Lock));
 
             baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 

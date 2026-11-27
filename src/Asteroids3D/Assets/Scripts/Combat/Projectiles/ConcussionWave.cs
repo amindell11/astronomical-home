@@ -31,6 +31,7 @@ namespace Combat.Projectiles
         private float radius;
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
+        private Ships.Ship attacker;
         private float damageScale = 1f;
         private float radiusScale = 1f;
         private float pushScale = 1f;
@@ -55,9 +56,11 @@ namespace Combat.Projectiles
         public event Action Released;
 
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage, reach and push multipliers; a negative push pulls toward the centre.</summary>
-        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f, float pushScale = 1f)
+        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f, float pushScale = 1f,
+            Ships.Ship attacker = null)
         {
             this.attackerId = attackerId;
+            this.attacker = attacker;
             this.damageScale = Mathf.Max(0f, damageScale);
             this.radiusScale = Mathf.Max(0f, radiusScale);
             this.pushScale = pushScale;
@@ -110,7 +113,7 @@ namespace Combat.Projectiles
                 var along = OutwardDirection(hitPoint, target.gameObject.transform.position) * Mathf.Sign(pushScale);
                 Push(buffer[i].attachedRigidbody, along, hitPoint, impulseFalloff * Mathf.Abs(pushScale));
                 target.TakeDamage(new DamageInfo(MaxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
-                    waveMass, along * expandSpeed, hitPoint));
+                    waveMass, along * expandSpeed, hitPoint, attacker: attacker));
             }
         }
 

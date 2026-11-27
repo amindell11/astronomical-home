@@ -90,6 +90,14 @@ MonoBehaviour:
   weapons: {fileID: 3463944397451626889}
   keystone: {fileID: 0}
   visualRig: {fileID: 3817457565511291025}
+  backstab:
+    key: {fileID: 11400000, guid: a8f65afa23274e87920763c64dae3ab5, type: 2}
+    rearArcHalfAngle: 60
+  shrapnelRocks:
+    key: {fileID: 11400000, guid: 6c74772502f84ed9a3e05554ac58275a, type: 2}
+    spreadScale: 2
+    throwSpeed: 12
+    enemyDamageScale: 3
   teamNumber: 0
 --- !u!114 &8752571619316856911
 MonoBehaviour:

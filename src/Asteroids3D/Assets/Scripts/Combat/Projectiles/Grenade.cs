@@ -173,7 +173,8 @@ namespace Combat.Projectiles
             detonated = true;
 
             var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid, DamageScale, blastRadiusScale, blastPush);
+            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid, DamageScale, blastRadiusScale, blastPush,
+                AttackerShip);
             Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
 
             OnDetonated?.Invoke(transform.position);
