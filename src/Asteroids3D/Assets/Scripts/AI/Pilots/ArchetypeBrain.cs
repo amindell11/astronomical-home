@@ -1,6 +1,7 @@
 using System;
 using AI;
 using AI.Context;
+using AI.Maneuvers;
 using AI.Tactics;
 using Combat.Targeting;
 using Movement;
@@ -96,6 +97,7 @@ namespace AI.Pilots
 
         private int tacticTick;
         private int flankSign;
+        private Maneuver[] maneuvers;
         private bool wounded;
         private bool leaderLost;
         private int? respondingTick;
@@ -325,50 +327,32 @@ namespace AI.Pilots
 
             var speed = tactics.chasesFlatOut && !situation.inMyRange ? maxSpeed : shape.speedFraction * maxSpeed;
             var gunRange = ctx.HoldRange ?? shape.desiredRange;
-            var fallBackRange = Mathf.Max(situation.myRange - tactics.fallBackMargin,
-                gunRange + tactics.attackRunMargin);
             var flankSide = flankSign != 0 ? flankSign : (shape.orbitDirection >= 0 ? 1 : -1);
-            return tactic switch
-            {
-                Tactic.AttackRun => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
-                    gunRange + tactics.attackRunMargin, speed), engages: true),
-                Tactic.Flank => Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, them, gunRange, flankSide,
-                    shape.speedFraction, maxSpeed), engages: situation.alliesInLane == 0),
-                Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
-                    situation.targetRange + tactics.standOffMargin, speed),
-                    engages: !situation.inTargetsCone && situation.alliesInLane == 0),
-                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, them.pos, speed), engages: false,
-                    keepBorder: tactics.wounded != WoundedResponse.JumpOut,
-                    jump: wounded && tactics.wounded == WoundedResponse.JumpOut
-                        && Vector2.Distance(self.pos, them.pos) > tactics.jumpsBeyond),
-                Tactic.FallBack => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, fallBackRange, speed),
-                    engages: situation.alliesInLane == 0),
-                Tactic.Charge => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, tactics.chargeRange, speed),
-                    engages: true),
-                Tactic.HoldLine => Pack(ctx.Self, LineVelocity(in self, situation.leader, in them, ctx.Place, speed),
-                    engages: situation.alliesInLane == 0),
-                Tactic.Ambush => FlyAmbush(ctx.Self, in self, in them, in situation, speed, gunRange),
-                _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
-            };
+            maneuvers ??= BuildManeuvers();
+            var frame = new ManeuverFrame(self, them, situation, tactics, speed, maxSpeed, shape.speedFraction,
+                gunRange, flankSide, ctx.Place, wounded);
+            var step = maneuvers[(int)tactic].Fly(in frame);
+            return Pack(ctx.Self, in step);
         }
 
-        private Vector2 LineVelocity(in Kinematics self, in Kinematics leader, in Kinematics them, int place, float speed)
+        private Maneuver[] BuildManeuvers()
         {
-            var point = leader.pos - Vector2.Perpendicular((them.pos - leader.pos).normalized) * place * tactics.lineSpacing;
-            return Vector2.ClampMagnitude(leader.vel + (point - self.pos), speed);
-        }
-
-        private BrainDecision FlyAmbush(IShipStatus status, in Kinematics self, in Kinematics them, in Situation situation,
-            float speed, float gunRange)
-        {
-            if (situation.selfConcealed || situation.kitReady)
-            {
-                var point = them.pos + them.Forward * tactics.ambushAhead;
-                return Pack(status, ArchetypeRoam.SeekVelocity(self.pos, point, speed), engages: false,
-                    boost: situation.kitReady && !situation.selfConcealed);
-            }
-
-            return Pack(status, RangerBrain.HoldRangeVelocity(in self, them, gunRange, speed), engages: true);
+            var values = (Tactic[])Enum.GetValues(typeof(Tactic));
+            var built = new Maneuver[values.Length];
+            foreach (var tactic in values)
+                built[(int)tactic] = tactic switch
+                {
+                    Tactic.AttackRun => new AttackRun(),
+                    Tactic.Flank => new Flank(),
+                    Tactic.StandOff => new StandOff(),
+                    Tactic.BreakOff => new BreakOff(FleeVelocity),
+                    Tactic.FallBack => new FallBack(),
+                    Tactic.Charge => new Charge(),
+                    Tactic.Ambush => new Ambush(),
+                    Tactic.HoldLine => new HoldLine(),
+                    _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
+                };
+            return built;
         }
 
         private Vector2 FleeVelocity(Vector2 selfPos, Vector2 threatPos, float speed)
@@ -377,6 +361,9 @@ namespace AI.Pilots
                 jukeSign = rng.Next(2) == 0 ? -1 : 1;
             return ArchetypeLaws.FleeVelocity(selfPos, threatPos, jukeSign, speed);
         }
+
+        private BrainDecision Pack(IShipStatus status, in ManeuverStep step) =>
+            Pack(status, step.velocity, step.engages, step.keepBorder, step.jump, step.boost);
 
         private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages, bool keepBorder = true,
             bool jump = false, bool boost = false)
