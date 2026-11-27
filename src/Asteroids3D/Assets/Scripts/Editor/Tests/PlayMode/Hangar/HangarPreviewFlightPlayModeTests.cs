@@ -188,7 +188,7 @@ namespace Tests.PlayMode.Hangar
             offer.starter = ships[0];
             offer.ships = ships;
             var loadout = new ShipLoadout(ships[0], null, null);
-            console.Show(offer, loadout, _ => true, null);
+            console.Show(offer, loadout, _ => true, tutorial: false, greet: null, null);
             projector = console.Projector;
             stage = projector.Stage;
             return (console, loadout);

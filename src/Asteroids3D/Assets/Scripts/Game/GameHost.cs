@@ -32,6 +32,7 @@ using Ships.Command;
 using Ships.Loadout;
 using Ships.Weapons;
 using UI;
+using UI.Comms;
 using UI.Hangar.Hardware;
 using UI.Prompts;
 using UI.Recap;
@@ -1065,7 +1066,8 @@ namespace Game
             // Its own world, away from the sector and the preview stage.
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var launched = false;
-            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
+            Action<CommLine> greet = voice ? onto => voice.SpeakNow(new HangarOpened(), onto) : null;
+            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, TutorialSetting.On, greet, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 

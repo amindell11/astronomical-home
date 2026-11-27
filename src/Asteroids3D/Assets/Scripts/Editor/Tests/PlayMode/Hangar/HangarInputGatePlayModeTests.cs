@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Cameras;
 using Game;
+using Game.Player;
 using Game.Runs;
 using Substrate.Sessions;
 using NUnit.Framework;
@@ -30,6 +31,7 @@ namespace Tests.PlayMode.Hangar
     /// the left mouse button with UI clicks, so a live commander turns every hangar press into a
     /// weapon shot on the ship behind the console — and its HUD hidden. Launch must bring both back.
     /// A click on the console must reach the display under that glass, and the preview stays in budget.
+    /// The bay's checklist follows the Tutorial prompts setting.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("UI")]
@@ -39,6 +41,7 @@ namespace Tests.PlayMode.Hangar
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string HangarConsolePath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string TutorialKey = "tutorial.prompts";
 
         private GameObject servicesGo;
         private GameObject hostGo;
@@ -46,9 +49,14 @@ namespace Tests.PlayMode.Hangar
         private PlayerRig rig;
         private ObserverCam observer;
         private UnitService unitService;
+        private bool hangarFinished;
+        private int? savedTutorial;
 
         public override void TearDown()
         {
+            if (savedTutorial.HasValue) PlayerPrefs.SetInt(TutorialKey, savedTutorial.Value);
+            else PlayerPrefs.DeleteKey(TutorialKey);
+            savedTutorial = null;
             var console = Object.FindFirstObjectByType<HangarConsole>();
             if (console) DestroyTestObject(console.gameObject);
             if (rig) rig.Teardown();
@@ -64,6 +72,57 @@ namespace Tests.PlayMode.Hangar
         [UnityTest]
         public IEnumerator RunHangar_GatesPlayerInput_UntilLaunch()
         {
+            yield return OpenHangar();
+
+            var console = Object.FindFirstObjectByType<HangarConsole>();
+            Assert.IsNotNull(console, "interactive path instantiated the hangar console");
+            Assert.IsFalse(rig.Player.Commander.isActiveAndEnabled,
+                "player input is disconnected while the hangar console is open");
+            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar console is open");
+
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
+            eventSystemGo = eventSystem.gameObject;
+            var weapon = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>().Select;
+            var weaponHit = Click(eventSystem, ScreenPoint(console,
+                ButtonOnGlass(console, console.PrimaryDisplay, console.PrimaryScreenGlass, weapon)));
+            Assert.AreEqual(weapon.gameObject, weaponHit.gameObject, "the weapon screen is the top hit");
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "clicking the screen selects it");
+
+            var before = console.Selection.Weapon;
+            var nextHit = Click(eventSystem, ScreenPoint(console, console.NextButton.GetComponent<Renderer>().bounds.center));
+            Assert.AreEqual(console.NextButton.gameObject, nextHit.gameObject, "the next arrow is the top hit");
+            Assert.AreNotSame(before, console.Selection.Weapon, "the next arrow steps the selected slot");
+
+            console.Launch();
+            yield return AsyncAssert.WaitUntil(() => hangarFinished, 5f, "RunHangar completes after Launch's power-down");
+            yield return null;
+
+            Assert.IsTrue(hangarFinished, "RunHangar completed after Launch");
+            Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
+            Assert.IsTrue(HudVisible(), "the HUD is back after launch");
+            Assert.IsTrue(console == null, "hangar console was destroyed on launch");
+        }
+
+        [UnityTest]
+        public IEnumerator RunHangar_ShowsTheChecklist_WhileTutorialPromptsAreOn()
+        {
+            yield return OpenHangar(tutorial: true);
+            Assert.IsTrue(Object.FindFirstObjectByType<HangarConsole>().ChecklistShown);
+        }
+
+        [UnityTest]
+        public IEnumerator RunHangar_HidesTheChecklist_WhileTutorialPromptsAreOff()
+        {
+            yield return OpenHangar(tutorial: false);
+            Assert.IsFalse(Object.FindFirstObjectByType<HangarConsole>().ChecklistShown);
+        }
+
+        private IEnumerator OpenHangar(bool tutorial = true)
+        {
+            savedTutorial = PlayerPrefs.HasKey(TutorialKey) ? PlayerPrefs.GetInt(TutorialKey) : null;
+            TutorialSetting.Set(tutorial);
             servicesGo = new GameObject("TestServices");
             unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
@@ -88,44 +147,13 @@ namespace Tests.PlayMode.Hangar
             host.unlocks = new ShipUnlocks(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"),
                 new Dictionary<string, string>());
 
-            var finished = false;
             IEnumerator Run()
             {
                 yield return host.RunHangar(rig, presentationEnabled: true, servicesGo.transform);
-                finished = true;
+                hangarFinished = true;
             }
             rig.StartCoroutine(Run());
             yield return null;
-
-            var console = Object.FindFirstObjectByType<HangarConsole>();
-            Assert.IsNotNull(console, "interactive path instantiated the hangar console");
-            Assert.IsFalse(rig.Player.Commander.isActiveAndEnabled,
-                "player input is disconnected while the hangar console is open");
-            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar console is open");
-
-            yield return null;
-            Canvas.ForceUpdateCanvases();
-            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
-            eventSystemGo = eventSystem.gameObject;
-            var weapon = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>().Select;
-            var weaponHit = Click(eventSystem, ScreenPoint(console,
-                ButtonOnGlass(console, console.PrimaryDisplay, console.PrimaryScreenGlass, weapon)));
-            Assert.AreEqual(weapon.gameObject, weaponHit.gameObject, "the weapon screen is the top hit");
-            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "clicking the screen selects it");
-
-            var before = console.Selection.Weapon;
-            var nextHit = Click(eventSystem, ScreenPoint(console, console.NextButton.GetComponent<Renderer>().bounds.center));
-            Assert.AreEqual(console.NextButton.gameObject, nextHit.gameObject, "the next arrow is the top hit");
-            Assert.AreNotSame(before, console.Selection.Weapon, "the next arrow steps the selected slot");
-
-            console.Launch();
-            yield return AsyncAssert.WaitUntil(() => finished, 5f, "RunHangar completes after Launch's power-down");
-            yield return null;
-
-            Assert.IsTrue(finished, "RunHangar completed after Launch");
-            Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
-            Assert.IsTrue(HudVisible(), "the HUD is back after launch");
-            Assert.IsTrue(console == null, "hangar console was destroyed on launch");
         }
 
         private static RaycastResult Click(EventSystem eventSystem, Vector2 screen)

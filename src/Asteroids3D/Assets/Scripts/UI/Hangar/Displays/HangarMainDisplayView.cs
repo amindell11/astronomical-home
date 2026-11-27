@@ -10,7 +10,8 @@ namespace UI.Hangar.Displays
     /// <summary>
     /// The hull diagram: the selected ship's silhouette ringed by its six stat bars and its
     /// keystone. The ship is the button under that diagram; while it is selected it wears a
-    /// bracket and a pair of arrows, which ask for a step through <see cref="ArrowPressed"/>.
+    /// bracket and a pair of arrows, which ask for a step through <see cref="ArrowPressed"/>, and, when
+    /// hinted, names its keys.
     /// </summary>
     public sealed class HangarMainDisplayView : MonoBehaviour
     {
@@ -24,6 +25,7 @@ namespace UI.Hangar.Displays
         [SerializeField] private HangarStatBar[] bars;
         [SerializeField] private Button shipButton;
         [SerializeField] private GameObject shipBracket;
+        [SerializeField] private GameObject hint;
         [SerializeField] private Button previousArrow;
         [SerializeField] private Button nextArrow;
         [SerializeField] private Image keystoneIcon;
@@ -32,6 +34,7 @@ namespace UI.Hangar.Displays
 
         private readonly Dictionary<Ship, Texture2D> silhouettes = new();
         private HangarSelection selection;
+        private bool hinted;
 
         public event Action<int> ArrowPressed;
 
@@ -41,19 +44,21 @@ namespace UI.Hangar.Displays
         internal string Title => title.text;
         internal bool Locked => lockTag.gameObject.activeSelf;
         internal bool Bracketed => shipBracket.activeSelf;
+        internal bool Hinted => hint.activeSelf;
 
         private void Awake()
         {
             if (!title || !lockTag || !silhouette || !keystoneIcon || !keystoneName || !keystoneCooldown ||
-                !shipButton || !shipBracket || !previousArrow || !nextArrow ||
+                !shipButton || !shipBracket || !hint || !previousArrow || !nextArrow ||
                 bars == null || bars.Length != HangarStats.Count || Array.Exists(bars, bar => !bar))
                 throw new InvalidOperationException(
-                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, the ship button, its bracket and arrows, and the keystone's icon, name and cooldown.");
+                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, the ship button, its bracket, arrows and key hint, and the keystone's icon, name and cooldown.");
         }
 
-        public void Bind(HangarSelection selection)
+        public void Bind(HangarSelection selection, bool hinted)
         {
             this.selection = selection;
+            this.hinted = hinted;
             foreach (var ship in selection.Ships) silhouettes[ship] = Silhouette(ship);
             if (selection.Ship && !silhouettes.ContainsKey(selection.Ship))
                 silhouettes[selection.Ship] = Silhouette(selection.Ship);
@@ -95,6 +100,8 @@ namespace UI.Hangar.Displays
             shipBracket.SetActive(shipSelected);
             previousArrow.gameObject.SetActive(shipSelected);
             nextArrow.gameObject.SetActive(shipSelected);
+            // A locked ship's tag sits where the hint goes.
+            hint.SetActive(hinted && shipSelected && !selection.ShipLocked);
         }
 
         private static string Number(float value, HangarStat stat)

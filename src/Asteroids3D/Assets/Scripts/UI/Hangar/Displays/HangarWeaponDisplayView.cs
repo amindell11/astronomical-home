@@ -8,7 +8,7 @@ namespace UI.Hangar.Displays
 {
     /// <summary>
     /// One right-hand weapons screen showing one slot's pick. Its arrows ask for a step
-    /// through <see cref="ArrowPressed"/>.
+    /// through <see cref="ArrowPressed"/>. A hinted screen names its keys while it holds the bracket.
     /// </summary>
     public sealed class HangarWeaponDisplayView : MonoBehaviour
     {
@@ -24,12 +24,14 @@ namespace UI.Hangar.Displays
         [SerializeField] private Text damage;
         [SerializeField] private Text damageCaption;
         [SerializeField] private GameObject bracket;
+        [SerializeField] private GameObject hint;
         [SerializeField] private Button select;
         [SerializeField] private Button previous;
         [SerializeField] private Button next;
         [SerializeField] private CanvasGroup content;
 
         private HangarSelection selection;
+        private bool hinted;
 
         public event Action<int> ArrowPressed;
 
@@ -38,6 +40,7 @@ namespace UI.Hangar.Displays
         internal string Damage => damage.text;
         internal string DamageCaption => damageCaption.text;
         internal bool Bracketed => bracket.activeSelf;
+        internal bool Hinted => hint.activeSelf;
         internal bool Dimmed => content.alpha < 1f;
         internal int TagCount
         {
@@ -56,16 +59,17 @@ namespace UI.Hangar.Displays
         private void Awake()
         {
             if (slot == HangarSlot.Ship || !header || !title || !icon || !description || !damage ||
-                !damageCaption || !bracket || !select || !previous || !next || !content ||
+                !damageCaption || !bracket || !hint || !select || !previous || !next || !content ||
                 tags == null || tagLabels == null || tags.Length == 0 || tags.Length != tagLabels.Length ||
                 Array.Exists(tags, tag => !tag) || Array.Exists(tagLabels, label => !label))
                 throw new InvalidOperationException(
-                    "HangarWeaponDisplayView needs a weapon or ordnance slot, its header, title, icon, description, matching tags, damage readout, bracket, select and arrow buttons, and content.");
+                    "HangarWeaponDisplayView needs a weapon or ordnance slot, its header, title, icon, description, matching tags, damage readout, bracket, key hint, select and arrow buttons, and content.");
         }
 
-        public void Bind(HangarSelection selection)
+        public void Bind(HangarSelection selection, bool hinted)
         {
             this.selection = selection;
+            this.hinted = hinted;
             select.onClick.AddListener(() => selection.Select(slot));
             previous.onClick.AddListener(() => ArrowPressed?.Invoke(-1));
             next.onClick.AddListener(() => ArrowPressed?.Invoke(1));
@@ -108,6 +112,7 @@ namespace UI.Hangar.Displays
                 damageCaption.text = "";
             }
             bracket.SetActive(selection.Selected == slot);
+            hint.SetActive(hinted && selection.Selected == slot);
             content.alpha = selection.ShipLocked ? LockedAlpha : 1f;
         }
 
