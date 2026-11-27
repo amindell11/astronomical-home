@@ -29,14 +29,15 @@ Material:
     - _Extent: 1
     - _Fade: 1
     - _HalfAngle: 1.0472
-    - _HitAge: 1
-    - _HitAngle: 0
+    - _HitFade: 0.35
     - _Opacity: 0.85
     - _Plates: 5
     - _Progress: 0
     - _Thickness: 0.22
     m_Colors:
     - _Color: {r: 1, g: 0.6, b: 0.1, a: 1}
+    - _HitAges: {r: 9, g: 9, b: 9, a: 9}
+    - _HitAngles: {r: 0, g: 0, b: 0, a: 0}
     - _HotColor: {r: 1, g: 0.95, b: 0.8, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
