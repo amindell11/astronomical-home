@@ -5,7 +5,8 @@
   "masks": [
     "Shadow",
     "Light",
-    "Ink"
+    "Ink",
+    "Emission"
   ],
   "geometry": "ffaf61fc3b4444c5034d9e0bdaaac12c0cbf0c93ab913ddddaac01e0ec8ed24f",
   "uv": "7b8aa4303f2a5667fc7c2a6fbd27e6c914fb25f3f692e58dca98c482098474ab",

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "shadow_coverage": 0.33,
-  "shadow_depth": 0.3,
+  "shadow_coverage": 0.38,
+  "shadow_depth": 0.4,
   "side_wall_depth": 0.7,
   "brush": {
     "image": "../bulwark/textures/painted-brush-source.png",
     "scale": 0.13,
-    "contrast": 3.2,
-    "blend": 0.25
+    "contrast": 4.5,
+    "blend": 0.45
   },
   "ramp": [
     [
@@ -25,7 +25,7 @@
   ],
   "sweep": {
     "light_above": 0.66,
-    "jitter": 0.5,
+    "jitter": 0.8,
     "light": 0.55,
     "angle_deg": 30
   },
@@ -66,8 +66,8 @@
       "ink_walls": false
     },
     "Engine": {
-      "plate": false,
-      "sweep": false,
+      "plate": true,
+      "sweep": true,
       "ink_walls": false
     },
     "Canopy": {
@@ -80,9 +80,42 @@
     "02 black canopy"
   ],
   "canopy_frames": [],
-  "accents": [],
+  "accents": [
+    {
+      "part": "64 exhaust rim",
+      "target": "emission",
+      "where": {
+        "z": [
+          -100.0,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.982251,
+        0.291771,
+        0.014444
+      ]
+    },
+    {
+      "part": "22 lower blade dark inner facets",
+      "target": "emission",
+      "where": {
+        "z": [
+          -100.0,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.982251,
+        0.291771,
+        0.014444
+      ]
+    }
+  ],
   "material": {
-    "shadow_strength": 0.85,
+    "shadow_strength": 1.0,
     "light_strength": 0.65,
     "ink_strength": 0.75,
     "light_lift": 0.2,
