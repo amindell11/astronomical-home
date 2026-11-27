@@ -9,6 +9,7 @@ namespace Ships.Status
         Stunned = 0,
         WeaponsJammed = 1,
         EnginesOut = 2,
+        Suppressed = 3,
     }
 
     /// <summary>
@@ -19,7 +20,7 @@ namespace Ships.Status
     /// </summary>
     public sealed class StatusEffects
     {
-        private const int Count = 3;
+        private const int Count = 4;
 
         private readonly float[] endsAt = new float[Count];
         private float clock;
@@ -36,7 +37,9 @@ namespace Ships.Status
 
         public bool CanLock => CanFire;
 
-        public bool CanKeystone => !Has(StatusEffect.Stunned);
+        public bool CanKeystone => !Has(StatusEffect.Stunned) && !Has(StatusEffect.Suppressed);
+
+        public bool Slowed => Has(StatusEffect.Suppressed);
 
         public void Apply(StatusEffect effect, float seconds)
         {
