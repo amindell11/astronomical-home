@@ -375,6 +375,8 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.DamageScale(in ahead), Is.EqualTo(0.5f), "ahead of the nose");
             Assert.That(ram.DamageScale(in beside), Is.EqualTo(1f), "beside the ship");
             Assert.That(ram.DamageScale(in behind), Is.EqualTo(1f), "behind the ship");
+            Assert.That(ram.BracedHits, Is.EqualTo(1), "only the frontal hit is braced");
+            Assert.That(ram.LastBracedPoint, Is.EqualTo(ahead.HitPoint), "the tell lights where it landed");
 
             while (ram.Braking)
                 ram.Step(in kin, 0f, Dt, out _);
