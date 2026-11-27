@@ -55,6 +55,12 @@ namespace Tests.PlayMode.Hangar
             yield return null;
             Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "Down moves to the next slot");
 
+            Press(keyboard.rightArrowKey);
+            InputSystem.Update();
+            yield return null;
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "Right steps the weapon slot it is on");
+            Assert.AreSame(nightshade, console.Selection.Ship, "Right on the weapon slot leaves the ship");
+
             Press(keyboard.enterKey);
             InputSystem.Update();
             yield return null;
