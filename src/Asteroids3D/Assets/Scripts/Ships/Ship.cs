@@ -71,7 +71,7 @@ namespace Ships
 
         [Stat, SerializeField] private LieInWait lieInWait = new();
 
-        [Stat, SerializeField] private CleanKill cleanKill = new();
+        [SerializeField] private CleanKill cleanKill = new();
 
         [Stat, SerializeField] private DuckAndLoad duckAndLoad = new();
 
