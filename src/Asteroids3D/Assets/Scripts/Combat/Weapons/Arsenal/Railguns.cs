@@ -6,6 +6,7 @@ using Damage;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using Substrate;
 
 namespace Combat.Weapons.Arsenal
