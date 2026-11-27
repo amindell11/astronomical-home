@@ -6,7 +6,7 @@ using Ships;
 namespace Game.Moments.Encounters
 {
     /// <summary>
-    /// A sector's first wave brings the run's first meeting with this faction's rival. It speaks in place of
+    /// A sector's first wave introduces the rival leading it. It speaks in place of
     /// that sector's combat start, its lines warn what this rival does, and the host frames the rival up close.
     /// </summary>
     public sealed class RivalIntroduced : IRunMoment

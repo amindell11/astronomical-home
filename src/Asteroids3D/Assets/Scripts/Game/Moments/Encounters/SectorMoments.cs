@@ -9,7 +9,7 @@ namespace Game.Moments.Encounters
 {
     /// <summary>
     /// Bridges one sector's hunt, elite, first wave and fallen rivals onto the run's moment stream.
-    /// A first wave led by a rival the introduction test calls new introduces it instead of starting combat.
+    /// A first wave whose rival the host's introduction test accepts introduces it instead of starting combat.
     /// The host disposes it when the sector closes, so a dead sector's events
     /// never reach the next one's stream.
     /// </summary>
