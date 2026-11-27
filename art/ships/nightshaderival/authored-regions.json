@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "marks": [
+    {
+      "parts": [
+        "Aft engine collar",
+        "Aft spine armor",
+        "Cockpit rear retaining collar",
+        "Dorsal central blade",
+        "Dorsal shield cap",
+        "Dorsal shield inset",
+        "Rebuilt pitched hull",
+        "Upper spine joint beds"
+      ],
+      "region": "Veil Mark",
+      "mirror_x": false,
+      "where": {
+        "nz": [
+          0.5,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "path",
+        "points": [
+          [
+            0,
+            0.42
+          ],
+          [
+            0,
+            -0.48
+          ]
+        ],
+        "width": 0.035,
+        "closed": false
+      },
+      "opacity": 1
+    }
+  ]
+}
