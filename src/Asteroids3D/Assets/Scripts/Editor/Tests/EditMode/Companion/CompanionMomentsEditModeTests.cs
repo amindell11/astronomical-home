@@ -10,6 +10,7 @@ using Game.Moments.Encounters;
 using Game.Moments.Finds;
 using Game.Runs;
 using NUnit.Framework;
+using Ships;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
