@@ -22,6 +22,8 @@ namespace Ships.Visuals
         private float current;
         private float frameTime;
         private int frame;
+        // Its own generator, so drawing flames never shifts gameplay's shared Random state.
+        private System.Random random;
 
         public Color Colour { get; set; }
         public float CurrentLength => current;
@@ -59,7 +61,8 @@ namespace Ships.Visuals
             sheetTransform.localRotation = Quaternion.identity;
 
             current = feel.PilotLength;
-            frame = UnityEngine.Random.Range(0, feel.Frames);
+            random = new System.Random(GetInstanceID());
+            frame = random.Next(feel.Frames);
         }
 
         public void Tick(bool thrusting, float deltaTime)
@@ -75,7 +78,7 @@ namespace Ships.Visuals
             while (frameTime >= step)
             {
                 frameTime -= step;
-                frame = UnityEngine.Random.Range(0, feel.Frames);
+                frame = random.Next(feel.Frames);
             }
 
             sheet.enabled = true;
