@@ -110,6 +110,7 @@ namespace Substrate.Services.Projectiles
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool += onReturned; break;
                 case ConcussionWave wave: wave.Released += onReturned; break;
+                case IonBlast blast: blast.Released += onReturned; break;
             }
         }
 
@@ -119,6 +120,7 @@ namespace Substrate.Services.Projectiles
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool -= onReturned; break;
                 case ConcussionWave wave: wave.Released -= onReturned; break;
+                case IonBlast blast: blast.Released -= onReturned; break;
             }
         }
 

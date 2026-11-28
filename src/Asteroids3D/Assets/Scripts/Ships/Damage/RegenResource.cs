@@ -6,11 +6,12 @@ namespace Ships.Damage
     public class RegenResource : Resource
     {
         public event Action OnFullyRegenerated;
-        public bool IsRegenerating => CurrentValue < MaxValue && regenRate > 0f && clock >= lastDamageTime + regenDelay;
+        public bool IsRegenerating => !held && CurrentValue < MaxValue && regenRate > 0f && clock >= lastDamageTime + regenDelay;
         private float regenRate;
         private float regenDelay;
         private float clock;
         private float lastDamageTime;
+        private bool held;
 
         public RegenResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)
         {
@@ -32,10 +33,12 @@ namespace Ships.Damage
             base.Reset();
             clock = 0f;
             lastDamageTime = -regenDelay;
+            held = false;
         }
 
-        public void Update(float deltaTime)
+        public void Update(float deltaTime, bool held)
         {
+            this.held = held;
             clock += deltaTime;
             if (IsRegenerating)
                 Regenerate(deltaTime);

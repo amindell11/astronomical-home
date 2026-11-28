@@ -617,7 +617,7 @@ Distilled from the test-suite cleanup. Rules of thumb, not laws.
 - **Make time deterministic.** Drive time-based logic through an injected
   `Tick(float dt)` against an internal clock rather than reading
   `Time.time`/`Time.deltaTime` directly. Tests then step time at zero wall-clock
-  (see `Heat.Tick`, `RegenResource.Update(dt)`). This is both a test practice and
+  (see `Heat.Tick`, `RegenResource.Update(dt, held)`). This is both a test practice and
   a seam (below).
 - **Perf tests assert a *generous* budget, not a tautology.** `solveMs > 0`
   catches nothing. A loose ceiling (~30× observed headroom) catches catastrophic

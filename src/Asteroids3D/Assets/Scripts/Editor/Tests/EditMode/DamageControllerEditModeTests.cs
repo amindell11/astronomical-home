@@ -142,12 +142,12 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f, regenRate: 10f, regenDelay: 0.5f);
             Damage(dc, 50f);        // shield -> 0 exactly; delay clock starts
-            dc.Shield.Update(0.2f); // inside the delay window, shield still 0
+            dc.Shield.Update(0.2f, false); // inside the delay window, shield still 0
 
             Damage(dc, 10f);        // hull-only: shield absorbs nothing
             Assert.AreEqual(90f, dc.Health.CurrentValue, 0.001f, "Hull takes the full hit");
 
-            dc.Shield.Update(0.4f); // clock 0.6 > 0.5: regen due from the FIRST hit's delay
+            dc.Shield.Update(0.4f, false); // clock 0.6 > 0.5: regen due from the FIRST hit's delay
             Assert.Greater(dc.Shield.CurrentValue, 0f,
                 "A hit the shield absorbed none of must not reset the regen delay");
         }
@@ -171,12 +171,12 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f, regenRate: 10f, regenDelay: 0.5f);
             Damage(dc, 20f);        // shield 50 -> 30; delay clock starts
-            dc.Shield.Update(0.2f); // inside the delay window
+            dc.Shield.Update(0.2f, false); // inside the delay window
 
             dc.TakeDamage(Hit(10f, DamageKind.Missile, bypassesShield: true));
             Assert.AreEqual(30f, dc.Shield.CurrentValue, 0.001f, "A bypass hit leaves a charged shield alone");
 
-            dc.Shield.Update(0.4f); // clock 0.6 > 0.5: regen due from the shield-first hit's delay
+            dc.Shield.Update(0.4f, false); // clock 0.6 > 0.5: regen due from the shield-first hit's delay
             Assert.Greater(dc.Shield.CurrentValue, 30f, "A bypass hit must not reset the regen delay");
         }
 
@@ -328,7 +328,7 @@ namespace Tests.EditMode
             const float dt = 0.05f;
             for (var t = 0f; t < 2f; t += dt)
             {
-                dc.Shield.Update(dt);
+                dc.Shield.Update(dt, false);
                 Assert.LessOrEqual(dc.Shield.CurrentValue, dc.Shield.MaxValue + 0.001f,
                     $"Shield exceeded max during regen at t={t:F2}");
             }
@@ -371,13 +371,13 @@ namespace Tests.EditMode
             var afterHit = dc.Shield.CurrentValue;
 
             // Within the delay window: no regen.
-            dc.Shield.Update(0.2f);
-            dc.Shield.Update(0.2f); // clock 0.4 < 0.5
+            dc.Shield.Update(0.2f, false);
+            dc.Shield.Update(0.2f, false); // clock 0.4 < 0.5
             Assert.AreEqual(afterHit, dc.Shield.CurrentValue, 0.001f,
                 "Shield must not regen before regenDelay elapses");
 
             // Cross the delay: regen resumes.
-            dc.Shield.Update(0.2f); // clock 0.6 > 0.5
+            dc.Shield.Update(0.2f, false); // clock 0.6 > 0.5
             Assert.Greater(dc.Shield.CurrentValue, afterHit, "Shield should regen after the delay");
         }
     }

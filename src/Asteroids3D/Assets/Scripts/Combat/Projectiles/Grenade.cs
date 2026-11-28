@@ -19,7 +19,7 @@ namespace Combat.Projectiles
     /// proximity fuse: the first ship it touches, armed or not, carries it until the limpet fuse
     /// runs out. Design: arc #950.
     /// </summary>
-    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
+    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight, IDetonating
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;

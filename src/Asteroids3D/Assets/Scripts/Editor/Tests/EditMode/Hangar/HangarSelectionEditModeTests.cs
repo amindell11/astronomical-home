@@ -300,6 +300,7 @@ namespace Tests.EditMode.Hangar
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/IonMines.prefab")]
         public void Damage_ReadsTheWeaponsOwnValue(string path)
         {
             var weapon = Load<WeaponComponent>(path);
@@ -406,6 +407,8 @@ namespace Tests.EditMode.Hangar
         {
             var grenades = weapon as Grenades;
             if (grenades) return grenades.BlastDamage.ToString("0");
+            var ionMines = weapon as IonMines;
+            if (ionMines) return $"{ionMines.StallSeconds:0.#}s";
             var railguns = weapon as Railguns;
             if (railguns) return railguns.Damage.ToString("0");
             var rippers = weapon as Rippers;

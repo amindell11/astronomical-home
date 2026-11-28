@@ -827,10 +827,18 @@ Format: **term** — definition. *(authority)*
   whose lead, hold range and aim the AI reads. The code still calls it
   `WeaponSlot.Primary`; the rename waits for after M1 (#1418).
   *(`WeaponsController.RequireKinds`; #1410)*
-- **ordnance slot** — a ship's second mount: one ordnance (Missiles or Concussion) or
+- **ordnance slot** — a ship's second mount: one ordnance (Missiles, Concussion or Ion Mine) or
   nothing. An item's kind comes from its class, so nothing is authored and no prefab can
   carry the wrong one. Regular enemies leave the slot empty. The code still calls it
   `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
+- **ion mine** — the third ordnance: dropped at rest behind the carrier, it goes off
+  on an enemy in proximity or at its fuse, and its blast stalls enemy ships without
+  damage. Never affects the carrier or its allies.
+  *(`IonMines`, `IonMine`, `IonBlast`; #1775)*
+- **stall** — the ion mine's status effect: no thrust, turning or keystone, guns
+  still live, shield regen paused. A repeat stall on the same ship within the repeat
+  window is shorter, in place of per-class durations.
+  *(`StatusEffect.Stalled`, `StatusEffects.ApplyDiminishing`)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
   *(`WeaponComponent.FirePattern`; #1410)*

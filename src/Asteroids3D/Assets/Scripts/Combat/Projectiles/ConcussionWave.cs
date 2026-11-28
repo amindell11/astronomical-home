@@ -9,7 +9,7 @@ using Substrate;
 namespace Combat.Projectiles
 {
     /// <summary>Expanding concussion wavefront: each damageable is hit exactly once as the frontier first overlaps it, damage/impulse scaled by <see cref="Falloff"/>; hits everything but other shooters' live ordnance — its own shooter included — so the dropper must outrun their own blast.</summary>
-    public class ConcussionWave : MonoBehaviour
+    public class ConcussionWave : MonoBehaviour, IBlastFront
     {
         [Header("Wave")]
         [Stat, SerializeField, Min(0.01f)] private float maxRadius = 12f;
