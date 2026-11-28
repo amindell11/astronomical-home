@@ -1,0 +1,152 @@
+ID,Category,Moment,Faction,Speaker,After,Line,Status,Notes
+S1a,Sector entry,sector-entered,shoal,Companion,,"The Shoal will greet us like old friends, right up until they start stripping the ship for parts.",In game,"B- starts with a fragment, and feels a bit stilted"
+S1b,Sector entry,sector-entered,shoal,Companion,,See those wrecks? Some of these scrappers are the ones who shot them down.,Later,Needs wrecks in game
+S3a,Sector entry,sector-entered,shoal,Companion,,"Let's keep moving. Out here, anything that lingers long enough gets claimed as salvage.",In game,B   just a bit stilted
+VE0a,Sector entry,sector-entered,veil,Enemy,,Unscheduled arrival logged. One human heartbeat detected. Hold course for intake.,In game,B- nothing jups out as immediately wrong but it doesnt make me feel anythign
+VE0b,Sector entry,sector-entered,veil,Enemy,,Foreign hull. Single occupant. No witnesses logged. Recommend prompt inclusion.,In game,same as prev
+V1,Sector entry,sector-entered,veil,Companion,any,"If anyone is flying those things, they don't seem much for small talk.",In game,A- i like this one
+V2a,Sector entry,sector-entered,veil,Companion,,Stay sharp. The first sign of the Veil is usually them already being too close.,Cut,"Cut: same lesson as V2b, pool thinning 2026-11-23"
+V2b,Sector entry,sector-entered,veil,Companion,,Don't trust a clear scanner out here. The Veil don't show up until they're already on top of us.,In game,C starrts with a fragment and confusing (clear scanner means nothing sounds like a tautology)
+B1a,Sector entry,sector-entered,bastion,Companion,,"Fair warning: we're in Bastion territory, and they hate robots. I am, unfortunately, a robot.",In game,"C not clear, also fragment"
+B1b,Sector entry,sector-entered,bastion,Companion,,"Around here they call robots 'clinks.' It's meant as an insult, in case the tone doesn't make that obvious.",In game,B- fragment and stilted
+B2a,Sector entry,sector-entered,bastion,Companion,,"We're in Bastion space now. At least here, no one will sneak up on us.",In game,
+B2b,Sector entry,sector-entered,bastion,Companion,,"If a Bastion pilot hails us, you'll get the name, the clan, and the grievance. In that order.",Cut,"Cut: the introduction ritual should happen, not be promised in a line - owner 2026-11-23. See BR1c"
+B0,Sector entry,sector-entered,bastion,Companion,,"We're in Bastion territory, so watch out for meatheads with something to prove — although knowing them, they'll find us first.",In game,
+SR1a,Combat start,combat-start,shoal,Rival,,"Well, looky here! Form up, boys, and shoot careful. That engine's worth more running.",In game,
+SR1b,Combat start,combat-start,shoal,Rival,,"Are you lost, friend? 'Cause that ship sure looks ready to be found.",Cut,"Cut: lost/found pun did not land, owner 2026-11-23"
+SE2,Combat start,combat-start,shoal,Rival,,"Easy now, friend. Set her down gentle and nobody's gotta scratch the paint.",In game,
+SE1,Combat start,combat-start,shoal,Rival,,"Nothing personal, stranger. Just reckon I need those parts more than you do.",In game,
+SR2a,Combat start,combat-start,shoal,Companion,any,He sounds happy... must have already picked which parts he wants.,In game,
+SR2c,Combat start,combat-start,shoal,Companion,any,"Friendly as that sounded, he does still intend to rob us.",Cut,"Cut: telling version of SR2a/SR2b, pool thinning 2026-11-23"
+SR2b,Combat start,combat-start,shoal,Companion,any,Hear that? He's already spent the money.,In game,
+S6b,Combat start,combat-start,shoal,Companion,any,Poor scrappers think they hit the jackpot. Almost hate to ruin their day.,In game,
+SC1a,Combat start,combat-start,shoal,Cat,any,Mrrp?,In game,
+SC1b,Combat start,combat-start,shoal,Cat,any,*knocks something off the console* Mrow.,In game,
+SC1c,Combat start,combat-start,shoal,Cat,SE2,"*purring, right up against the mic*",In game,
+SC5a,Combat start,combat-start,shoal,Companion,any,Was that... was that a space cat?,Draft,Owner seed: first-cat confusion. Needs a heard-cat gate (tiers) so it cannot play before a Cat line
+VR1,Combat start,combat-start,veil,Rival,,Human pilot. Eccentric flightpath. Mandate radical normalization.,In game,
+VR3a,Combat start,combat-start,veil,Rival,,"Pilot and machine, housed apart. Each incomplete. Joining is offered.",In game,
+VR2a,Combat start,combat-start,veil,Companion,any,I can never tell if that's a pilot talking or just the ship.,In game,
+VR2b,Combat start,combat-start,veil,Companion,VR1,"""Radical normalization."" No clue what that is, but I don't want any of it.",In game,
+V5,Combat start,combat-start,veil,Companion,any,Ugh. Just don't let them near my wiring.,In game,
+BR1a,Combat start,combat-start,bastion,Rival,,"I don't know who you think you are, flying through our space, but I can't wait to find out.",In game,
+BR1b,Combat start,combat-start,bastion,Rival,,"I'd let you pass, outsider, but the other clans would hear about it. Can't have that.",In game,
+BR1c,Combat start,combat-start,bastion,Rival,,"This is the wing leader, speaking for my clan. You're in our space, outsider - state your business or leave it.",In game,"The Bastion introduction, performed not promised - owner approved 2026-11-23"
+BR2a,Combat start,combat-start,bastion,Companion,any,Oh good. He's excited.,In game,
+BR2b,Combat start,combat-start,bastion,Companion,any,"""Our space."" They own the vacuum now, huh?",In game,
+RI1a,Combat start,rival-introduced,shoal,Companion,,"That's a Valis. It can kick in an overdrive and close on us in a blink, so don't try to outrun it.",In game,First meeting with the Shoal rival: plays over the close-up
+RI1b,Combat start,rival-introduced,shoal,Companion,,"Watch that Valis's engines. When they flare, it's coming in fast on its overdrive.",In game,
+RI1c,Combat start,rival-introduced,shoal,Rival,any,"Well, looky here! Form up, boys, and shoot careful. That engine's worth more running.",In game,Copy of SR1a for the introduction
+RI1d,Combat start,rival-introduced,shoal,Rival,any,"Easy now, friend. Set her down gentle and nobody's gotta scratch the paint.",In game,Copy of SE2 for the introduction
+RI2a,Combat start,rival-introduced,veil,Companion,,"That's a Nightshade. It cloaks, and it likes to come out right in front of us.",In game,First meeting with the Veil rival: plays over the close-up
+RI2b,Combat start,rival-introduced,veil,Companion,,"If a Nightshade vanishes, it isn't gone. Expect it to come out of nowhere, dead ahead.",In game,
+RI2c,Combat start,rival-introduced,veil,Rival,any,Human pilot. Eccentric flightpath. Mandate radical normalization.,In game,Copy of VR1 for the introduction
+RI2d,Combat start,rival-introduced,veil,Rival,any,"Pilot and machine, housed apart. Each incomplete. Joining is offered.",In game,Copy of VR3a for the introduction
+RI3a,Combat start,rival-introduced,bastion,Companion,,"That's a Bulwark, and it's built to ram. When it brakes and points its nose at us, get out of the way.",In game,First meeting with the Bastion rival: plays over the close-up
+RI3b,Combat start,rival-introduced,bastion,Companion,,"Bulwarks don't dodge, they ram. If one stops dead in front of us, it's about to charge.",In game,
+RI3c,Combat start,rival-introduced,bastion,Rival,any,"This is the wing leader, speaking for my clan. You're in our space, outsider - state your business or leave it.",In game,Copy of BR1c for the introduction
+RI3d,Combat start,rival-introduced,bastion,Rival,any,"I don't know who you think you are, flying through our space, but I can't wait to find out.",In game,Copy of BR1a for the introduction
+VM1a,Leader down,rival-fell,veil,Enemy,,Lead instance lost. Disengaging. Will rejoin at next contact.,In game,
+VM1b,Leader down,rival-fell,veil,Enemy,,Command node offline. Withdraw. Regroup with the next instance.,In game,
+VM1c,Leader down,rival-fell,veil,Enemy,,"Elevated instance lost. Continue engagement, tactical status nominal.",Draft,"Added as extra: hive-mind ruling pending - Veil keep fighting vs regroup, rule later"
+VM2a,Leader down,rival-fell,veil,Companion,any,They're not running. They're pulling back to come in with the next one.,In game,
+VM2b,Leader down,rival-fell,veil,Companion,any,"Leader's down, so they're falling back. Catch them now, or see them again later.",In game,
+VM2c,Leader down,rival-fell,veil,Companion,any,They didn't miss a beat after losing their leader... who's commanding these things?,Draft,"Response to VM1c: hive-mind ruling pending, rule later"
+SM1a,Leader down,rival-fell,shoal,Enemy,,"Boss is down! That's it, everybody jump!",In game,
+SM1b,Leader down,rival-fell,shoal,Enemy,,That's the boss gone. No cut's worth this. We're jumping out!,In game,
+SM2a,Leader down,rival-fell,shoal,Companion,any,Surprised they didn't stay to pick at the boss's scraps.,In game,
+SM2b,Leader down,rival-fell,shoal,Companion,any,"No boss, no payday. They'll be gone before the wreck cools.",Draft,Proposed addition — this pool only had one Companion line
+BM1a,Leader down,rival-fell,bastion,Enemy,,He's fallen! No retreat. Close in and take the outsider with us!,In game,
+BM1b,Leader down,rival-fell,bastion,Enemy,,For the clan! Get in close and don't stop till one of us is done!,In game,
+BM2a,Leader down,rival-fell,bastion,Companion,any,I don't think they're too happy we killed their leader.,In game,
+S4a,Death sting,death,shoal,Companion,,Eh. It was mostly junk anyway.,In game,
+S4b,Death sting,death,shoal,Companion,,Honestly? They needed the ship more.,In game,
+S5a,Death sting,death,shoal,Companion,,I can hear them pricing us.,In game,
+SC4a,Death sting,death,shoal,Cat,S5a,Mrrp!,Cut,Cut in death audit: a reply 4s after death is never read. Cat survival lives at SC5b/SC5c
+VE1a,Death sting,death,veil,Enemy,,Vessel: discard. Pilot: retain.,In game,
+VE1b,Death sting,death,veil,Enemy,,Resistance concluded. Pilot recoverable. Schedule joining.,In game,
+V3,Death sting,death,veil,Companion,any,That's why I hate those guys. They'd bolt you into a ship and call it an upgrade.,Cut,"Cut at death, rehomed as RD2 at run-start.after-death"
+V4,Death sting,death,veil,Companion,,Never even saw them. Typical.,In game,
+V0,Death sting,death,veil,Companion,,I hate those guys. That's not a figure of speech.,In game,Replaced *shudders in robot* — see notes below
+V9a,Death sting,death,veil,Companion,,"I'd rather have gone down with the ship than hand you over to them, for the record.",Cut,"Superseded by RD1 - too emotional for death, gallows version lives in the hangar"
+B3a,Death sting,death,bastion,Companion,,Beaten by a man who polishes his guns.,In game,
+B4,Death sting,death,bastion,Companion,,He'll brag about this tonight. Loudly.,In game,
+B8,Death sting,death,bastion,Companion,,They do say the Bastion like a close fight. That was closer than I needed.,Later,Ram deaths only
+BE1a,Death sting,death,bastion,Enemy,,"That's how the Bastion fight. Next time, show some respect.",In game,
+B9a,Death sting,death,bastion,Companion,BE1a,"Respect. I'll make a note of it, right under 'killed us.'",Cut,"Cut at death, rehomed as RD5 at run-start.after-death"
+BE1b,Death sting,death,bastion,Enemy,,Now you know whose space this is. Show some respect next time.,Cut,"Cut: shares 'show some respect' tail with BE1a, pool thinning 2026-11-23"
+DC1a,Death sting,death.crash,,Companion,,That rock was there the whole time. I want that on the record.,Later,Needs PR #1688 (crash and self-kill death slots)
+DC1b,Death sting,death.crash,,Companion,,You really survived all that just to lose to a rock.,Later,Needs PR #1688 (crash and self-kill death slots)
+DC1c,Death sting,death.crash,,Companion,,"An asteroid. Undefeated, apparently.",Later,Needs PR #1688 (crash and self-kill death slots)
+DS1a,Death sting,death.self,,Companion,,Did we just shoot ourselves? We just shot ourselves.,Later,Needs PR #1688 (crash and self-kill death slots)
+DS1b,Death sting,death.self,,Companion,,"Good news, you hit something. Bad news, it was us.",Later,Needs PR #1688 (crash and self-kill death slots)
+DS1c,Death sting,death.self,,Companion,,I'm putting this down as friendly fire. Very friendly.,Later,Needs PR #1688 (crash and self-kill death slots)
+RD1,Hangar,run-start.after-death,veil,Companion,,"For the record: they kept the pilot, threw me out with the ship. Trying not to take it personally.",Draft,"Rehomed from death. Needs a last-death faction fact - RunStarted carries clone/last_sector/last_killed_by today, no faction"
+RD2,Hangar,run-start.after-death,veil,Companion,,That's the Veil for you: bolt a pilot into a ship and call it an upgrade.,Draft,Rehomed from V3. Needs last-death faction fact
+RD3,Hangar,run-start.after-death,shoal,Companion,,Last crew needed the ship more than we did. At least it'll get used.,Draft,Full version of the S4b sting. Needs last-death faction fact
+RD4,Hangar,run-start.after-death,shoal,Companion,,"Their pilot had a cat, by the way. I could hear it purring over comms.",Draft,"Rehomed from S5a, heard-not-seen fixed. Needs last-death faction fact"
+RD5,Hangar,run-start.after-death,bastion,Companion,,"'Show some respect,' he said. I made a note of it, right under 'killed us.'",Draft,Rehomed from B9a. Needs last-death faction fact
+RD6,Hangar,run-start.after-death,,Companion,,Welcome back. Clone {clone}. Last time you made it to sector {last_sector}.,Draft,Works today: clone and last_sector are real RunStarted facts
+RD7,Hangar,run-start.after-death,,Companion,,Clone {clone}. Let's see if this one lasts longer.,Draft,Works today: clone is a real RunStarted fact
+RD8,Hangar,run-start.after-death,,Companion,,Clone {clone}. You won't remember the last run - sync cutoff. I do. Lucky me.,Draft,Teaches the memory-gap mechanic. Works today: clone is a real RunStarted fact
+HT1a,Hangar,hangar.tutorial,,Companion,,"Bay's yours. Pick a hull and what it shoots, or take her out as she is. I'm riding along either way.",In game,"Hangar tutorial greeting, plays once per hangar visit while Tutorial prompts is on. Draft wording, owner rewrites"
+HT1b,Hangar,hangar.tutorial,,Companion,,"Arrows change what's lit, up and down move between screens. When you're happy, launch.",In game,"Same slot as HT1a, a control-focused variant. Draft wording, owner rewrites"
+RP1a,Stations & finds,station-arrived-repair,,Repair crew,,"Hold still in the cradle, we'll patch what we can. Mind the supply light.",In game,"Station set: repair is a dwell, exchanges can breathe here"
+RP1b,Stations & finds,station-arrived-repair,,Repair crew,,"Cradle's live. Repairs come out of station supply, so don't get greedy.",In game,
+RP2a,Stations & finds,station-arrived-repair,,Companion,any,Sitting still. My favourite. Nothing bad happens to ships that sit still.,In game,
+RP2b,Stations & finds,station-arrived-repair,,Companion,any,Hull's ticking up. Try to look like a ship nobody's hunting.,In game,
+MD1a,Stations & finds,station-arrived-mod,,Mod crew,,"Mod racks open. One pick, then we go dark.",In game,Short: a pick screen is opening over this
+MD1b,Stations & finds,station-arrived-mod,,Mod crew,,"Browse quick. If the hunting starts, we go dark and the pick's lost.",In game,
+AM1a,Stations & finds,station-arrived-armory,,Armory crew,,"Armory's open. One swap per visit. No refunds, no test fires.",In game,Short: a pick screen is opening over this
+AM1b,Stations & finds,station-arrived-armory,,Armory crew,,"Weapons out. Take one, or leave us lit and come back.",In game,Shows the skip-leaves-it-live rule
+AM2a,Stations & finds,armory-pick,,Companion,,{weapon}. Bold. Try not to point it at anything we own.,In game,Template: weapon name is a real ArmoryPicked fact
+AM2b,Stations & finds,armory-pick,,Companion,,"{weapon}, racked and ready. I feel safer already. Mostly.",In game,Template
+MD2a,Stations & finds,mod-pick,,Companion,,"{mod}. Noted, bolted, whatever they do to install these.",In game,Template: mod name is a real ModPicked fact
+MD2b,Stations & finds,mod-pick,,Companion,,{mod} it is. The ship hums differently now. I choose to like it.,In game,Template
+CC1a,Stations & finds,cache-claimed,,Companion,,"Cache says '{bonus}', twenty seconds. Spend it loudly.",In game,Template: bonus key is a real CacheClaimed fact. Twenty seconds hardcodes the current default duration
+CC1b,Stations & finds,cache-claimed,,Companion,,"{bonus}, on the clock. Go make it count.",In game,Template
+RP3,Stations & finds,station-arrived-repair,shoal,Repair crew,,"We'll patch her up proper, friend. Shame to see good parts flying around damaged.",Draft,Faction crew flavour: needs a faction fact on StationArrived (carries sector only today)
+RP4,Stations & finds,station-arrived-repair,veil,Repair crew,,Hull integrity substandard. Restoration will proceed. Remain within the cradle.,Draft,Faction crew flavour: needs faction fact
+RP5a,Stations & finds,station-arrived-repair-full,,Repair crew,,"You've given us nothing to fix, pilot. Come back when you're hurt, and we'll open the supply then.",In game,Full-hull set: plays only when the hull is untouched on arrival
+RP5b,Stations & finds,station-arrived-repair-full,,Repair crew,,"Did you stop by just to let us admire her? She's untouched, and our supply stays sealed until you need it.",In game,
+RP5c,Stations & finds,station-arrived-repair-full,,Companion,any,The supply light hasn't come on at all. We have to be the easiest visitors they'll get today.,In game,
+RP5d,Stations & finds,station-arrived-repair-full,,Companion,any,Let's keep this station in mind for when the hull gauge finally gives us bad news.,In game,
+RP6a,Stations & finds,station-arrived-repair-critical,,Repair crew,,"Get in the cradle now and hold still, because we can hear that hull complaining from here.",In game,Critical set: hull under 30% on arrival
+RP6b,Stations & finds,station-arrived-repair-critical,,Repair crew,,"We're already carrying plates to the cradle, so stay there until the supply light says we're done.",In game,
+RP6c,Stations & finds,station-arrived-repair-critical,,Companion,any,"I drafted a farewell message on the way in, so sit still and let me delete it.",In game,
+RP6d,Stations & finds,station-arrived-repair-critical,,Companion,any,"The hull alarm is panicking enough for both of us, so let's stay put until it stops.",In game,
+AM3,Stations & finds,station-arrived-armory,bastion,Armory crew,,"One weapon, outsider. And keep your clink away from the racks.",Draft,Faction crew flavour: needs faction fact
+AM4,Stations & finds,station-arrived-armory,bastion,Companion,any,Charming service. Five stars.,Draft,Needs faction fact
+S7c,Elites,elite-announced,shoal,Companion,,That's the skipper. Every piece of that ship used to be somebody else's.,In game,
+SE4a,Elites,elite-announced,shoal,Elite,either,"You've cost this crew a lot of ships today, stranger. I figure yours about covers it.",In game,
+SE4b,Elites,elite-announced,shoal,Elite,either,"Afternoon, stranger. I hear you're the reason half my crew is floating loose.",In game,
+SC2a,Elites,elite-announced,shoal,Cat,SE4b,*yawns*,In game,
+SC2b,Elites,elite-announced,shoal,Cat,SE4a,"*a long, low growl*",In game,
+EW1a,Elites,elite-announced,shoal,Companion,either,"The skipper's packing missiles. Put a rock between us and them, or shoot them down.",In game,Warning: the Shoal elite fires lock-on missiles
+EW1b,Elites,elite-announced,shoal,Companion,either,"Hear that lock tone? That's a missile, so get behind a rock and it'll lose us.",In game,Warning
+V6a,Elites,elite-announced,veil,Companion,,Something big just showed up on the scope. I think it's been sitting there the whole time.,In game,
+V6b,Elites,elite-announced,veil,Companion,,There's the big one. Every other ship just went quiet at the same second.,In game,
+VE2a,Elites,elite-announced,veil,Elite,either,Evaluation complete. Pilot exceeds projection. Senior instance will conduct the joining.,In game,
+VE2b,Elites,elite-announced,veil,Elite,either,Many instances spent on you. Value confirmed. This instance attends personally.,In game,
+EW2a,Elites,elite-announced,veil,Companion,either,That one carries missiles. Get a rock between us and them and they'll lose track of us.,In game,Warning: the Veil elite fires lock-on missiles
+EW2b,Elites,elite-announced,veil,Companion,either,"Missiles can be shot down. If one's chasing us, turn and shoot it before it lands.",In game,Warning
+B5a,Elites,elite-announced,bastion,Companion,,"That's the clan champion. 99.9% chance they charge. The other 0.1%, they yell first, then charge.",In game,
+BE2a,Elites,elite-announced,bastion,Elite,either,"I'm champion of this clan. You fly well, outsider. Now show me it's you flying — not your clink.",In game,
+BE2b,Elites,elite-announced,bastion,Elite,either,You beat my clan with a clink whispering in your ear. Now beat me without it.,In game,
+EW3a,Elites,elite-announced,bastion,Companion,either,"The champion throws concussion mines. Keep moving, and don't sit where they land.",In game,Warning: the Bastion boss fires concussion mines and rams
+EW3b,Elites,elite-announced,bastion,Companion,either,"He rams like the rest of them, only bigger. When he brakes, slide out of his line.",In game,Warning
+SE3,Elites,elite-beaten,shoal,Elite,,"Aw, hell. She was nearly paid off.",In game,
+S8a,Elites,elite-beaten,shoal,Companion,either,Hard to feel proud of this one. He was just trying to keep his people fed.,In game,
+SC3a,Elites,elite-beaten,shoal,Cat,SE3,Mew?,In game,
+SC5b,Elites,elite-beaten,shoal,Companion,either,Scanners show a pod ejected... too small to be a human. Could it be?,Draft,"Owner sketch compressed to a 2-line exchange: the Cat reply is the confirmation, no third line explaining it. Cat survives every fight"
+SC5c,Elites,elite-beaten,shoal,Cat,SC5b,Mrrp!,Draft,"The confirmation beat - heard, not explained"
+VE3,Elites,elite-beaten,veil,Elite,,Loss logged. Instance replaceable.,In game,
+V7,Elites,elite-beaten,veil,Companion,either,"It's down. I'd check the cockpit, but I really don't want to know.",In game,
+BE3a,Elites,elite-beaten,bastion,Elite,,Ha! Good fight. Best one I've had in years.,In game,
+BE3b,Elites,elite-beaten,bastion,Elite,,Ha! Good fight. Shame about your clink. You'd have made a fine clansman.,In game,
+B6a,Elites,elite-beaten,bastion,Companion,either,"We got the champion. Say what you like about them, they stood their ground.",In game,
+B6b,Elites,elite-beaten,bastion,Companion,either,He'd want it said that he went down swinging. He did.,In game,
+S9,Ship unlocks,ship-unlocked,shoal,Companion,,"Valis. No two panels match, but she'll outrun anything in the sector. It's all yours.",In game,
+V8,Ship unlocks,ship-unlocked,veil,Companion,,"Nightshade. No wear on the seat. Either it was kept immaculately, or no one ever sat here.",In game,
+B7a,Ship unlocks,ship-unlocked,bastion,Companion,,"This Bulwark is solid Bastion steel. They'd hate seeing you fly it, which is half the fun.",In game,
+B7b,Ship unlocks,ship-unlocked,bastion,Companion,,I'm pretty sure I'm the first robot ever to ride in a Bulwark. They'd melt the whole ship down if they knew.,In game,

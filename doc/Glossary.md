@@ -1338,14 +1338,13 @@ Format: **term** — definition. *(authority)*
   builds; the editor and development builds show a bracketed debug label of its id
   and facts instead (owner ruling 2026-11-04).
   *(CompanionLineSheet, CompanionVoice.DebugLabel)*
-- **line file** — the markdown file that holds every line: the Line sheet tab of
-  the owner's lines doc, exported. The owner and an agent edit the doc together
-  (owner ruling 2026-11-21, replacing the 2026-11-03 ruling that agents write no
-  lines). Edits flow one way, from the doc to the file, so a hand edit to the
-  file is lost at the next export. Only rows whose Status is "In game" load.
-  The repo copy is named `.txt`, not `.md`: the merge gate treats every `.md`
-  change as unable to change behavior and lands it with no test run, and a bad
-  row here stops the game at boot (owner ruling 2026-11-21).
+- **line file** — `LineSheet.csv`, the one canonical source of every line, read
+  by the game directly (owner ruling 2026-11-28 on #1653, replacing the
+  2026-11-21 flow from the lines doc). A Claude Sheet mirrors it for editing, and
+  "sync the lines" lands the sheet's edits as a PR. The lines doc is retired.
+  Only rows whose Status is "In game" load, and a bad row stops the game at boot.
+  It stays a `.csv`, never `.md`, because the merge gate lands `.md` changes
+  with no test run. Columns and the sync rule: `doc/agents/line-sheet.md`.
   *(LineTable, CompanionLineSheet.LoadLines)*
 - **exchange** — what one moment speaks: an opening line and, some of the time,
   a reply from another speaker when the opener's hold ends. The two are one
