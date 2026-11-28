@@ -41,6 +41,8 @@ namespace Ships.Mods
 
         public void NotifyFired(WeaponSlot _) => fired = true;
 
+        public bool IsHeavy(Rigidbody rock, float mass) => rock && rock.mass >= heavyMassRatio * mass;
+
         public void Step(float dt, Vector3 position, float radius, float mass, Vector2 velocity, in PilotCommand command,
             LockChannel sight)
         {
@@ -79,8 +81,7 @@ namespace Ships.Mods
                 1 << LayerIds.Asteroid, QueryTriggerInteraction.Ignore);
             for (var i = 0; i < count; i++)
             {
-                var body = overlaps[i].attachedRigidbody;
-                if (body && body.mass >= heavyMassRatio * mass) return true;
+                if (IsHeavy(overlaps[i].attachedRigidbody, mass)) return true;
             }
             return false;
         }

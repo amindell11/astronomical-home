@@ -97,6 +97,9 @@ namespace Ships.Keystones
         /// <summary>Whether the hull flies through asteroids this step instead of colliding with them.</summary>
         public virtual bool PassesRocks => false;
 
+        /// <summary>Whether the kit holds Orbit and the rock is big enough to count for it.</summary>
+        public virtual bool CountsForOrbit(Collider rock) => false;
+
         /// <summary>Multiplier on every hit the ship's own shots deal, fixed as each shot leaves.</summary>
         public virtual float ShotDamageScale => 1f;
 

@@ -185,6 +185,14 @@ namespace Ships.Keystones.Kits
             return new KeystoneEffect(Vector2.zero, Vector2.zero, (bent - kinematics.vel) / dt);
         }
 
+        public override bool CountsForOrbit(Collider rock) => Behaviours.Holds(orbit) && BigEnoughToOrbit(rock.bounds);
+
+        private bool BigEnoughToOrbit(Bounds bounds)
+        {
+            var extents = GamePlane.WorldDirToPlane(bounds.extents);
+            return (Mathf.Abs(extents.x) + Mathf.Abs(extents.y)) * 0.5f >= orbitMinRadius;
+        }
+
         private bool TryNearestRock(Vector2 pos, float reach, out Vector2 centre, out Collider rock)
         {
             centre = default;
@@ -196,9 +204,8 @@ namespace Ships.Keystones.Kits
             for (var i = 0; i < count; i++)
             {
                 var bounds = nearby[i].bounds;
+                if (!BigEnoughToOrbit(bounds)) continue;
                 var at = GamePlane.WorldPointToPlane(bounds.center);
-                var extents = GamePlane.WorldDirToPlane(bounds.extents);
-                if ((Mathf.Abs(extents.x) + Mathf.Abs(extents.y)) * 0.5f < orbitMinRadius) continue;
                 var distance = (at - pos).sqrMagnitude;
                 if (distance >= nearest) continue;
                 nearest = distance;
