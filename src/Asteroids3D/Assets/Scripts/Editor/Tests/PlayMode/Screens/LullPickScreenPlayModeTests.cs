@@ -64,12 +64,10 @@ namespace Tests.PlayMode.Screens
 
             Assert.AreEqual("MOD 01", Text("Cards/Card1/Title"));
             Assert.AreEqual("Rapid fire", Text("Cards/Card1/Body/Name"));
-            Assert.AreEqual("+25%", Text("Cards/Card1/Body/Effect"));
-            Assert.AreEqual("FIRE RATE", Text("Cards/Card1/Body/Unit"));
+            Assert.AreEqual("+25% FIRE RATE", Text("Cards/Card1/Body/Effect"));
             Assert.AreEqual("LASERS · MISSILES", Text("Cards/Card1/Body/Landing"));
             Assert.AreEqual("MOD 02", Text("Cards/Card2/Title"));
-            Assert.AreEqual("+1", Text("Cards/Card2/Body/Effect"));
-            Assert.AreEqual("ROUND", Text("Cards/Card2/Body/Unit"));
+            Assert.AreEqual("+1 ROUND", Text("Cards/Card2/Body/Effect"));
             Assert.AreEqual("MISSILES", Text("Cards/Card2/Body/Landing"));
             Assert.AreEqual("Orbitron-Medium", screen.transform.Find("Cards/Card1/Body/Name").GetComponent<Text>().font.name);
             Assert.AreEqual("Rajdhani-Medium", screen.transform.Find("Cards/Card1/Title").GetComponent<Text>().font.name);
@@ -171,6 +169,27 @@ namespace Tests.PlayMode.Screens
             window.Open = .4f;
             Assert.AreEqual(frame.Chamfer, frame.DrawnChamfer, "a tall enough opening has the full cut");
         }
+
+#if UNITY_EDITOR
+        [UnityTest]
+        public IEnumerator EveryPooledEffect_WrapsInsideItsCard()
+        {
+            var pool = UnityEditor.AssetDatabase.LoadAssetAtPath<Loot.LullModPool>(
+                "Assets/Settings/Weapons/Mods/LullMods.asset");
+            Assert.IsNotNull(pool, "the lull pool loads");
+            foreach (var mod in pool.mods)
+            {
+                if (screen) Object.Destroy(screen.gameObject);
+                screen = LullPickScreen.Create(root.transform, new List<Loot.LullMod> { mod }, _ => "Lasers", null);
+                yield return null;
+
+                var effect = screen.transform.Find("Cards/Card1/Body/Effect").GetComponent<Text>();
+                Assert.AreEqual(HorizontalWrapMode.Wrap, effect.horizontalOverflow, $"{mod.DisplayName} wraps");
+                Assert.That(effect.preferredHeight, Is.LessThanOrEqualTo(effect.rectTransform.rect.height),
+                    $"{mod.DisplayName}'s effect fits above the rule");
+            }
+        }
+#endif
 
         [Test]
         public void Create_RefusesAnEmptyOrOversizedOffer()
