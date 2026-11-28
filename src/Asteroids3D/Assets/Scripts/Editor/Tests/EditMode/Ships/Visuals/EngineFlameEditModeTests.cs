@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Tests.EditMode.Ships
+namespace Tests.EditMode.Ships.Visuals
 {
     [TestFixture]
     [Category("Ships")]
