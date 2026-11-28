@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Combat.Projectiles.Visual;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
+using Combat.Weapons.Mods;
 using Damage;
 using NUnit.Framework;
 using Ships.Damage;
@@ -21,6 +22,7 @@ namespace Tests.PlayMode.Weapons
     public class RailgunBeamPlayModeTests : PlayModeWorldFixture
     {
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
+        private const string DeepStrikePath = "Assets/Settings/Weapons/Mods/Behaviours/DeepStrike.asset";
 
         private static readonly Vector3 Aim = GamePlane.PlaneDirToWorld(Vector2.up);
         private static readonly Vector3 Across = GamePlane.PlaneDirToWorld(Vector2.right);
@@ -280,6 +282,26 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(railgun.Damage, Amount(survivor), 0.001f);
             Assert.That(behind.Hits, Is.Empty, "a survivor stops the beam");
             Assert.Less(Vector3.Distance(beamEnd, Aim * 4.5f), 0.01f, "the beam ends on the survivor's near face");
+        }
+
+        [Test]
+        public void DeepStrike_HitsTheFarthestFirst_AndCarriesTheOverkillBackPastTheNearSurvivor()
+        {
+            var key = AssetDatabase.LoadAssetAtPath<WeaponBehaviourMod>(DeepStrikePath);
+            Assert.IsNotNull(key, DeepStrikePath);
+            railgun.Behaviours.Set(new[] { key });
+            var rock = CreateSoak(Aim * 5f);
+            var far = CreateSoak(Aim * 10f, toughness: 10f);
+            Physics.SyncTransforms();
+            var predicted = railgun.FirstStrikePoint();
+
+            Fire();
+
+            Assert.AreEqual(railgun.Damage, Amount(far), 0.001f, "the rock in front no longer shields the far target");
+            Assert.AreEqual(railgun.Damage - 10f, Amount(rock), 0.001f, "the overkill comes back to the near rock");
+            CollectionAssert.AreEqual(new IDamageable[] { far, rock }, struck, "farthest first");
+            Assert.Less(Vector3.Distance(beamEnd, Aim * 9.5f), 0.01f, "the beam reaches the far target's face");
+            Assert.Less(Vector3.Distance(predicted, beamEnd), 0.001f, "the aim line ends where the beam reaches");
         }
 
         [Test]

@@ -25,6 +25,7 @@ namespace UI.Screens
         private const float CardHeight = 193f;
         private const float CardGap = 29f;
         private const float Inset = 16f;
+        private const float EffectHeight = 58f;
 
         private readonly List<InputAction> actions = new();
         private ScreenFonts fonts;
@@ -94,14 +95,9 @@ namespace UI.Screens
             var width = CardWidth - 2f * Inset;
             WindowKit.Label(body, "Name", mod.DisplayName, Inset, 13f, width, 30f, 24, WindowKit.Ink, fonts.Heading);
 
-            // The amount is set as a heading and what it changes as a label after it.
-            var effect = mod.Effect.ToUpperInvariant();
-            var split = effect.IndexOf(' ');
-            var amount = WindowKit.Label(body, "Effect", split < 0 ? effect : effect.Substring(0, split), Inset, 54f,
-                width, 30f, 25, WindowKit.Ink, fonts.Heading);
-            if (split >= 0)
-                WindowKit.Label(body, "Unit", effect.Substring(split + 1), Inset + amount.preferredWidth + 8f, 58f,
-                    width, 26f, 16, WindowKit.Ink, fonts.Label);
+            var effect = WindowKit.Label(body, "Effect", mod.Effect.ToUpperInvariant(), Inset, 56f, width, EffectHeight,
+                17, WindowKit.Ink, fonts.Label, TextAnchor.UpperLeft);
+            effect.horizontalOverflow = HorizontalWrapMode.Wrap;
 
             WindowKit.Rule(body, Inset, 121f, width);
             WindowKit.Captioned(body, "Landing", "ON", landing.ToUpperInvariant(), Inset, 134f, width, 16,

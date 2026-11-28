@@ -3,14 +3,17 @@ using System.Linq;
 using System.Reflection;
 using Combat.Targeting;
 using Damage;
+using Loot;
 using Movement;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Keystones;
 using Ships.Damage;
 using Ships.Keystones.Kits;
 using Ships.Keystones.Tells;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Registry;
 using Substrate;
 using UnityEditor;
@@ -55,6 +58,10 @@ namespace Tests.EditMode.Ships
             so.FindProperty("cooldown").floatValue = Cooldown;
             var window = so.FindProperty("window");
             if (window != null) window.floatValue = Window;
+            WireKey(so, "riposte", "Riposte");
+            WireKey(so, "batteringRam", "BatteringRam");
+            WireKey(so, "chainRam", "ChainRam");
+            WireKey(so, "doubleDash", "DoubleDash");
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
         }
@@ -110,28 +117,38 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
-        public void RamDash_BlocksOnlyCollisions_WhileLive()
+        public void RamDash_AbsorbsEveryFrontalHit_ThroughTheBrakeAndTheLiveRam()
         {
             var ram = NewRam();
             var kin = Facing(0f);
-            var collision = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
-            Assert.That(ram.Blocks(in collision), Is.False, "not live before activating");
+            Assert.That(ram.Blocks(Hit(DamageKind.Laser, Vector2.up)), Is.False, "nothing is braced before activating");
 
             ram.Step(in kin, 1f, Dt, out _);
             Assert.That(ram.Braking, Is.True);
-            Assert.That(ram.Active, Is.False);
-            Assert.That(ram.Blocks(in collision), Is.False, "no protection during the brake");
+            AssertBracesOnlyTheFront("during the brake");
 
             while (ram.Braking)
                 ram.Step(in kin, 0f, Dt, out _);
-
             Assert.That(ram.RamLive, Is.True);
-            Assert.That(ram.Blocks(in collision), Is.True, "collision damage is dropped while the ram is live");
-            Assert.That(ram.Blocks(in AnyHit), Is.False, "a missile still lands on a charging Bulwark");
+            AssertBracesOnlyTheFront("while the ram is live");
 
             while (ram.RamLive)
                 ram.Step(in kin, 0f, Dt, out _);
-            Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
+            Assert.That(ram.Blocks(Hit(DamageKind.Collision, Vector2.up)), Is.False, "an unspent ram expires after its window");
+
+            void AssertBracesOnlyTheFront(string phase)
+            {
+                foreach (var kind in new[] { DamageKind.Laser, DamageKind.Collision })
+                {
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.up)), Is.True, $"{kind} ahead of the nose, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, new Vector2(0.8f, 1f))), Is.True, $"{kind} inside the brace angle, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.right)), Is.False, $"{kind} beside the ship, {phase}");
+                    Assert.That(ram.Blocks(Hit(kind, Vector2.down)), Is.False, $"{kind} behind the ship, {phase}");
+                }
+            }
+
+            DamageInfo Hit(DamageKind kind, Vector2 dir) => new(10f, kind, ShipId.Invalid, 0f, Vector3.zero,
+                ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));
         }
 
         [Test]
@@ -184,7 +201,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("surgeAcceleration").floatValue = 0f;
             so.FindProperty("massScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
-            ram.Initialize(new KeystoneHost(host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
+            ram.Initialize(new KeystoneHost(null, host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
             return ram;
         }
 
@@ -361,25 +378,17 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
-        public void RamDash_Brace_HalvesFrontalHits_DuringTheBrakeOnly()
+        public void RamDash_RecordsOnlyTheHitsItsBraceAbsorbed()
         {
             var ram = NewRam();
             var ahead = From(Vector2.up);
-            var beside = From(Vector2.right);
-            var behind = From(Vector2.down);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "before activation");
-
             var kin = Facing(0f);
             ram.Step(in kin, 1f, Dt, out _);
-            Assert.That(ram.Braking, Is.True);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(0.5f), "ahead of the nose");
-            Assert.That(ram.DamageScale(in beside), Is.EqualTo(1f), "beside the ship");
-            Assert.That(ram.DamageScale(in behind), Is.EqualTo(1f), "behind the ship");
 
-            while (ram.Braking)
-                ram.Step(in kin, 0f, Dt, out _);
-            Assert.That(ram.RamLive, Is.True);
-            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "after launch");
+            ram.NotifyBlocked(ahead);
+            ram.NotifyBlocked(From(Vector2.down));
+            Assert.That(ram.BracedHits, Is.EqualTo(1), "a hit blocked by something else is not the brace's");
+            Assert.That(ram.LastBracedPoint, Is.EqualTo(ahead.HitPoint), "the tell lights where it landed");
 
             DamageInfo From(Vector2 dir) => new(20f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero,
                 ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));
@@ -445,6 +454,118 @@ namespace Tests.EditMode.Ships
                 var rad = angleDeg * Mathf.Deg2Rad;
                 return new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * 8f;
             }
+        }
+
+        [Test]
+        public void ChainRam_AShipKill_RefundsTheWholeCooldown([Values] bool held, [Values] bool kills)
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("cooldown").floatValue = 7f;
+            so.FindProperty("hitCooldown").floatValue = 3.5f;
+            so.FindProperty("shipDamage").floatValue = 80f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            if (held) ram.Behaviours.Set(new BehaviourMod[] { Key("ChainRam") });
+
+            contact = new GameObject("Ram target");
+            contact.transform.position = ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(Vector2.up * 3f);
+            var collider = contact.AddComponent<BoxCollider>();
+            var damage = contact.AddComponent<DamageController>();
+            damage.PopulateSettings(new ResolvedShipStats
+            {
+                maxHealth = kills ? 10f : 1000f,
+                maxShield = 1f,
+                shieldRegenRate = 0f,
+                shieldRegenDelay = 1f,
+            });
+            DamageableColliders.Register(damage, new[] { collider });
+            Physics.SyncTransforms();
+
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 1f, Vector3.zero, collider, null, Vector3.zero, 1f, 0f));
+
+            Assert.That(damage.Health.CurrentValue <= 0f, Is.EqualTo(kills), "test premise: the ram kills or not");
+            if (held && kills)
+            {
+                Assert.That(ram.Ready, Is.True, "a kill refunds the whole cooldown");
+                return;
+            }
+            Assert.That(ram.CooldownRemaining, Is.GreaterThan(3f), "only the contact's part refund");
+        }
+
+        [Test]
+        public void DoubleDash_AFreshPressFiresTheSecondDash_ThenTheCooldownStarts([Values] bool held)
+        {
+            var guard = NewKit<GuardDash>();
+            if (held) guard.Behaviours.Set(new BehaviourMod[] { Key("DoubleDash") });
+            var kin = Facing(0f);
+
+            guard.Step(in kin, 1f, Dt, out var first);
+            Assert.That(first, Is.True);
+            guard.Step(in kin, 1f, Dt, out var heldOn);
+            Assert.That(heldOn, Is.False, "the press that dashed, still held, fires nothing");
+            guard.Step(in kin, 0f, Dt, out _);
+            var impulse = guard.Step(in kin, 1f, Dt, out var second).Impulse;
+
+            Assert.That(second, Is.EqualTo(held), held ? "a fresh press fires the second dash" : "without Double dash the kit cools");
+            if (!held) return;
+            Assert.That(impulse.magnitude, Is.EqualTo(Impulse).Within(1e-3f), "the second is a full dash");
+            Assert.That(guard.Guarding, Is.True, "with its own guard");
+            Assert.That(guard.CooldownRemaining, Is.EqualTo(Cooldown).Within(1e-4f), "the cooldown starts from the second");
+            guard.Step(in kin, 0f, Dt, out _);
+            guard.Step(in kin, 1f, Dt, out var third);
+            Assert.That(third, Is.False, "two dashes, not three");
+        }
+
+        [Test]
+        public void DoubleDash_AnUnusedSecond_StartsTheCooldownWhenItsWindowCloses()
+        {
+            const float window = 0.5f;
+            var guard = NewKit<GuardDash>();
+            var so = new SerializedObject(guard);
+            so.FindProperty("doubleDashWindow").floatValue = window;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            guard.Behaviours.Set(new BehaviourMod[] { Key("DoubleDash") });
+            var kin = Facing(0f);
+
+            guard.Step(in kin, 1f, Dt, out _);
+            guard.Step(in kin, 0f, Dt, out _);
+            Assert.That(guard.Ready, Is.True, "released, the second dash waits");
+            var steps = 2;
+            while (guard.Ready && steps < 200)
+            {
+                guard.Step(in kin, 0f, Dt, out _);
+                steps++;
+            }
+
+            Assert.That(steps * Dt, Is.EqualTo(window).Within(3f * Dt), "the second waits out its window");
+            Assert.That(guard.CooldownRemaining, Is.EqualTo(Cooldown).Within(1e-4f), "then the cooldown starts");
+        }
+
+        // Steps of 1/8 s keep every clock sum exact, so the last step inside the window is unambiguous.
+        [Test]
+        public void DoubleDash_TheSecondFiresOnlyOnAStepInsideItsWindow([Values] bool lastStepInside)
+        {
+            const float step = 0.125f;
+            var guard = NewKit<GuardDash>();
+            var so = new SerializedObject(guard);
+            so.FindProperty("doubleDashWindow").floatValue = 0.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            guard.Behaviours.Set(new BehaviourMod[] { Key("DoubleDash") });
+            var kin = Facing(0f);
+
+            guard.Step(in kin, 1f, step, out _);
+            guard.Step(in kin, 0f, step, out _);
+            guard.Step(in kin, 0f, step, out _);
+            if (!lastStepInside) guard.Step(in kin, 0f, step, out _);
+            guard.Step(in kin, 1f, step, out var second);
+
+            Assert.That(second, Is.EqualTo(lastStepInside),
+                lastStepInside ? "a press on the last step inside the window fires the second" : "a press as the window closes does not");
         }
 
         [Test]
@@ -561,8 +682,51 @@ namespace Tests.EditMode.Ships
             so.FindProperty("thrustScale").floatValue = 1.5f;
             so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
+            WireKey(so, "snapTurn", "SnapTurn");
+            WireKey(so, "orbit", "Orbit");
+            WireKey(so, "relentless", "Relentless");
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
+        }
+
+        private static void WireKey(SerializedObject kit, string field, string mod)
+        {
+            var key = kit.FindProperty(field);
+            if (key != null)
+                key.objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<KeystoneMod>($"Assets/Settings/Ships/Keystones/Mods/{mod}.asset");
+        }
+
+        private static KeystoneMod SnapTurn => Key("SnapTurn");
+
+        private static KeystoneMod Key(string mod) =>
+            AssetDatabase.LoadAssetAtPath<KeystoneMod>($"Assets/Settings/Ships/Keystones/Mods/{mod}.asset");
+
+        [Test]
+        public void SnapTurn_SwingsTheWholeVelocityOntoTheNose_AsTheWindowEnds_KeepingSpeed([Values] bool held)
+        {
+            var kit = NewOverdrive();
+            if (held) kit.Behaviours.Set(new BehaviourMod[] { SnapTurn });
+            // Nose along -x, sliding along +y.
+            var sliding = new Kinematics(Vector2.zero, new Vector2(0f, 30f), 90f, 0f, 0f);
+            Assert.That(sliding.Forward.x, Is.EqualTo(-1f).Within(1e-4f));
+
+            var swing = kit.Step(in sliding, 1f, Dt, out _, 32f).Acceleration;
+            while (kit.Active)
+            {
+                Assert.That(swing, Is.EqualTo(Vector2.zero), "nothing swings inside the window");
+                swing = kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration;
+            }
+
+            var after = sliding.vel + swing * Dt;
+            if (!held)
+            {
+                Assert.That(swing, Is.EqualTo(Vector2.zero), "without Snap turn the ship slides on");
+                return;
+            }
+            Assert.That(after.x, Is.EqualTo(-30f).Within(1e-3f), "the whole velocity lies on the nose");
+            Assert.That(after.y, Is.EqualTo(0f).Within(1e-3f));
+            Assert.That(kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration, Is.EqualTo(Vector2.zero), "it swings once");
         }
 
         [Test]
@@ -865,7 +1029,7 @@ namespace Tests.EditMode.Ships
         {
             var channel = new LockChannel();
             var kit = NewStealth();
-            kit.Initialize(new KeystoneHost(host.GetComponent<Rigidbody>(), 1f, channel));
+            kit.Initialize(new KeystoneHost(null, host.GetComponent<Rigidbody>(), 1f, channel));
             var kin = Facing(0f);
 
             kit.ActivateOnArrival(in kin);
@@ -898,7 +1062,7 @@ namespace Tests.EditMode.Ships
             kit.Step(in kin, 0f, 0.2f, out _);
             Assert.That(kit.Telling, Is.True, "the tell starts at window - tellLead");
 
-            kit.NotifyFired();
+            kit.NotifyFired(WeaponSlot.Primary);
             Assert.That(kit.Telling, Is.False, "firing ends the tell");
 
             kit.ResetKeystone();
@@ -910,6 +1074,59 @@ namespace Tests.EditMode.Ships
             Assert.That(kit.Telling, Is.False, "the window ending ends the tell");
         }
 
+        [Test]
+        public void SilentRunning_RunsTheWindowOnlyWhileThrusting([Values] bool held)
+        {
+            var kit = NewStealth(window: 1f, tellLead: 0.4f);
+            if (held) kit.Behaviours.Set(new BehaviourMod[] { Key("SilentRunning") });
+            var kin = Facing(0f);
+            kit.ActivateOnArrival(in kin);
+
+            kit.Step(in kin, 0f, 1.5f, out _);
+            Assert.That(kit.Active, Is.EqualTo(held), held ? "a coast stays hidden" : "without Silent running the window runs on");
+            if (!held) return;
+
+            kit.Step(in kin, 0f, 0.5f, out _, thrusting: true);
+            Assert.That(kit.Active, Is.True, "half the window spent thrusting");
+            Assert.That(kit.Telling, Is.False);
+            kit.Step(in kin, 0f, 0.2f, out _, thrusting: true);
+            Assert.That(kit.Telling, Is.True, "the tell follows the thrust left");
+            kit.Step(in kin, 0f, 0.4f, out _, thrusting: true);
+            Assert.That(kit.Active, Is.False, "thrusting spends the rest");
+        }
+
+        [Test]
+        public void SilentRunning_ShowsTheShipAtItsHardCap_EvenCoasting()
+        {
+            var kit = NewStealth(window: 1f, tellLead: 0.4f);
+            var so = new SerializedObject(kit);
+            so.FindProperty("silentRunningCap").floatValue = 3f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            kit.Behaviours.Set(new BehaviourMod[] { Key("SilentRunning") });
+            var kin = Facing(0f);
+            kit.ActivateOnArrival(in kin);
+
+            kit.Step(in kin, 0f, 2.7f, out _);
+            Assert.That(kit.Active && kit.Telling, Is.True, "near the cap the hull tells");
+            kit.Step(in kin, 0f, 0.4f, out _);
+            Assert.That(kit.Active, Is.False, "the cap shows the ship");
+        }
+
+        [Test]
+        public void QuietOrdnance_OnlyThePrimarysShotsBreakStealth([Values] bool held)
+        {
+            var kit = NewStealth(window: 10f);
+            if (held) kit.Behaviours.Set(new BehaviourMod[] { Key("QuietOrdnance") });
+            var kin = Facing(0f);
+            kit.ActivateOnArrival(in kin);
+
+            kit.NotifyFired(WeaponSlot.Secondary);
+            Assert.That(kit.Active, Is.EqualTo(held), held ? "ordnance leaves quietly" : "without Quiet ordnance any shot shows the ship");
+            if (!held) return;
+            kit.NotifyFired(WeaponSlot.Primary);
+            Assert.That(kit.Active, Is.False, "the primary still breaks stealth");
+        }
+
         private Stealth NewStealth(float window = 1f, float tellLead = 0.4f)
         {
             host = new GameObject("Stealth");
@@ -919,8 +1136,10 @@ namespace Tests.EditMode.Ships
             so.FindProperty("cooldown").floatValue = Cooldown;
             so.FindProperty("window").floatValue = window;
             so.FindProperty("tellLead").floatValue = tellLead;
+            WireKey(so, "silentRunning", "SilentRunning");
+            WireKey(so, "quietOrdnance", "QuietOrdnance");
             so.ApplyModifiedPropertiesWithoutUndo();
-            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
             return kit;
         }
 

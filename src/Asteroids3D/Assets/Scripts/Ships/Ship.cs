@@ -17,6 +17,7 @@ using Ships.Weapons;
 using Movement;
 using UnityEngine;
 using Ships.Registry;
+using Ships.Status;
 using Substrate.Services.Projectiles;
 using Cameras.Shake;
 
@@ -59,6 +60,21 @@ namespace Ships
                  "Null → the ship has no visuals.")]
         [SerializeField] private ShipVisualRig visualRig;
 
+        [Header("Passives")]
+        [Stat, SerializeField] private Backstab backstab = new();
+
+        [Stat, SerializeField] private ShrapnelRocks shrapnelRocks = new();
+
+        [Stat, SerializeField] private Headstrong headstrong = new();
+
+        [Stat, SerializeField] private Turret turret = new();
+
+        [Stat, SerializeField] private LieInWait lieInWait = new();
+
+        [SerializeField] private CleanKill cleanKill = new();
+
+        [Stat, SerializeField] private DuckAndLoad duckAndLoad = new();
+
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
@@ -68,6 +84,20 @@ namespace Ships
         public ShipVisualRig VisualRig => visualRig;
 
         public Keystone KeystonePrefab => keystone;
+
+        public Backstab Backstab => backstab;
+
+        public ShrapnelRocks ShrapnelRocks => shrapnelRocks;
+
+        public Headstrong Headstrong => headstrong;
+
+        public Turret Turret => turret;
+
+        public LieInWait LieInWait => lieInWait;
+
+        public CleanKill CleanKill => cleanKill;
+
+        public DuckAndLoad DuckAndLoad => duckAndLoad;
 
         /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
         public Keystone Keystone { get; private set; }
@@ -101,9 +131,15 @@ namespace Ships
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public ShakeChannel Shake { get; } = new ShakeChannel();
+        public StatusEffects Status { get; } = new StatusEffects();
+
+        /// <summary>The held passive mods, which ship-level consumers read.</summary>
+        public HeldBehaviours Behaviours { get; } = new HeldBehaviours();
         public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
+        public float ShotDamageScale => Keystone ? Keystone.ShotDamageScale : 1f;
+        public float RecoveryScale => duckAndLoad.RecoveryScale(Lock, Time.time);
 
         Transform IShipStatus.Transform => transform;
         void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
@@ -111,6 +147,7 @@ namespace Ships
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
         public bool BoostAvailable => Keystone && Keystone.Ready;
+        public bool KeystoneTakesPress => Keystone && Keystone.TakesPress;
         public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
         public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
@@ -137,8 +174,20 @@ namespace Ships
             Rigidbody        = GetComponent<Rigidbody>();
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
-            if (weapons) weapons.Initialize(() => Kinematics);
+            if (weapons) weapons.Initialize(() => Kinematics, Status, turret);
             if (keystone) Keystone = Instantiate(keystone, transform);
+            Behaviours.Changed += ReadPassives;
+        }
+
+        private void ReadPassives()
+        {
+            backstab.Read(Behaviours);
+            shrapnelRocks.Read(Behaviours);
+            headstrong.Read(Behaviours);
+            turret.Read(Behaviours);
+            lieInWait.Read(Behaviours);
+            cleanKill.Read(Behaviours);
+            duckAndLoad.Read(Behaviours);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -159,6 +208,7 @@ namespace Ships
             var radius = Stats?.shipRadius ?? 1f;
             Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
             Stats.shipRadius = radius;
+            turret.Scale(Stats);
         }
 
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
@@ -180,6 +230,8 @@ namespace Ships
         private void OnModsChanged()
         {
             if (Weapons) Weapons.SetMods(mods);
+            if (Keystone) Keystone.Behaviours.Set(mods.Behaviours(mod => mod.LandsOn(keystone)));
+            Behaviours.Set(mods.Behaviours(mod => mod.LandsOnShip));
             ReResolve(Vitals.Rescale);
         }
 
@@ -246,10 +298,11 @@ namespace Ships
             this.scale = scale ?? ShipScale.One;
             transform.localScale *= this.scale.Size;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons, Status);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
             if (Weapons) Weapons.Fired += Keystone.NotifyFired;
+            if (Weapons) Weapons.Fired += lieInWait.NotifyFired;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -263,7 +316,7 @@ namespace Ships
             else if (Rigidbody) Rigidbody.inertiaTensor *= this.scale.Mass * this.scale.Size * this.scale.Size;
 
             Stats.shipRadius = DeriveShipRadius();
-            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));
+            Keystone.Initialize(new KeystoneHost(this, Rigidbody, Stats.shipRadius, Lock, this, projectiles));
 
             baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
@@ -286,6 +339,10 @@ namespace Ships
 
         private void FixedUpdate()
         {
+            Status.Tick(Time.fixedDeltaTime);
+            if (isInitialized && lieInWait.Held)
+                lieInWait.Step(Time.fixedDeltaTime, transform.position, ShipRadius, Rigidbody.mass, Kinematics.vel,
+                    Movement.CurrentCommand, Lock);
             if (isInitialized && Keystone && Keystone.ContactsByHull)
                 ReportHullContacts();
         }
@@ -380,6 +437,8 @@ namespace Ships
             Weapons?.ResetSystem();
             Movement.ResetMovement();
             Keystone.ResetKeystone();
+            lieInWait.Reset(Lock);
+            Status.Clear();
             Damage.ResetDamageState();
             KinematicsPoller?.Poll();
             gameObject.SetActive(true);

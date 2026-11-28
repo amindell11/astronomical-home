@@ -84,7 +84,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | field anchor / subject (the transform an asteroid field streams and LODs against) / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
-| **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
+| **mod** | lull mod (§2 → *lull mod*): a behaviour mod, a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of any kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("behaviour mod", "weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") · shake layer (§2) | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -562,7 +562,7 @@ Format: **term** — definition. *(authority)*
   pans and zooms onto the rival, and the `rival-introduced` lines (a companion warning,
   the rival's hail as reply) speak in place of combat start. Every run, not once per
   save, ruled by the game lead on 2026-11-27.
-  *(GameHost.closeUpFeel, RivalCloseUp)*
+  *(GameHost.closeUpFeel, CloseUp)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap
@@ -999,8 +999,8 @@ Format: **term** — definition. *(authority)*
   one ship's pick. A phrase has a tell the player can spot at its start, teeth
   that make it dangerous in a new way while it runs, and a window where the
   enemy has committed and the player can use that commitment. Coined
-  2026-11-25 as a research direction. No shipped system flies one yet, and
-  how a phrase composes with tactic picks and tempers is unruled.
+  2026-11-25 as a research direction. The shipped form is the *wave play*
+  (2026-11-27); use that term for anything in the game.
   *(doc/design/Design/Gameplay/Combat.md; #1589)*
 - **geometry verb**. A player action that changes positions or angles in a
   fight, such as a blast that moves ships, a ram, a blink, or a rock knocked
@@ -1026,10 +1026,22 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
-  ship's position and velocity and nothing of its brain, and the leader never commands it.
+- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. Outside a
+  *wave play* the minion observes that ship's position and velocity and nothing of its brain. In a wave play the
+  rival commands its minions (arye, 2026-11-27, #1765, undoing "the leader never commands").
   When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
+- **wave play**. What a wave flies together under its rival: a formation, one *read* of the player, and two
+  answers. The rival's temper lists the plays it can call, and a wave whose rival lists none flies without one.
+  A minion under a live play flies its order even when hurt. When the rival dies the play is broken and the
+  minions fly as they do without a leader. When the rival loses the player the wave searches in formation, and
+  any ship that sees the player starts the play again. Coined 2026-11-27, replacing the research term
+  *enemy phrase* for what ships. ⚠ "Play" alone also means Unity's play mode; say "wave play".
+  *(WavePlay, PlayCall, TacticsSettings.plays; #1765)*
+- **read** (of a wave play). The one moment a wave play samples what the player is doing and, after the play's
+  read delay, commits to one of its two answers. The delay is why a wave never reacts on the frame the player
+  moves. ⚠ Qualify it outside a wave-play context: "read" is also an ordinary verb here.
+  *(WavePlay.Read, PlayCall.Command)*
 - **regroup**. What a minion whose temper says so does when its leader dies: it
   flees with guns cold and leaves past the temper's jump distance, and the wave
   director sends it again with the sector's next rival's wave (never with a
@@ -1096,10 +1108,27 @@ Format: **term** — definition. *(authority)*
   rises and keeps its fraction. Only a bound stack mods a ship, so enemies and
   the hangar read authored. Sibling of a weapon mod; not a ship module.
   *(ShipMod, ShipMods, ResolvedShipStats.Resolve)*
-- **lull mod** — a weapon mod or a ship mod: what the lull pool holds and a
-  lull pick offers. A run's picks ride one stack the player rig binds to its
-  ship once; the ship re-reads it on every resolve and on every change.
-  *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **lull mod** — a behaviour mod, a weapon mod or a ship mod. The lull pool
+  and its offers hold behaviour mods only (arye, 2026-11-27); weapon and ship
+  mods survive as elite tuning. A run's picks ride one stack the player rig
+  binds to its ship once; the ship re-reads it on every resolve and on every
+  change. *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **behaviour mod** — a lull mod that changes how a weapon, an ordnance, a
+  keystone or the whole ship plays, not one of its numbers. The mod asset is
+  only a key: the part that owns the behaviour keeps its tunables and asks its
+  held set whether the key is held, and the set tells it when that changes.
+  Three kinds: a weapon behaviour mod lands on the weapon or ordnance prefabs
+  it lists, a keystone mod on the kits it lists, a passive on any ship. Each is
+  offered only while the player carries a part it lands on and doesn't already
+  hold it (a second copy changes nothing), and a swap idles a weapon key the
+  new mount doesn't take. Its card line is authored text.
+  *(BehaviourMod, WeaponBehaviourMod, KeystoneMod, PassiveMod, HeldBehaviours)*
+- **status effect** — a timed effect one ship puts on another: stunned (no
+  thrust, turning, firing, locks or keystone), weapons jammed (no firing or
+  locks), engines out (no thrust or strafe; the ship coasts and can turn),
+  suppressed (a lower speed cap and no keystone).
+  Re-applying keeps the timer that ends later. It runs on the ship's
+  fixed-step clock and clears on respawn. *(StatusEffects, Ship.Status)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
   or a skip, when the player claims a *mod station*; the clock runs on after
   it. *(LullPickScreen, GameHost)*

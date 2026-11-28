@@ -10,6 +10,8 @@ using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Mods;
+using Ships.Status;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 
@@ -40,19 +42,25 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
-        public event Action Fired;
+        public event Action<WeaponSlot> Fired;
 
         private WeaponContext context;
         private LullModStack mods;
+        private StatusEffects status;
+        private Turret turret;
+        private Quaternion centreAuthored, leftAuthored, rightAuthored;
 
         private void Awake()
         {
             RequireSocket(centreSocket, "Centre");
             RequireSocket(leftSocket, "Left");
             RequireSocket(rightSocket, "Right");
+            centreAuthored = centreSocket.localRotation;
+            leftAuthored = leftSocket.localRotation;
+            rightAuthored = rightSocket.localRotation;
             RequireKinds(name, primaryMount, secondaryMount);
-            Primary = ReplaceMount(null, primaryMount);
-            Secondary = ReplaceMount(null, secondaryMount);
+            Primary = ReplaceMount(WeaponSlot.Primary, null, primaryMount);
+            Secondary = ReplaceMount(WeaponSlot.Secondary, null, secondaryMount);
             Sensor = FindMountSensor();
         }
 
@@ -88,13 +96,13 @@ namespace Ships.Weapons
             if (newPrimary != primaryMount)
             {
                 primaryMount = newPrimary;
-                Primary = ReplaceMount(Primary, newPrimary);
+                Primary = ReplaceMount(WeaponSlot.Primary, Primary, newPrimary);
                 changed = true;
             }
             if (newSecondary != secondaryMount)
             {
                 secondaryMount = newSecondary;
-                Secondary = ReplaceMount(Secondary, newSecondary);
+                Secondary = ReplaceMount(WeaponSlot.Secondary, Secondary, newSecondary);
                 changed = true;
             }
 
@@ -115,17 +123,32 @@ namespace Ships.Weapons
 
         private void HandMods()
         {
-            if (Primary) Primary.SetMods(mods?.For(Primary, primaryMount) ?? WeaponMods.None);
-            if (Secondary) Secondary.SetMods(mods?.For(Secondary, secondaryMount) ?? WeaponMods.None);
+            if (Primary) HandMods(Primary, primaryMount);
+            if (Secondary) HandMods(Secondary, secondaryMount);
         }
 
-        public bool Fits(WeaponMod mod) => mod.Fits(Primary, primaryMount) || mod.Fits(Secondary, secondaryMount);
+        private void HandMods(WeaponComponent mount, WeaponComponent prefab)
+        {
+            mount.SetMods(mods?.For(mount, prefab) ?? WeaponMods.None);
+            mount.Behaviours.Set(mods?.Behaviours(mod => mod.LandsOn(prefab)) ?? Array.Empty<BehaviourMod>());
+        }
+
+        public bool Fits(WeaponMod mod) => Lands(mod.Fits);
+
+        public bool Fits(WeaponBehaviourMod mod) => Lands((_, prefab) => mod.LandsOn(prefab));
 
         /// <summary>The mounted weapons <paramref name="mod"/> lands on, by display name, for the pick card.</summary>
-        public string LandingNames(WeaponMod mod)
+        public string LandingNames(WeaponMod mod) => LandingNames(mod.Fits);
+
+        public string LandingNames(WeaponBehaviourMod mod) => LandingNames((_, prefab) => mod.LandsOn(prefab));
+
+        private bool Lands(Func<WeaponComponent, WeaponComponent, bool> lands) =>
+            lands(Primary, primaryMount) || lands(Secondary, secondaryMount);
+
+        private string LandingNames(Func<WeaponComponent, WeaponComponent, bool> lands)
         {
-            var primary = mod.Fits(Primary, primaryMount) ? Primary.DisplayName : null;
-            var secondary = mod.Fits(Secondary, secondaryMount) ? Secondary.DisplayName : null;
+            var primary = lands(Primary, primaryMount) ? Primary.DisplayName : null;
+            var secondary = lands(Secondary, secondaryMount) ? Secondary.DisplayName : null;
             if (primary != null && secondary != null)
                 return primary == secondary ? primary : $"{primary} · {secondary}";
             return primary ?? secondary ?? string.Empty;
@@ -148,22 +171,33 @@ namespace Ships.Weapons
 
             public void Fire(WeaponSlot slot, in WeaponCommand cmd)
             {
-                if (!owner || !owner.enabled) return;
+                if (!owner || !owner.enabled || !owner.status.CanFire) return;
                 var mount = owner.Mount(slot);
                 if (!mount) return;
+                owner.AimSockets(cmd.targetPoint);
                 if (cmd.reload) mount.Reload();
                 mount.HandleTrigger(in cmd, projectiles);
             }
         }
 
-        private void RaiseFired() => Fired?.Invoke();
+        private void RaisePrimaryFired() => Fired?.Invoke(WeaponSlot.Primary);
 
-        private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab)
+        private void RaiseSecondaryFired() => Fired?.Invoke(WeaponSlot.Secondary);
+
+        private void AimSockets(Vector3 targetPoint)
         {
+            turret.Aim(centreSocket, centreAuthored, targetPoint);
+            turret.Aim(leftSocket, leftAuthored, targetPoint);
+            turret.Aim(rightSocket, rightAuthored, targetPoint);
+        }
+
+        private WeaponComponent ReplaceMount(WeaponSlot slot, WeaponComponent current, WeaponComponent prefab)
+        {
+            Action raise = slot == WeaponSlot.Primary ? (Action)RaisePrimaryFired : RaiseSecondaryFired;
             if (current)
             {
                 // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
-                current.OnFire -= RaiseFired;
+                current.OnFire -= raise;
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
@@ -171,7 +205,7 @@ namespace Ships.Weapons
             if (!prefab) return null;
             var mounted = Instantiate(prefab, transform);
             mounted.Initialize(centreSocket, leftSocket, rightSocket);
-            mounted.OnFire += RaiseFired;
+            mounted.OnFire += raise;
             return mounted;
         }
 
@@ -183,9 +217,11 @@ namespace Ships.Weapons
             return null;
         }
 
-        /// <summary>Supplies the ship pose used to build each slot's firing solution.</summary>
-        public void Initialize(Func<Kinematics> pose)
+        /// <summary>Supplies the ship pose used to build each slot's firing solution, the status that gates firing, and the Turret passive that swings the sockets to the aim point.</summary>
+        public void Initialize(Func<Kinematics> pose, StatusEffects status, Turret turret)
         {
+            this.status = status ?? throw new ArgumentNullException(nameof(status));
+            this.turret = turret ?? throw new ArgumentNullException(nameof(turret));
             context = new WeaponContext(this, pose);
         }
 

@@ -4,6 +4,7 @@ using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Ships.Registry;
+using Ships.Status;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -61,6 +62,37 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
 
             Assert.AreEqual(LockState.Idle, sensor.State, "a wingmate in cone and range is never a lock candidate");
+        }
+
+        [UnityTest]
+        public IEnumerator AJamOrStun_DropsALockInProgress_AndHoldsOffANewOne()
+        {
+            var sensor = SpawnInCone(shooterTeam: 0, targetTeam: 1);
+            sensor.SetRegistry(registry);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Locking, sensor.State, "test premise: a lock is in progress");
+
+            shooter.Status.Apply(StatusEffect.WeaponsJammed, 5f);
+            yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Idle, sensor.State, "the jam drops the lock in progress");
+
+            for (var i = 0; i < 10; i++) yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Idle, sensor.State, "no new lock starts while jammed");
+        }
+
+        [UnityTest]
+        public IEnumerator AStun_DropsAnAcquiredLock()
+        {
+            var sensor = SpawnInCone(shooterTeam: 0, targetTeam: 1);
+            sensor.SetRegistry(registry);
+            for (var i = 0; i < 200 && sensor.State != LockState.Locked; i++) yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Locked, sensor.State, "test premise: the lock is acquired");
+
+            shooter.Status.Apply(StatusEffect.Stunned, 5f);
+            yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Idle, sensor.State, "the stun drops the acquired lock");
+            Assert.IsNull(sensor.CurrentTarget);
         }
 
         private LockOnSensor SpawnInCone(int shooterTeam, int targetTeam)

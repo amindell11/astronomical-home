@@ -5,11 +5,13 @@ using Asteroids;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
 using Damage;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Ships.Registry;
 using Substrate;
 using Tests.PlayMode.Common;
@@ -26,6 +28,7 @@ namespace Tests.PlayMode.Keystones
         private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
+        private const string BatteringRamPath = "Assets/Settings/Ships/Keystones/Mods/BatteringRam.asset";
         private const float RockScale = 1.65f;
         private const int MaxSteps = 60;
 
@@ -85,6 +88,21 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
+        public IEnumerator BatteringRam_ShattersARockTwiceTheRammingMass_ThatStopsTheRamWithoutIt([Values] bool held)
+        {
+            yield return SpawnBulwark();
+            if (held) ram.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(BatteringRamPath) });
+            var massScale = new SerializedObject(ram).FindProperty("massScale").floatValue;
+            var rock = SpawnRock(Nose * 5f, mass: 2f * bulwark.Rigidbody.mass * massScale, onFragment: null);
+
+            yield return RamUntilResolved();
+
+            Assert.That(rock.Damage.Health <= 0f, Is.EqualTo(held),
+                held ? "Battering ram breaks a rock up to three times the ramming mass" : "without it the rock survives");
+            Assert.That(ram.PaidActivations, Is.EqualTo(held ? 1 : 0));
+        }
+
+        [UnityTest]
         public IEnumerator Ship_TakesRamDamageScaledByTheHit_CreditedToTheBulwark_Once()
         {
             yield return SpawnBulwark();
@@ -126,7 +144,7 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
-        public IEnumerator Brace_HalvesAFrontalHit_DuringTheBrake()
+        public IEnumerator Brace_AbsorbsAFrontalHit_DuringTheBrake()
         {
             yield return SpawnBulwark();
             bulwark.Movement.Drive(new PilotCommand { boost = 1f });
@@ -134,7 +152,8 @@ namespace Tests.PlayMode.Keystones
             Assert.That(ram.Braking, Is.True, "the ram is braking");
 
             var centre = bulwark.Rigidbody.worldCenterOfMass;
-            Assert.That(Lost(centre + Nose * 5f), Is.EqualTo(10f).Within(1e-3f), "a hit ahead of the nose is braced");
+            Assert.That(Lost(centre + Nose * 5f), Is.EqualTo(0f).Within(1e-3f), "a hit ahead of the nose is absorbed");
+            Assert.That(ram.BracedHits, Is.EqualTo(1), "the brace's tell hears of it");
             Assert.That(Lost(centre - Nose * 5f), Is.EqualTo(20f).Within(1e-3f), "a hit from behind is not");
 
             float Lost(Vector3 point)

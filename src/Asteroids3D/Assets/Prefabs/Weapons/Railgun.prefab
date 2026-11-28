@@ -98,6 +98,7 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  deepStrike: {fileID: 11400000, guid: fa9836a677c44e44aae9310f36cd9d17, type: 2}
   holdRange: 30
   fireDistance: 45
   fireAngleTolerance: 2

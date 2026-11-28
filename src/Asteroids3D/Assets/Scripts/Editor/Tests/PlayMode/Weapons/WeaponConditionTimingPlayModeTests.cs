@@ -6,6 +6,7 @@ using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -68,6 +69,14 @@ namespace Tests.PlayMode.Weapons
             return go.AddComponent<T>();
         }
 
+        private static void WireKey(Object weapon, string field, string key)
+        {
+            var serialized = new SerializedObject(weapon);
+            serialized.FindProperty(field).objectReferenceValue =
+                TestAssets.Load<WeaponBehaviourMod>($"Assets/Settings/Weapons/Mods/Behaviours/{key}.asset");
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         private Laser Bolt()
         {
             var bolt = Template<Laser>();
@@ -104,6 +113,7 @@ namespace Tests.PlayMode.Weapons
         {
             var rippers = Template<Rippers>();
             rippers.projectilePrefab = Bolt();
+            WireKey(rippers, "suppression", "Suppression");
             AddCooldown(rippers, interval);
             rippers.gameObject.AddComponent<Rounds>().Configure(maxAmmo: 100, reloadTime: 1f);
 
@@ -122,6 +132,7 @@ namespace Tests.PlayMode.Weapons
             const int resumeStep = 26;
             var rippers = Template<Rippers>();
             rippers.projectilePrefab = Bolt();
+            WireKey(rippers, "suppression", "Suppression");
             AddCooldown(rippers, interval);
             rippers.gameObject.AddComponent<Rounds>().Configure(maxAmmo: 100, reloadTime: 1f);
 
@@ -143,6 +154,7 @@ namespace Tests.PlayMode.Weapons
         {
             var rippers = Template<Rippers>();
             rippers.projectilePrefab = Bolt();
+            WireKey(rippers, "suppression", "Suppression");
             AddCooldown(rippers, secondsBetweenShots: 0.2f);
             rippers.gameObject.AddComponent<Rounds>().Configure(maxAmmo: 4, reloadTime: 1f);
 
@@ -159,6 +171,8 @@ namespace Tests.PlayMode.Weapons
         {
             var lasers = Template<Lasers>();
             lasers.projectilePrefab = Bolt();
+            WireKey(lasers, "bankShot", "BankShot");
+            WireKey(lasers, "pointDefence", "PointDefence");
             AddCooldown(lasers, secondsBetweenShots: 0.1f);
             lasers.gameObject.AddComponent<Heat>().Configure(maxHeat: 100f, heatPerShot: 30f, coolingRate: 100f,
                 coolDownDelay: 0.1f, overheatPenaltyTime: 0.5f);

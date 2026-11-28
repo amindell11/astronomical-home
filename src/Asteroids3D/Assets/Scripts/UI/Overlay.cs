@@ -15,6 +15,7 @@ using Ships;
 using Ships.Command;
 using Utils;
 using System;
+using System.Collections.Generic;
 using UI.Objectives;
 using UI.Projection;
 using UI.Prompts;
@@ -203,8 +204,19 @@ namespace UI
             shipUnlock.Show(ship);
         }
 
-        public void ShowFirstRunPrompts(Func<bool> dismissed) =>
+        public IReadOnlyList<FirstRunPrompt> ShowMovementPrompts(Func<bool> dismissed) =>
+            FirstRunPrompt.ShowMovement(transform, readoutFont, labelFont, textMaterial, flightInput, dismissed,
+                () => CommLine.Speaking);
+
+        public IReadOnlyList<FirstRunPrompt> ShowFirstRunPrompts(Func<bool> dismissed) =>
             FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
                 dismissed, () => CommLine.Speaking);
+
+        public WorldLabel ShowWorldLabel(string text, Color tint, Vector3 worldPoint, Func<bool> ended) =>
+            WorldLabel.Show(canvases[0], gameplayCamera, labelFont, textMaterial, text, tint, worldPoint, ended);
+
+        public TutorialCard ShowTutorialCard(string text, TutorialCard.Spot spot, Func<bool> ended,
+            Func<bool> skippable = null) =>
+            TutorialCard.Show(transform, readoutFont, labelFont, textMaterial, text, spot, ended, skippable);
     }
 }

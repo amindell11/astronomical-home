@@ -3,6 +3,7 @@ using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using Substrate.Services.Projectiles;
 
 namespace Combat.Weapons.Arsenal
@@ -23,6 +24,11 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 10f;
         [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
         [Stat, SerializeField, Min(0f)] private float holdRange = 8f;
+
+        [Header("Stopping Power")]
+        [SerializeField] private WeaponBehaviourMod stoppingPower;
+        [Tooltip("With Stopping power held: extra impulse (N·s) per pellet, times how many of the pull's pellets have landed on that body so far.")]
+        [Stat, SerializeField, Min(0f)] private float stoppingShove = 150f;
 
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
@@ -54,6 +60,7 @@ namespace Combat.Weapons.Arsenal
             if (!TrySpendFireConditions()) return null;
 
             var muzzle = Muzzles[0];
+            var blast = Behaviours.Holds(stoppingPower) ? new PelletBlast(stoppingShove) : null;
             Laser first = null;
             var half = spreadDegrees * 0.5f;
             var last = pellets - 1;
@@ -61,6 +68,7 @@ namespace Combat.Weapons.Arsenal
             {
                 var yaw = last <= 0 ? 0f : Mathf.Lerp(-half, half, i / (float)last);
                 var pellet = Launch(muzzle, targetPoint, projectiles, yaw);
+                if (blast != null) ((Pellet)pellet).JoinBlast(blast);
                 if (!first) first = pellet;
             }
 

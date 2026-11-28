@@ -1,3 +1,5 @@
+using Ships.Mods;
+using Ships.Status;
 using System.Collections;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
@@ -70,7 +72,7 @@ namespace Tests.PlayMode.Crosshairs
             controller.primaryMount = weapon.IsOrdnance ? partner : weapon;
             controller.secondaryMount = weapon.IsOrdnance ? weapon : partner;
             mounts.SetActive(true);
-            controller.Initialize(() => default);
+            controller.Initialize(() => default, new StatusEffects(), new Turret());
             Rebind(controller);
             return controller;
         }

@@ -2,6 +2,7 @@ using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 
 namespace Combat.Weapons.Arsenal
 {
@@ -17,6 +18,13 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
         [Tooltip("Once the next shot would overheat, an AI gunner holds fire until heat falls to this fraction of max. 0 = vent to cold; 1 = fire again as soon as the next shot fits.")]
         [Stat, SerializeField, Range(0f, 1f)] private float ventTo = 1f;
+
+        [Header("Bank Shot")]
+        [SerializeField] private WeaponBehaviourMod bankShot;
+
+        [Header("Point Defence")]
+        [Tooltip("Without it held, bolts fly through enemy missiles and charges.")]
+        [SerializeField] private WeaponBehaviourMod pointDefence;
 
         [Header("Conditions")]
         [Stat, SerializeField] private Heat heat;
@@ -40,6 +48,12 @@ namespace Combat.Weapons.Arsenal
             base.Awake();
             if (!heat) heat = GetComponent<Heat>();
             if (!cooldown) cooldown = GetComponent<Cooldown>();
+        }
+
+        protected override void Prime(Laser bolt)
+        {
+            if (Behaviours.Holds(bankShot)) bolt.BankOnce();
+            if (!Behaviours.Holds(pointDefence)) bolt.PassOrdnance();
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
