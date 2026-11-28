@@ -298,9 +298,9 @@ namespace AI
             if (Gunner) Gunner.HoldFire();
         }
 
-        // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool Engaged => hasAnchor && (engagePrimary || engageSecondary);
 
+        // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
             keystone && Engaged
             && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
