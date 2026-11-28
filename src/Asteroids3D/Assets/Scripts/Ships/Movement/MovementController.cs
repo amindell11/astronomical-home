@@ -152,7 +152,7 @@ namespace Ships.Movement
             var bankTorqueApplied = bankError * settings.bankTorque - bankRate * settings.bankDamping;
             rb.AddTorque(transform.up * bankTorqueApplied, ForceMode.Force);
 
-            var world = GamePlane.PlaneDirToWorld(thrust + strafe) + GamePlane.PlaneDirToWorld(boost) / Time.fixedDeltaTime + GamePlane.PlaneDirToWorld(acceleration) * rb.mass;
+            var world = GamePlane.PlaneDirToWorld(thrust + strafe + boost / Time.fixedDeltaTime + acceleration * rb.mass);
             var local = transform.InverseTransformDirection(world);
             Applied = new AppliedThrust(
                 new Vector2(local.x / settings.maxStrafeForce, local.y / (local.y >= 0f ? settings.forwardForce : settings.reverseForce)),

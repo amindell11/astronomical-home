@@ -41,7 +41,7 @@ namespace Tests.PlayMode.Presentation
             applied = default;
             yield return null;
             yield return null;
-            CollectionAssert.AreEquivalent(new string[] { }, PlayingSockets());
+            Assert.That(PlayingSockets(), Is.Empty);
         }
 
         [UnityTest]

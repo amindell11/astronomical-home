@@ -108,19 +108,15 @@ namespace Ships
                 var bow = Band(yMax - 0.35f * length, yMax - 0.1f * length, "bow");
                 var stern = Band(yMin + 0.1f * length, yMin + 0.35f * length, "stern");
                 var flanks = Band(mid - 0.1f * length, mid + 0.1f * length, "mid");
-                var bowLeft = Nudge(bow.left);
-                var bowRight = Nudge(bow.right);
-                var sternLeft = Nudge(stern.left);
-                var sternRight = Nudge(stern.right);
                 var midLeft = Nudge(flanks.left);
                 var midRight = Nudge(flanks.right);
 
-                Set("BowLeft", bowLeft);
+                Set("BowLeft", Nudge(bow.left));
                 Set("BowForwardLeft", Prow(-1f));
-                Set("BowRight", bowRight);
+                Set("BowRight", Nudge(bow.right));
                 Set("BowForwardRight", Prow(1f));
-                Set("SternLeft", sternLeft);
-                Set("SternRight", sternRight);
+                Set("SternLeft", Nudge(stern.left));
+                Set("SternRight", Nudge(stern.right));
                 Set("RollLeftTop", midLeft);
                 Set("RollLeftBottom", midLeft);
                 Set("RollRightTop", midRight);
