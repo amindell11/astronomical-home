@@ -32,6 +32,8 @@ namespace UI.Projection
             return appearance;
         }
 
+        public void TakePointer() => multiplier.blocksRaycasts = true;
+
         private void Awake()
         {
             multiplier = GetComponent<CanvasGroup>();

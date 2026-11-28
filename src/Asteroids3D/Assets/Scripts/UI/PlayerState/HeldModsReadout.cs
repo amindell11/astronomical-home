@@ -56,7 +56,7 @@ namespace UI.PlayerState
             readout.font = font;
             readout.material = material;
             // Flight input reads devices, not uGUI, so hovering badges never eats aim or fire.
-            InstrumentAppear.Attach(go, projection, isVisible).GetComponent<CanvasGroup>().blocksRaycasts = true;
+            InstrumentAppear.Attach(go, projection, isVisible).TakePointer();
             readout.BuildCard();
             return readout;
         }
