@@ -1,3 +1,4 @@
+using Asteroids.Fields.FarField;
 using UnityEngine;
 
 namespace Asteroids.Spawning
@@ -58,6 +59,10 @@ namespace Asteroids.Spawning
 
         [Tooltip("Maximum size the asteroid object pool can grow to")]
         public int maxPoolSize = 100;
+
+        [Header("Far Field")]
+        [Tooltip("Billboards for rocks past the loaded field, baked from this asset's asteroid prefab. Unset for none.")]
+        public FarFieldAtlas farField;
 
         /// <summary>Radius of the largest mesh at the top of <see cref="massScaleRange"/>; fragments only shrink from it.</summary>
         public float MaxSpawnRadius

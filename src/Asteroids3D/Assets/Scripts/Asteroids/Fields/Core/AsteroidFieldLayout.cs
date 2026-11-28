@@ -212,6 +212,14 @@ namespace Asteroids.Fields.Core
             return Mathf.Clamp01(shaped);
         }
 
+        /// <summary>A rock lies inside its home cell, so a cell wholly past the field radius generates none.</summary>
+        public bool CellBeyondFieldRadius(int cellX, int cellY)
+        {
+            var min = new Vector2(cellX * p.CellSize, cellY * p.CellSize);
+            var nearest = Vector2.Max(min, Vector2.Min(Vector2.zero, min + new Vector2(p.CellSize, p.CellSize)));
+            return nearest.sqrMagnitude > p.FieldRadius * p.FieldRadius;
+        }
+
         /// <summary>Deterministic asteroid count for a cell, before field-radius culling.</summary>
         public int CountForCell(int cellX, int cellY)
         {
