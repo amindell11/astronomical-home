@@ -14,7 +14,7 @@ Every companion, crew and enemy line lives in one file:
 - **IDs** are never reused, even after a row is cut.
 - **Moment** must name a line slot on `CompanionLines.asset`. A row naming an unknown moment, or a reply that can never play, fails the load, and the line tests catch it.
 
-The file is plain CSV: a cell with a comma, a quote or a line break is wrapped in double quotes, and a quote inside is doubled. Any `.csv` change runs the game's tests before it lands; only `.md` and `doc/` changes skip them.
+The file is plain CSV: a cell with a comma, a quote or a line break is wrapped in double quotes, and a quote inside is doubled. Any `.csv` change runs the game's tests before it lands; the merge gate skips the run only for `.md` changes.
 
 ## Syncing with the Claude Sheet
 
@@ -26,4 +26,4 @@ The file is plain CSV: a cell with a comma, a quote or a line break is wrapped i
 
 When the same row changed on both sides since the last sync, the session asks the owner which side wins. It never picks one quietly.
 
-Line-writing taste and the tone rules live in the owner's graded notes and the `feedback-lore-line-taste` memory. They aren't repeated here.
+Line-writing taste and the tone rules live in the owner's graded notes and the `feedback_lore_line_taste` memory. They aren't repeated here.
