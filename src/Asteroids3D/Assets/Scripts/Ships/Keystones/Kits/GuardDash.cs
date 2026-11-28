@@ -31,7 +31,7 @@ namespace Ships.Keystones.Kits
         [SerializeField] private KeystoneMod doubleDash;
 
         [Tooltip("With Double dash, seconds after the first dash during which a fresh press fires the second.")]
-        [Stat, SerializeField] private float doubleDashWindow = 1f;
+        [Stat, SerializeField] private float doubleDashWindow = 3f;
 
         // The first dash fired with Double dash: pending until the press is released, then armed.
         private bool secondPending;
