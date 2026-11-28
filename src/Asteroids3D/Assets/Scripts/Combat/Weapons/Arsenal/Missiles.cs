@@ -84,9 +84,10 @@ namespace Combat.Weapons.Arsenal
 
             if (targetingComputer)
             {
+                var holdFor = targetingComputer.GraceLeft;
                 var lockedTarget = targetingComputer.ConsumeLock();
                 if (lockedTarget != null)
-                    proj.SetTarget(lockedTarget);
+                    proj.SetTarget(lockedTarget, holdFor);
             }
 
             return proj;

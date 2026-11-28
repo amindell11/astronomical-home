@@ -3,6 +3,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Registry;
 using Ships.Status;
 using Tests.PlayMode.Common;
@@ -95,12 +96,88 @@ namespace Tests.PlayMode
             Assert.IsNull(sensor.CurrentTarget);
         }
 
-        private LockOnSensor SpawnInCone(int shooterTeam, int targetTeam)
+        [UnityTest]
+        public IEnumerator PlayerLock_HoldsThroughLeavingTheCone_ForItsGrace()
+        {
+            var sensor = SpawnPlayerInCone();
+            sensor.SetRegistry(registry);
+            yield return UntilLocked(sensor);
+            Assert.AreEqual(LockState.Locked, sensor.State, "test premise: the lock is acquired");
+
+            PlaceTargetOutsideTheCone(sensor);
+            yield return Advance(0.5f);
+            Assert.AreEqual(LockState.Locked, sensor.State, "a player lock holds through the first half-second outside the cone");
+
+            yield return Advance(0.7f);
+            Assert.AreEqual(LockState.Idle, sensor.State, "a player lock drops once its grace has run out");
+        }
+
+        [UnityTest]
+        public IEnumerator EnemyLock_DropsAsSoonAsTheTargetLeavesTheCone()
+        {
+            var sensor = SpawnInCone(shooterTeam: 0, targetTeam: 1);
+            sensor.SetRegistry(registry);
+            yield return UntilLocked(sensor);
+            Assert.AreEqual(LockState.Locked, sensor.State, "test premise: the lock is acquired");
+
+            PlaceTargetOutsideTheCone(sensor);
+            yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Idle, sensor.State, "an enemy lock drops the moment the target leaves the cone");
+        }
+
+        [UnityTest]
+        public IEnumerator PlayerLock_StealthStillBreaksItInsideTheGrace()
+        {
+            var sensor = SpawnPlayerInCone();
+            sensor.SetRegistry(registry);
+            yield return UntilLocked(sensor);
+            Assert.AreEqual(LockState.Locked, sensor.State, "test premise: the lock is acquired");
+
+            target.Lock.Conceal();
+            Assert.AreEqual(LockState.Idle, sensor.State, "stealth breaks a player lock inside its grace");
+        }
+
+        private LockOnSensor SpawnPlayerInCone()
+        {
+            var sensor = SpawnInCone(0, 1, TestAssets.LoadPlayerPilot());
+            Assert.IsNotNull(shooter.Commander, "test premise: the shooter has a commander");
+            Assert.IsTrue(shooter.Commander.IsPlayer, "test premise: the shooter is player-commanded");
+            // Its FixedUpdate reads input, and batch mode leaves that state null.
+            shooter.Commander.enabled = false;
+            return sensor;
+        }
+
+        private static IEnumerator UntilLocked(LockOnSensor sensor)
+        {
+            for (var i = 0; i < 200 && sensor.State != LockState.Locked; i++)
+                yield return new WaitForFixedUpdate();
+        }
+
+        private void PlaceTargetOutsideTheCone(LockOnSensor sensor)
+        {
+            var outside = shooter.transform.position - shooter.transform.up * TargetRange;
+            target.Rigidbody.position = outside;
+            target.transform.position = outside;
+            Physics.SyncTransforms();
+            Assert.Greater(Vector3.Angle(shooter.transform.up, target.transform.position - shooter.transform.position),
+                sensor.lockOnConeAngle / 2f, "test premise: the target sits outside the lock cone");
+        }
+
+        private static IEnumerator Advance(float seconds)
+        {
+            for (var t = 0f; t < seconds; t += Time.fixedDeltaTime)
+                yield return new WaitForFixedUpdate();
+        }
+
+        private LockOnSensor SpawnInCone(int shooterTeam, int targetTeam) =>
+            SpawnInCone(shooterTeam, targetTeam, null);
+
+        private LockOnSensor SpawnInCone(int shooterTeam, int targetTeam, Commander commander)
         {
             var prefab = TestAssets.Load<Ship>(VanguardPrefabPath);
             Assert.IsNotNull(prefab, "Vanguard prefab loads");
 
-            shooter = Factory.CreateShip(prefab, null, team: shooterTeam, decisionSeed: 0, Projectiles, Vector3.zero, Quaternion.identity);
+            shooter = Factory.CreateShip(prefab, commander, team: shooterTeam, decisionSeed: 0, Projectiles, Vector3.zero, Quaternion.identity);
             var bearing = TargetBearingDeg * Mathf.Deg2Rad;
             var targetPos = shooter.transform.position
                 + shooter.transform.up * (TargetRange * Mathf.Cos(bearing))

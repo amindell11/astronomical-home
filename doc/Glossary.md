@@ -762,16 +762,18 @@ Format: **term** — definition. *(authority)*
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
 - **lock-on cone** — the cone around a ship's nose, measured from the ship's centre,
-  within which its lock-on sensor acquires and holds a missile lock. Missiles
+  within which its lock-on sensor acquires and holds a missile lock. A player's
+  granted lock also lasts outside that cone for `LockOnSensor.lockGrace`. Missiles
   launch from the mount, so the cone's tip is not where they leave.
   *(`LockOnSensor.lockOnConeAngle`)*
 - **seeker cone** — the angle around a missile's nose within which it can see its
   target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
 - **lose track** — a missile drops its target and flies straight when its target is
   outside the seeker cone, or an asteroid cuts the thin ray to `ITargetable.TargetPoint`.
-  Checked from launch, no arming delay. It re-acquires the same target, and only that
+  The missile waits until the hold passed to `Missile.SetTarget` has elapsed.
+  The check runs from launch, with no arming delay. It re-acquires the same target, and only that
   target, if the target comes back into the cone with a clear sightline before the
-  missile expires. A target that conceals itself is dropped for good. *(`Missile.CanSee`)*
+  missile expires. A target that conceals itself is dropped at once, and not re-acquired. *(`Missile.CanSee`)*
 - **tracking missile** — a missile that has a target and hasn't lost track. The
   target's lock channel lists it from launch until it loses track or leaves play,
   and again when it re-acquires.

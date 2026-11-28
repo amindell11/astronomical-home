@@ -25,6 +25,8 @@ namespace Combat.Targeting
         [Stat, SerializeField] private float lockOnTime = 0.6f;
         [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
         [Stat, SerializeField] private float lockExpiry = 3f;
+        [Tooltip("Seconds a granted lock holds through the cone, range and rocks; stealth still breaks it. Only a player's sensor grants it.")]
+        [Stat, SerializeField, Min(0f)] private float lockGrace = 1f;
 
         [SerializeField] internal WeaponBase<Missile> weapon;
 
@@ -45,6 +47,9 @@ namespace Combat.Targeting
         public ITargetable CurrentTarget => targetLock?.CurrentTarget;
         public float LockProgress => targetLock?.LockProgress ?? 0f;
         public bool IsLocked => targetLock?.IsLocked ?? false;
+        public float GraceLeft => State == LockState.Locked && selfShip && selfShip.Commander && selfShip.Commander.IsPlayer
+            ? Mathf.Max(0f, lockGrace - targetLock.LockedFor)
+            : 0f;
         public bool HasRegistry => registry != null;
 
         internal Kinematics Pose => selfShip.Kinematics;
@@ -132,7 +137,7 @@ namespace Combat.Targeting
                 return;
             if (!selfShip.Status.CanLock && State is LockState.Locking or LockState.Locked)
                 targetLock.Cancel();
-            targetLock.Update(Time.deltaTime, IsAcquired(CurrentTarget));
+            targetLock.Update(Time.deltaTime, IsAcquired(CurrentTarget) || GraceLeft > 0f && IsValid(CurrentTarget));
         }
 
         private System.Collections.IEnumerator ScanRoutine()

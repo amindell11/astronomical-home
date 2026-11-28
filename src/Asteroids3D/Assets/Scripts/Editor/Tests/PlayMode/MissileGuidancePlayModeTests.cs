@@ -140,7 +140,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, 20));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return AsyncAssert.WaitUntil(
@@ -163,7 +163,7 @@ namespace Tests.PlayMode
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
 
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return AsyncAssert.WaitUntil(
@@ -181,7 +181,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, -15));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -189,6 +189,26 @@ namespace Tests.PlayMode
 
             yield return FlyFor(1f);
             AssertFlewStraightUp();
+        }
+
+        [UnityTest]
+        public IEnumerator Missile_HeldTarget_SurvivesLeavingItsSeekerCone_UntilTheHoldEnds()
+        {
+            var origin = GamePlane.PlanePointToWorld(Vector2.zero);
+            missile = CreateTestMissile(origin);
+            targetGo = CreateTarget(new Vector2(0, -15));
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0.5f);
+            LaunchAt(missile, Vector2.up, shooter);
+
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.IsTracking, Is.True, "Missile dropped a held target on the first step outside its seeker cone");
+            Assert.That(OffNoseAngle(), Is.GreaterThan(missile.seekerConeAngle * 0.5f),
+                "test premise: the target is outside the seeker cone");
+
+            yield return FlyFor(0.6f);
+            Assert.That(missile.IsTracking, Is.False, "Missile kept a held target after the hold ended");
         }
 
         [UnityTest]
@@ -204,7 +224,7 @@ namespace Tests.PlayMode
             targetRb.linearVelocity = GamePlane.PlaneDirToWorld(new Vector2(40, 0));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             var halfCone = missile.seekerConeAngle * 0.5f;
@@ -234,7 +254,7 @@ namespace Tests.PlayMode
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
             var targetable = new TestTargetable(targetGo.transform);
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             Assert.That(OffNoseAngle(), Is.LessThan(missile.seekerConeAngle * 0.5f),
@@ -260,7 +280,7 @@ namespace Tests.PlayMode
             var targetable = new TestTargetable(targetGo.transform);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -280,7 +300,7 @@ namespace Tests.PlayMode
             var targetable = new TestTargetable(targetGo.transform);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -317,7 +337,7 @@ namespace Tests.PlayMode
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
             // Missiles.Fire launches first, then hands over the locked target.
             LaunchAt(missile, Vector2.up, shooter);
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             Assert.That(BodyTintedRed(), Is.False, "Missile body tinted while it was tracking");
 
             yield return new WaitForFixedUpdate();
@@ -332,7 +352,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, 20));
             var targetable = new TestTargetable(targetGo.transform);
 
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
 
             Assert.That(targetable.Lock.Trackers, Is.EqualTo(new[] { missile }));
         }
@@ -345,7 +365,7 @@ namespace Tests.PlayMode
             var targetable = new TestTargetable(targetGo.transform);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -364,7 +384,7 @@ namespace Tests.PlayMode
             var targetable = new TestTargetable(targetGo.transform);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetable);
+            missile.SetTarget(targetable, holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -382,7 +402,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, 2.5f));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            missile.SetTarget(new TestTargetable(targetGo.transform), holdFor: 0f);
             LaunchAt(missile, Vector2.up, shooter);
 
             var startDist = DistanceToTarget();
