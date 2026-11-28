@@ -24,7 +24,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Factions
 {
-    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its four thrust systems the faction flame at a white start colour, and its shield ring the faction colour; the elite wears its own set and flame. Shoal's ranks wear the palette their locale maps, slot by region, and their wrecks wear it too.</summary>
+    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its four thrust systems the faction flame at a white start colour, its ten RCS jets the faction flame, and its shield ring the faction colour; the elite wears its own set and flame. Shoal's ranks wear the palette their locale maps, slot by region, and their wrecks wear it too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSkinPlayModeTests : PlayModeWorldFixture
@@ -289,6 +289,15 @@ namespace Tests.PlayMode.Factions
             {
                 Assert.AreSame(flame, system.GetComponent<ParticleSystemRenderer>().sharedMaterial, system.name);
                 Assert.AreEqual(Color.white, system.main.startColor.color, system.name);
+            }
+
+            var jets = ship.VisualRig.GetComponentsInChildren<ParticleSystem>(true)
+                .Where(system => system.name == "RcsJet").ToArray();
+            Assert.AreEqual(10, jets.Length, "test premise: ten RCS jets");
+            foreach (var system in jets)
+            {
+                Assert.AreSame(flame, system.GetComponent<ParticleSystemRenderer>().sharedMaterial, system.transform.parent.name);
+                Assert.Greater(system.main.startColor.color.a, 0f, system.transform.parent.name);
             }
         }
 
