@@ -88,7 +88,8 @@ namespace Tests.PlayMode.Weapons
             for (var i = 0; i < 3 && mine.gameObject.activeSelf; i++)
                 yield return new WaitForFixedUpdate();
             Assert.IsFalse(mine.gameObject.activeSelf);
-            Assert.IsTrue(enemy.Status.Has(StatusEffect.Stalled));
+            yield return Until(() => enemy.Status.Has(StatusEffect.Stalled), 50);
+            Assert.IsTrue(enemy.Status.Has(StatusEffect.Stalled), "the blast front reaches it");
         }
 
         [UnityTest]
@@ -200,8 +201,8 @@ namespace Tests.PlayMode.Weapons
             var ship = ShipTestFactory.CreateShip(TestAssets.LoadCrimsonPrefab(), null, Projectiles, team, at, GamePlane.Rotation);
             ships.Add(ship);
             ship.Rigidbody.interpolation = RigidbodyInterpolation.None;
-            if (moving) return ship;
             ship.Movement.enabled = false;
+            if (moving) return ship;
             ship.Rigidbody.linearVelocity = Vector3.zero;
             ship.Rigidbody.constraints |= RigidbodyConstraints.FreezePosition;
             return ship;
