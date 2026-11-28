@@ -23,6 +23,12 @@ namespace Tests.PlayMode.Crosshairs
     [Category("Weapons"), Category("RequiresLfsPng")]
     public sealed class AimCrosshairPlayModeTests : InputTestFixture
     {
+        private sealed class StubWeapon : WeaponComponent
+        {
+            public override Combat.Projectiles.ProjectileBase Fire(Vector3 targetPoint,
+                Substrate.Services.Projectiles.IProjectileService projectiles) => null;
+        }
+
         private sealed class Ammo : IAmmoReadout
         {
             public int AmmoCount { get; set; } = 1;
@@ -225,6 +231,7 @@ namespace Tests.PlayMode.Crosshairs
             var rounds = shipRoot.AddComponent<Rounds>();
             rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
             rounds.enabled = false;
+            shipRoot.AddComponent<StubWeapon>();
             weaponHud.Initialize(new WeaponSources(rounds), keystoneIcon);
             yield return null;
             rounds.ProcessFire();
