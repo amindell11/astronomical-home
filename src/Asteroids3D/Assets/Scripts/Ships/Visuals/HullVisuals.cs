@@ -2,19 +2,22 @@ using System.Collections.Generic;
 using Damage;
 using Ships.Damage;
 using Ships.Presentation;
+using Ships.Status;
 using UnityEngine;
 
 namespace Ships.Visuals
 {
     /// <summary>
-    /// Owns hull hit flashes and held keystone colors across the authored hull surfaces,
-    /// and re-reads its colors on every wear.
-    /// A held color takes priority over damage, including on hulls whose other damage effects are disabled.
+    /// Owns hull hit flashes, held keystone colors and status tints across the authored hull surfaces,
+    /// and re-reads its colors on every wear. A held color takes priority over a status tint, and a
+    /// status tint over damage, including on hulls whose other damage effects are disabled.
     /// </summary>
     public sealed class HullVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
         [SerializeField] private Color flashColor = new(1f, 0.65f, 0.32f);
         [SerializeField, Min(0.07f)] private float flashTime = 0.36f;
+        [Tooltip("How far a status effect's tint pulls the hull toward its colour, 0 to 1.")]
+        [SerializeField, Range(0f, 1f)] private float statusTintStrength = 0.6f;
 
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
@@ -27,6 +30,8 @@ namespace Ships.Visuals
         private ShipVisualRig rig;
         private Renderer[] renderers;
         private IDamageEvents source;
+        private StatusEffects status;
+        private Color? shownTint;
         private bool subscribed;
         private bool flashHeld;
         private float elapsed = float.PositiveInfinity;
@@ -71,6 +76,7 @@ namespace Ships.Visuals
         {
             Unsubscribe();
             source = view.Damage;
+            status = view.Status;
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -100,7 +106,7 @@ namespace Ships.Visuals
 
         private void OnHealthChanged(float current, float previous, float max)
         {
-            if (current < max || flashHeld) return;
+            if (current < max || flashHeld || shownTint.HasValue) return;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
         }
@@ -113,7 +119,9 @@ namespace Ships.Visuals
 
         private void Update()
         {
-            if (flashHeld || elapsed >= flashTime) return;
+            if (flashHeld) return;
+            if (status != null) Tint(StatusTint.Of(status));
+            if (shownTint.HasValue || elapsed >= flashTime) return;
             elapsed += Time.deltaTime;
             var attack = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / 0.035f));
             var decay = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((elapsed - 0.06f) / (flashTime - 0.06f)));
@@ -123,17 +131,33 @@ namespace Ships.Visuals
         public void HoldFlash(Color color, float strength = 1f)
         {
             flashHeld = true;
+            shownTint = null;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
-            for (var i = 0; i < surfaces.Count; i++)
-                SetSurface(i, Color.Lerp(surfaceColors[i], color, strength), strength);
+            Paint(color, strength);
         }
 
         public void ReleaseFlash()
         {
             flashHeld = false;
+            shownTint = null;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
+        }
+
+        private void Tint(Color? tint)
+        {
+            if (tint == shownTint) return;
+            shownTint = tint;
+            elapsed = float.PositiveInfinity;
+            ApplyDamageFlash(0f);
+            if (tint is { } color) Paint(color, statusTintStrength);
+        }
+
+        private void Paint(Color color, float strength)
+        {
+            for (var i = 0; i < surfaces.Count; i++)
+                SetSurface(i, Color.Lerp(surfaceColors[i], color, strength), strength);
         }
 
         private void ApplyDamageFlash(float strength)
