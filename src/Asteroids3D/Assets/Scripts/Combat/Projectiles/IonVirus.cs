@@ -36,7 +36,8 @@ namespace Combat.Projectiles
             for (var i = 0; i < count; i++)
             {
                 var source = caught[i];
-                if (!source || !source.Status.Has(StatusEffect.Stalled)) continue;
+                // A dead ship is deactivated with its stall frozen, so it no longer spreads.
+                if (!source || !source.gameObject.activeInHierarchy || !source.Status.Has(StatusEffect.Stalled)) continue;
                 sourceStalled = true;
                 if (caught.Count >= maxShips) continue;
                 Spread(source);
