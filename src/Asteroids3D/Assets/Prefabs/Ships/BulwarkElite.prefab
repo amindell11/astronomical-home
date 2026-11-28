@@ -467,7 +467,7 @@ PrefabInstance:
         type: 3}
       propertyPath: keystone
       value: 
-      objectReference: {fileID: 5512903418735166201, guid: c35e8833433744a0bcce3e406a3841e0,
+      objectReference: {fileID: 341727119721532740, guid: 56da4dafdba6bae4b88e2285cb2ddde2,
         type: 3}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
