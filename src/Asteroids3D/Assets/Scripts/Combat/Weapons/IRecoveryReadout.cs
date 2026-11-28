@@ -6,5 +6,8 @@ namespace Combat.Weapons
     public interface IRecoveryReadout : IWeaponReadout
     {
         event Action Recovered;
+
+        /// <summary>Whether the weapon recovers faster than authored right now.</summary>
+        bool RecoveryBoosted => false;
     }
 }

@@ -20,6 +20,7 @@ namespace Ships.Mods
         [Stat, SerializeField, Min(0f)] private float frontShieldScale = 2f;
 
         public bool Held { get; private set; }
+        public float FrontArcHalfAngle => frontArcHalfAngle;
 
         public void Read(HeldBehaviours held) => Held = held.Holds(key);
 

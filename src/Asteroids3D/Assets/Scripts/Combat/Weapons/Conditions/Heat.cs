@@ -47,6 +47,7 @@ namespace Combat.Weapons.Conditions
         }
 
         public float CurrentHeat { get; private set; }
+        public bool RecoveryBoosted => weapon.RecoveryScale > 1f;
         public float MaxHeat => mods.Apply(WeaponModField.HeatCapacity, maxHeat);
         public float HeatPerShot => heatPerShot;
         public float HeatPct => MaxHeat > 0f ? CurrentHeat / MaxHeat : 0f;
