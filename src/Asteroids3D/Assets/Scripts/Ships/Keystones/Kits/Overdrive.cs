@@ -11,10 +11,10 @@ namespace Ships.Keystones.Kits
     /// Valis's kit raises speed, forward thrust, turning and lateral thrust during its active window.
     /// The ship reads the scales live in its physics and the dynamics the solver plans with;
     /// after the window the cap bleeds back down, so the speed it built is the kit's cost to shed.
-    /// Two prototype mods change the window's flight: Snap turn swings the whole velocity onto the nose
-    /// as the window ends, and Orbit bends the course around a rock the pilot turns toward while
-    /// skimming it, keeping speed. Relentless makes the window a charge: forward thrust grows as the
-    /// nose points at the nearest enemy and shrinks as it points away.
+    /// Orbit makes rocks a speed source: each rock skimmed, in or out of the window, adds a stack of
+    /// speed and thrust until the stacks lapse; inside the window the hull passes through rocks and the
+    /// course bends around one the pilot turns toward. Relentless makes the window a charge: forward
+    /// thrust grows as the nose points at the nearest enemy and shrinks as it points away.
     /// </summary>
     public sealed class Overdrive : Keystone
     {
@@ -33,17 +33,26 @@ namespace Ships.Keystones.Kits
         [Tooltip("Fraction of the cap the navigator must ask for before an AI fires.")]
         [Stat, SerializeField] private float sightSaturation = 0.8f;
 
-        [Tooltip("The Snap turn keystone mod, whose holding swings the velocity onto the nose as the window ends.")]
-        [SerializeField] private KeystoneMod snapTurn;
-
-        [Tooltip("The Orbit keystone mod, whose holding bends the course around a skimmed rock during the window.")]
+        [Tooltip("The Orbit keystone mod, whose holding turns skimmed rocks into speed and lets the window pass through rocks.")]
         [SerializeField] private KeystoneMod orbit;
 
         [Tooltip("With Orbit, the widest gap, in units, between the hull and a rock's surface at which the course bends around it.")]
         [Stat, SerializeField] private float orbitReach = 4f;
 
-        [Tooltip("With Orbit, the smallest rock radius, in units, the course bends around.")]
+        [Tooltip("With Orbit, the smallest rock radius, in units, that bends the course or counts as a skim.")]
         [Stat, SerializeField] private float orbitMinRadius = 2f;
+
+        [Tooltip("With Orbit, the widest gap, in units, between the hull and a rock's surface that counts as a skim.")]
+        [Stat, SerializeField] private float skimReach = 3f;
+
+        [Tooltip("With Orbit, the speed cap and forward thrust each skim stack adds, as a fraction.")]
+        [Stat, SerializeField, Range(0f, 0.5f)] private float skimGain = 0.08f;
+
+        [Tooltip("With Orbit, the most skim stacks held at once.")]
+        [Stat, SerializeField, Min(1)] private int skimMaxStacks = 5;
+
+        [Tooltip("With Orbit, seconds away from every rock before all skim stacks lapse.")]
+        [Stat, SerializeField] private float skimHold = 2f;
 
         [Tooltip("The Relentless keystone mod, whose holding strengthens thrust toward the nearest enemy during the window and weakens it away.")]
         [SerializeField] private KeystoneMod relentless;
@@ -55,17 +64,24 @@ namespace Ships.Keystones.Kits
         [Stat, SerializeField] private float relentlessRange = 60f;
 
         private readonly Collider[] nearby = new Collider[16];
-        private bool windowOpen;
         private float charge = 1f;
+        private int skims;
+        private bool skimming;
+        private float sinceSkim;
 
         public override string DisplayName => "Overdrive";
         public float Window => window;
         public override bool Active => SinceActivation < window;
-        public override float SpeedScale => Active ? speedScale : 1f;
-        public override float ThrustScale => Active ? thrustScale * charge : 1f;
+        public override float SpeedScale => (Active ? speedScale : 1f) * SkimScale;
+        public override float ThrustScale => (Active ? thrustScale * charge : 1f) * SkimScale;
         public override float ManeuverabilityScale => Active ? maneuverabilityScale : 1f;
-        public override float PeakSpeedScale => speedScale;
-        public override float PeakThrustScale => thrustScale * (Behaviours.Holds(relentless) ? 1f + relentlessGain : 1f);
+        public override bool PassesRocks => Active && Behaviours.Holds(orbit);
+        public override float PeakSpeedScale => speedScale * PeakSkimScale;
+        public override float PeakThrustScale =>
+            thrustScale * (Behaviours.Holds(relentless) ? 1f + relentlessGain : 1f) * PeakSkimScale;
+        public int SkimStacks => skims;
+        private float SkimScale => 1f + skimGain * skims;
+        private float PeakSkimScale => Behaviours.Holds(orbit) ? 1f + skimGain * skimMaxStacks : 1f;
 
         // Saturated: the navigator asks for (nearly) all the speed the cap allows.
         public override bool ShouldActivate(in KeystoneContext context)
@@ -74,29 +90,40 @@ namespace Ships.Keystones.Kits
             return !float.IsNaN(desired.x) && desired.magnitude >= sightSaturation * context.SelfMaxSpeed;
         }
 
-        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target)
-        {
-            windowOpen = true;
-            return default;
-        }
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => default;
 
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
             charge = Active && Behaviours.Holds(relentless) ? Charge(in kinematics) : 1f;
-            if (Active)
-            {
-                if (kinematics.Speed > baseMaxSpeed) CreditActivation();
-                return Behaviours.Holds(orbit) ? Orbit(in kinematics, dt) : default;
-            }
-            if (!windowOpen) return default;
-            windowOpen = false;
-            return Behaviours.Holds(snapTurn) ? Snap(in kinematics, dt) : default;
+            var orbiting = Behaviours.Holds(orbit);
+            Skim(in kinematics, dt, orbiting);
+            if (!Active) return default;
+            if (kinematics.Speed > baseMaxSpeed) CreditActivation();
+            return orbiting ? Orbit(in kinematics, dt) : default;
         }
 
         protected override void OnReset()
         {
-            windowOpen = false;
             charge = 1f;
+            skims = 0;
+            skimming = false;
+            sinceSkim = 0f;
+        }
+
+        // Coming within reach of a rock adds a stack; staying in reach holds them, leaving every rock lets them lapse.
+        private void Skim(in Kinematics kinematics, float dt, bool orbiting)
+        {
+            if (!orbiting)
+            {
+                skims = 0;
+                skimming = false;
+                return;
+            }
+            var near = TryNearestRock(kinematics.pos, skimReach, out _);
+            if (near && !skimming) skims = Mathf.Min(skims + 1, skimMaxStacks);
+            skimming = near;
+            sinceSkim = near ? 0f : sinceSkim + dt;
+            if (sinceSkim >= skimHold) skims = 0;
         }
 
         private float Charge(in Kinematics kinematics)
@@ -129,15 +156,12 @@ namespace Ships.Keystones.Kits
             return found;
         }
 
-        private static KeystoneEffect Snap(in Kinematics kinematics, float dt) =>
-            new(Vector2.zero, Vector2.zero, (kinematics.Forward * kinematics.Speed - kinematics.vel) / dt);
-
         // The course turns toward the tangent of the circle around the rock, at most the rate that
         // circle needs, and only once the rock is abeam; ahead of abeam the course already clears it.
         private KeystoneEffect Orbit(in Kinematics kinematics, float dt)
         {
             var speed = kinematics.Speed;
-            if (Turn == 0f || speed < 1e-3f || !TryNearestRock(kinematics.pos, out var centre)) return default;
+            if (Turn == 0f || speed < 1e-3f || !TryNearestRock(kinematics.pos, orbitReach, out var centre)) return default;
             var toRock = centre - kinematics.pos;
             var distance = toRock.magnitude;
             if (distance < 1e-3f || Vector2.Dot(kinematics.Forward, toRock) < 0f) return default;
@@ -153,12 +177,12 @@ namespace Ships.Keystones.Kits
             return new KeystoneEffect(Vector2.zero, Vector2.zero, (bent - kinematics.vel) / dt);
         }
 
-        private bool TryNearestRock(Vector2 pos, out Vector2 centre)
+        private bool TryNearestRock(Vector2 pos, float reach, out Vector2 centre)
         {
             centre = default;
             var found = false;
             var nearest = float.PositiveInfinity;
-            var count = Physics.OverlapSphereNonAlloc(GamePlane.PlanePointToWorld(pos), Host.Radius + orbitReach, nearby,
+            var count = Physics.OverlapSphereNonAlloc(GamePlane.PlanePointToWorld(pos), Host.Radius + reach, nearby,
                 1 << LayerIds.Asteroid, QueryTriggerInteraction.Ignore);
             for (var i = 0; i < count; i++)
             {

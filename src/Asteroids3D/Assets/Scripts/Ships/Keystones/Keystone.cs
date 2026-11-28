@@ -79,6 +79,9 @@ namespace Ships.Keystones
         /// <summary>Multiplier on the ship's mass, applied every step.</summary>
         public virtual float MassScale => 1f;
 
+        /// <summary>Whether the hull flies through asteroids this step instead of colliding with them.</summary>
+        public virtual bool PassesRocks => false;
+
         /// <summary>Multiplier on every hit the ship's own shots deal, fixed as each shot leaves.</summary>
         public virtual float ShotDamageScale => 1f;
 

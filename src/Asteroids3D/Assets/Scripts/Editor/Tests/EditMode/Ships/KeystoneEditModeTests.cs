@@ -682,7 +682,6 @@ namespace Tests.EditMode.Ships
             so.FindProperty("thrustScale").floatValue = 1.5f;
             so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
-            WireKey(so, "snapTurn", "SnapTurn");
             WireKey(so, "orbit", "Orbit");
             WireKey(so, "relentless", "Relentless");
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -697,37 +696,8 @@ namespace Tests.EditMode.Ships
                     AssetDatabase.LoadAssetAtPath<KeystoneMod>($"Assets/Settings/Ships/Keystones/Mods/{mod}.asset");
         }
 
-        private static KeystoneMod SnapTurn => Key("SnapTurn");
-
         private static KeystoneMod Key(string mod) =>
             AssetDatabase.LoadAssetAtPath<KeystoneMod>($"Assets/Settings/Ships/Keystones/Mods/{mod}.asset");
-
-        [Test]
-        public void SnapTurn_SwingsTheWholeVelocityOntoTheNose_AsTheWindowEnds_KeepingSpeed([Values] bool held)
-        {
-            var kit = NewOverdrive();
-            if (held) kit.Behaviours.Set(new BehaviourMod[] { SnapTurn });
-            // Nose along -x, sliding along +y.
-            var sliding = new Kinematics(Vector2.zero, new Vector2(0f, 30f), 90f, 0f, 0f);
-            Assert.That(sliding.Forward.x, Is.EqualTo(-1f).Within(1e-4f));
-
-            var swing = kit.Step(in sliding, 1f, Dt, out _, 32f).Acceleration;
-            while (kit.Active)
-            {
-                Assert.That(swing, Is.EqualTo(Vector2.zero), "nothing swings inside the window");
-                swing = kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration;
-            }
-
-            var after = sliding.vel + swing * Dt;
-            if (!held)
-            {
-                Assert.That(swing, Is.EqualTo(Vector2.zero), "without Snap turn the ship slides on");
-                return;
-            }
-            Assert.That(after.x, Is.EqualTo(-30f).Within(1e-3f), "the whole velocity lies on the nose");
-            Assert.That(after.y, Is.EqualTo(0f).Within(1e-3f));
-            Assert.That(kit.Step(in sliding, 0f, Dt, out _, 32f).Acceleration, Is.EqualTo(Vector2.zero), "it swings once");
-        }
 
         [Test]
         public void Overdrive_ScalesForItsWindow_ThenReleases_AndPaysOnlyAboveTheBaseCap()

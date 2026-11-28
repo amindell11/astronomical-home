@@ -29,6 +29,7 @@ namespace Tests.PlayMode.Keystones
         private Ship rival;
         private GameObject kitHost;
         private GameObject rock;
+        private GameObject secondRock;
 
         public override void TearDown()
         {
@@ -36,6 +37,7 @@ namespace Tests.PlayMode.Keystones
             ShipTestFactory.DestroyShip(rival);
             if (kitHost) Object.DestroyImmediate(kitHost);
             if (rock) Object.DestroyImmediate(rock);
+            if (secondRock) Object.DestroyImmediate(secondRock);
             base.TearDown();
         }
 
@@ -82,6 +84,80 @@ namespace Tests.PlayMode.Keystones
             }
             Assert.That(bend, Is.GreaterThan(90f), "the course bends around the rock");
             Assert.That(closest, Is.GreaterThan(RockRadius + 1f), "skimming it, never into it");
+        }
+
+        private GameObject Rock(Vector2 at)
+        {
+            var made = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            made.layer = LayerIds.Asteroid;
+            made.transform.position = GamePlane.PlanePointToWorld(at);
+            made.transform.localScale = Vector3.one * (RockRadius * 2f);
+            return made;
+        }
+
+        // Flies the kit straight along +x outside the window, skimming two rocks 2 units off the hull.
+        [Test]
+        public void Orbit_EachSkimmedRock_StacksSpeedOutsideTheWindow_ThenTheStacksLapse([Values] bool held)
+        {
+            rock = Rock(new Vector2(20f, RockRadius + 3f));
+            secondRock = Rock(new Vector2(60f, -(RockRadius + 3f)));
+            kitHost = Object.Instantiate(TestAssets.Load<GameObject>(KitPath));
+            var kit = kitHost.GetComponent<Overdrive>();
+            var body = new GameObject("Body").AddComponent<Rigidbody>();
+            body.transform.SetParent(kitHost.transform);
+            kit.Initialize(new KeystoneHost(null, body, 1f, new LockChannel()));
+            if (held) kit.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(OrbitPath) });
+            var gain = new SerializedObject(kit).FindProperty("skimGain").floatValue;
+            Physics.SyncTransforms();
+
+            var dt = Time.fixedDeltaTime;
+            var vel = new Vector2(Speed, 0f);
+            var yaw = Mathf.Atan2(-vel.x, vel.y) * Mathf.Rad2Deg;
+            int Fly(float fromX, float toX)
+            {
+                var most = 0;
+                for (var x = fromX; x < toX; x += Speed * dt)
+                {
+                    var kinematics = new Kinematics(new Vector2(x, 0f), vel, yaw, 0f, 0f);
+                    kit.Step(in kinematics, 0f, dt, out _, Speed);
+                    most = Mathf.Max(most, kit.SkimStacks);
+                }
+                return most;
+            }
+
+            Fly(0f, 40f);
+            Assert.That(kit.Active, Is.False, "the pass flies outside the window");
+            Assert.That(kit.SkimStacks, Is.EqualTo(held ? 1 : 0), "one rock skimmed, one stack");
+            Assert.That(kit.SpeedScale, Is.EqualTo(held ? 1f + gain : 1f).Within(1e-4f));
+            Assert.That(kit.ThrustScale, Is.EqualTo(held ? 1f + gain : 1f).Within(1e-4f));
+            Fly(40f, 80f);
+            Assert.That(kit.SkimStacks, Is.EqualTo(held ? 2 : 0), "a second rock stacks on the first");
+            Assert.That(kit.SpeedScale, Is.EqualTo(held ? 1f + 2f * gain : 1f).Within(1e-4f));
+            Fly(80f, 80f + Speed * 2.5f);
+            Assert.That(kit.SkimStacks, Is.EqualTo(0), "away from every rock the stacks lapse");
+            Assert.That(kit.SpeedScale, Is.EqualTo(1f));
+        }
+
+        [UnityTest]
+        public IEnumerator Orbit_TheWindowFliesThroughRocks_OnlyWhileHeld([Values] bool held)
+        {
+            valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
+            valis.Initialize(0, 0, Projectiles);
+            var overdrive = (Overdrive)valis.Keystone;
+            if (held) overdrive.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(OrbitPath) });
+            yield return new WaitForFixedUpdate();
+            var rocks = 1 << LayerIds.Asteroid;
+            Assert.That(valis.Rigidbody.excludeLayers.value & rocks, Is.EqualTo(0), "rocks collide before the window");
+
+            valis.Movement.Drive(new PilotCommand { thrust = 1f, boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(overdrive.Active, Is.True);
+            Assert.That(valis.Rigidbody.excludeLayers.value & rocks, Is.EqualTo(held ? rocks : 0),
+                held ? "the window flies through rocks" : "without Orbit rocks still collide");
+
+            while (overdrive.Active) yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.That(valis.Rigidbody.excludeLayers.value & rocks, Is.EqualTo(0), "rocks collide again after the window");
         }
 
         [UnityTest]
