@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fee3e9d3add3cd44ad4726100e5f6c0, type: 3}
+  m_Name: EngineFlameFeel
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: fb288096b3b4ee242aef72ac82a30462, type: 2}
+  frames: 8
+  cellAspect: 0.4
+  framesPerSecond: 12
+  igniteTime: 0.11
+  cutoffTime: 0.29
+  pilotLength: 0.2

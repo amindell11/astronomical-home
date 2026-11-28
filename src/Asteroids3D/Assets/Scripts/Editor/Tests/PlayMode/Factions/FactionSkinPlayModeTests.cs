@@ -8,6 +8,7 @@ using Ships;
 using Ships.Loadout;
 using Ships.Presentation;
 using Ships.Registry;
+using Ships.Visuals;
 using Ships.Visuals.Breakup;
 using Substrate;
 using Substrate.Sectors.Factions;
@@ -24,7 +25,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Factions
 {
-    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its four thrust systems the faction flame at a white start colour, its ten RCS jets the faction flame, and its shield ring the faction colour; the elite wears its own set and flame. Shoal's ranks wear the palette their locale maps, slot by region, and their wrecks wear it too.</summary>
+    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its main exhaust flames the faction flame colour, its ten RCS jets the faction flame, and its shield ring the faction colour; the elite wears its own set and flame. Shoal's ranks wear the palette their locale maps, slot by region, and their wrecks wear it too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSkinPlayModeTests : PlayModeWorldFixture
@@ -282,14 +283,10 @@ namespace Tests.PlayMode.Factions
 
         private static void AssertFlame(Ship ship, Material flame)
         {
-            var thrust = ship.VisualRig.GetComponentsInChildren<ParticleSystem>(true)
-                .Where(system => system.name is "ThrustMain" or "ThrustSmall").ToArray();
-            Assert.AreEqual(4, thrust.Length, "test premise: two main and two small thrust systems");
-            foreach (var system in thrust)
-            {
-                Assert.AreSame(flame, system.GetComponent<ParticleSystemRenderer>().sharedMaterial, system.name);
-                Assert.AreEqual(Color.white, system.main.startColor.color, system.name);
-            }
+            var exhaust = ship.VisualRig.GetComponentsInChildren<EngineFlame>();
+            Assert.Greater(exhaust.Length, 0, "test premise: a main exhaust flame");
+            foreach (var engine in exhaust)
+                Assert.AreEqual(EngineFlame.ColourOf(flame), engine.Colour, engine.name);
 
             var jets = ship.VisualRig.GetComponentsInChildren<ParticleSystem>(true)
                 .Where(system => system.name == "RcsJet").ToArray();

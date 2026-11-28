@@ -1,0 +1,23 @@
+{
+ "flipbook": {
+  "columns": 4,
+  "rows": 2,
+  "frames": 8
+ },
+ "material": {
+  "_RimShade": 0.5,
+  "_RimAlpha": 0.78,
+  "_MidAlpha": 0.88,
+  "_Glow": 0.72
+ },
+ "motion": {
+  "fps": 12,
+  "randomOrder": true,
+  "lengthWobble": 0.14,
+  "widthWobble": 0.16,
+  "igniteTime": 0.11,
+  "cutoffTime": 0.29,
+  "throttleLength": 0,
+  "pilotLength": 0.2
+ }
+}

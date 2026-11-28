@@ -8,15 +8,18 @@ namespace Ships.Visuals
 {
     /// <summary>
     /// Drives the main exhaust and the RCS jets from the thrust the movement system applied.
-    /// A jet lights when its push and its torque about the ship help the applied thrust, its
-    /// size and opacity grow with that share up to full, and it stays on for a minimum time.
+    /// The main exhaust is a flipbook flame on each nozzle, grown from an idle pilot while
+    /// the ship thrusts forward. A jet lights when its push and its torque about the ship
+    /// help the applied thrust, its size and opacity grow with that share up to full, and
+    /// it stays on for a minimum time.
     /// </summary>
     public class ThrusterVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
-        public ParticleSystem[] thrustParticles;
-
         [Tooltip("Manoeuvring jets. Each pushes the ship along its socket's +Y; its flame points down the socket's −Y.")]
         [SerializeField] private ParticleSystem[] rcsJets = Array.Empty<ParticleSystem>();
+
+        [Tooltip("Flame material whose colour the main exhaust wears until a livery sets one.")]
+        [SerializeField] private Material authoredFlame;
 
         [Tooltip("Demand, as a fraction of the ship's full authority, at which a jet lights.")]
         [SerializeField] private float fireThreshold = 0.25f;
@@ -38,17 +41,18 @@ namespace Ships.Visuals
         private float[] litUntil;
         private float[] litStrength;
         private Vector3[] fullScale;
+        private EngineFlame[] mainFlames;
 
-        // Each listed main thrust and the systems beside it in its exhaust, the small thrust among them.
         private void Awake()
         {
-            foreach (var particle in thrustParticles)
-            {
-                if (!particle) continue;
-                foreach (Transform sibling in particle.transform.parent)
-                    if (sibling.TryGetComponent(out ParticleSystem system) && !flames.Exists(flame => flame.system == system))
-                        flames.Add((system, sibling.GetComponent<ParticleSystemRenderer>()));
-            }
+            if (!authoredFlame)
+                throw new InvalidOperationException($"ThrusterVisuals on '{name}' needs its authored flame.");
+
+            // A hull with one nozzle leaves the other exhaust inactive.
+            mainFlames = GetComponentsInChildren<EngineFlame>();
+            var colour = EngineFlame.ColourOf(authoredFlame);
+            foreach (var flame in mainFlames)
+                flame.Colour = colour;
 
             push = new Vector3[rcsJets.Length];
             yawLever = new float[rcsJets.Length];
@@ -95,6 +99,10 @@ namespace Ships.Visuals
                 main.startColor = Color.white;
                 renderer.sharedMaterial = livery.Flame;
             }
+
+            var colour = EngineFlame.ColourOf(livery.Flame);
+            for (var i = 0; i < mainFlames.Length; i++)
+                mainFlames[i].Colour = colour;
         }
 
         private void Update()
@@ -102,7 +110,9 @@ namespace Ships.Visuals
             if (thrust == null) return;
 
             var applied = thrust();
-            UpdateThrustAnimations(applied.Force.y > 0.05f);
+            var thrusting = applied.Force.y > 0.05f;
+            for (var i = 0; i < mainFlames.Length; i++)
+                mainFlames[i].Tick(thrusting, Time.deltaTime);
 
             for (var i = 0; i < rcsJets.Length; i++)
             {
@@ -126,18 +136,6 @@ namespace Ships.Visuals
                 }
                 else if (ps.isPlaying)
                     ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            }
-        }
-
-        private void UpdateThrustAnimations(bool shouldPlay)
-        {
-            foreach (var ps in thrustParticles)
-            {
-                if (!ps) continue;
-                if (shouldPlay && !ps.isPlaying)
-                    ps.Play(true);
-                else if (!shouldPlay && ps.isPlaying)
-                    ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             }
         }
     }
