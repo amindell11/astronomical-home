@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using Loot;
 using Ships.Mods;
 using UI.Projection;
+using UI.Screens;
+using UI.Screens.Windows;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.PlayerState
@@ -11,7 +14,8 @@ namespace UI.PlayerState
     /// <summary>
     /// The run's held lull mods as a row of badges right of the weapon instrument, one per mod
     /// with ×N for stacked copies. A badge shows the mod's icon, or its initials until the mod has
-    /// art. It observes <see cref="IHeldMods.Changed"/>.
+    /// art. Hovering a badge opens a card with the mod's name, count and pick-card effect. It
+    /// observes <see cref="IHeldMods.Changed"/>.
     /// </summary>
     public sealed class HeldModsReadout : MonoBehaviour
     {
@@ -22,11 +26,17 @@ namespace UI.PlayerState
         private static readonly Color Ink = new(.953f, .949f, .875f);
         private static readonly Color ShipInk = new(.56f, .83f, .67f);
         private static readonly Color Backing = new(.043f, .078f, .149f, .65f);
+        private const float CardWidth = 200f;
+        private const float CardInset = 7f;
+        private const float EffectTop = 22f;
 
         private readonly List<GameObject> badges = new();
         private Font font;
         private Material material;
         private IHeldMods mods;
+        private RectTransform card;
+        private Text cardName;
+        private Text cardEffect;
 
         public static HeldModsReadout Create(Transform parent, Font font, Material material,
             CanopyProjection projection, Func<bool> isVisible)
@@ -45,7 +55,9 @@ namespace UI.PlayerState
             var readout = go.AddComponent<HeldModsReadout>();
             readout.font = font;
             readout.material = material;
-            InstrumentAppear.Attach(go, projection, isVisible);
+            // Flight input reads devices, not uGUI, so hovering badges never eats aim or fire.
+            InstrumentAppear.Attach(go, projection, isVisible).GetComponent<CanvasGroup>().blocksRaycasts = true;
+            readout.BuildCard();
             return readout;
         }
 
@@ -72,6 +84,7 @@ namespace UI.PlayerState
                 Destroy(badge);
             }
             badges.Clear();
+            HideCard();
 
             var x = 0f;
             var y = 0f;
@@ -97,7 +110,9 @@ namespace UI.PlayerState
             rect.sizeDelta = new Vector2(BadgeSize, BadgeSize);
 
             var ink = held.Mod as ShipMod ? ShipInk : Ink;
-            Fill(Paint(rect, "Backing", Backing).rectTransform);
+            var backing = Paint(rect, "Backing", Backing);
+            backing.raycastTarget = true;
+            Fill(backing.rectTransform);
             Edge(rect, "Top", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), ink);
             Edge(rect, "Bottom", Vector2.zero, new Vector2(1f, 0f), new Vector2(0f, 1f), ink);
             Edge(rect, "Left", Vector2.zero, new Vector2(0f, 1f), new Vector2(1f, 0f), ink);
@@ -112,6 +127,10 @@ namespace UI.PlayerState
             else
                 Fill(Lettering(rect, "Initials", Initials(held.Mod.DisplayName), ink, TextAnchor.MiddleCenter).rectTransform);
 
+            var hover = rect.gameObject.AddComponent<EventTrigger>();
+            Hover(hover, EventTriggerType.PointerEnter, () => ShowCard(held, rect));
+            Hover(hover, EventTriggerType.PointerExit, HideCard);
+
             if (held.Count <= 1) return rect.gameObject;
             var count = Lettering(rect, "Count", $"×{held.Count}", Ink, TextAnchor.MiddleLeft).rectTransform;
             count.anchorMin = count.anchorMax = count.pivot = new Vector2(0f, .5f);
@@ -119,6 +138,45 @@ namespace UI.PlayerState
             count.sizeDelta = new Vector2(CountWidth, BadgeSize);
             return rect.gameObject;
         }
+
+        private static void Hover(EventTrigger trigger, EventTriggerType type, Action action)
+        {
+            var entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(_ => action());
+            trigger.triggers.Add(entry);
+        }
+
+        private void BuildCard()
+        {
+            card = Nest("ModCard", transform);
+            card.anchorMin = card.anchorMax = new Vector2(0f, .5f);
+            card.pivot = Vector2.zero;
+            Fill(Paint(card, "Backing", Backing).rectTransform);
+            Fill(WindowKit.Shape(ScreenKit.Box(card, "Frame", 0f, 0f, 0f, 0f), Ink, 0f, 1f).rectTransform);
+            var width = CardWidth - 2f * CardInset;
+            cardName = WindowKit.Label(card, "Name", "", CardInset, 5f, width, 14f, 11, Ink, font);
+            cardName.material = material;
+            cardEffect = ScreenKit.Label(ScreenKit.Box(card, "Effect", CardInset, EffectTop, width, 0f), "", 9,
+                WindowKit.Dim, font, TextAnchor.UpperLeft);
+            cardEffect.material = material;
+            cardEffect.horizontalOverflow = HorizontalWrapMode.Wrap;
+            HideCard();
+        }
+
+        private void ShowCard(HeldMod held, RectTransform badge)
+        {
+            cardName.text = held.Count > 1 ? $"{held.Mod.DisplayName} ×{held.Count}" : held.Mod.DisplayName;
+            cardEffect.text = held.Mod.Effect;
+            var effectHeight = cardEffect.preferredHeight;
+            cardEffect.rectTransform.sizeDelta = new Vector2(cardEffect.rectTransform.sizeDelta.x, effectHeight);
+            card.sizeDelta = new Vector2(CardWidth, EffectTop + effectHeight + CardInset);
+            card.anchoredPosition = new Vector2(Mathf.Min(badge.anchoredPosition.x, RowWidth - CardWidth),
+                badge.anchoredPosition.y + BadgeSize * .5f + Gap);
+            card.SetAsLastSibling();
+            card.gameObject.SetActive(true);
+        }
+
+        private void HideCard() => card.gameObject.SetActive(false);
 
         private RectTransform Nest(string name, Transform parent)
         {

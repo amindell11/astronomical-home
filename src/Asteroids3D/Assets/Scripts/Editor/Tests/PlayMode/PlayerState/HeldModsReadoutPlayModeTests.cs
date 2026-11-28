@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Ships.Mods;
 using UI.PlayerState;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 #if UNITY_EDITOR
@@ -79,6 +80,30 @@ namespace Tests.PlayMode.PlayerState
 
             stack.Clear();
             Assert.AreEqual(0, ActiveCount(readout.transform));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator HoveringABadge_ShowsItsNameCountAndCardEffect_AndLeavingHidesIt()
+        {
+            var hot = Weapon("Hot rounds");
+            var stack = new LullModStack();
+            stack.Add(hot);
+            stack.Add(hot);
+            readout.Initialize(stack);
+            var badge = Active(readout.transform, "Hot rounds");
+            var card = readout.transform.Find("ModCard");
+            Assert.IsFalse(card.gameObject.activeSelf, "no card until a badge is hovered");
+            Assert.IsTrue(badge.transform.Find("Backing").GetComponent<Image>().raycastTarget, "the badge takes the pointer");
+
+            ExecuteEvents.Execute(badge, new PointerEventData(null), ExecuteEvents.pointerEnterHandler);
+            Assert.IsTrue(card.gameObject.activeSelf, "hovering opens the card");
+            Assert.AreEqual("Hot rounds ×2", card.Find("Name").GetComponent<Text>().text);
+            Assert.IsNotEmpty(hot.Effect);
+            Assert.AreEqual(hot.Effect, card.Find("Effect").GetComponent<Text>().text, "the pick card's effect text");
+
+            ExecuteEvents.Execute(badge, new PointerEventData(null), ExecuteEvents.pointerExitHandler);
+            Assert.IsFalse(card.gameObject.activeSelf, "leaving the badge closes the card");
             yield return null;
         }
 
