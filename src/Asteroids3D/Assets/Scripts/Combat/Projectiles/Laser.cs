@@ -12,6 +12,7 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float laserSpeed = 20f;
 
         private bool banks;
+        private float bankedDamageScale = 1f;
         private Collider bankedOff;
         private bool intercepts;
         private SuppressingFire suppressing;
@@ -28,8 +29,12 @@ namespace Combat.Projectiles
             base.Launch(direction, targetPoint);
         }
 
-        /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
-        public void BankOnce() => banks = true;
+        /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it; the turned bolt's damage scales by <paramref name="damageScale"/>.</summary>
+        public void BankOnce(float damageScale)
+        {
+            banks = true;
+            bankedDamageScale = damageScale;
+        }
 
         public void Intercept() => intercepts = true;
 
@@ -66,11 +71,13 @@ namespace Combat.Projectiles
                                  * transform.rotation;
             // The range cap measures from the start point, so move it to keep the path length.
             startPosition = transform.position - turned.normalized * traveled;
+            SetDamageScale(DamageScale * bankedDamageScale);
         }
 
         protected override void OnReturnToPool()
         {
             banks = false;
+            bankedDamageScale = 1f;
             bankedOff = null;
             intercepts = false;
             suppressing = null;
