@@ -1,13 +1,13 @@
 ---
 name: design-consult
-description: Hand a decision brief, design, or risky diff to a fresh second-opinion agent (codex CLI, an Opus/Fable subagent, or another session) for design feedback or a targeted adversarial pass, and route the results back through the fix-ladder triage. Use when the user asks for a codex/second-opinion/design review or a consult on a plan or diff, or asks for a multi-model debate/panel on a contested fork.
+description: Hand a decision brief, design, or risky diff to a fresh second-opinion agent (the Codex, Muse or Gemini CLI, or an Opus/Fable subagent) for design feedback or a targeted adversarial pass, and route the results back through the fix-ladder triage. Use when the user asks for a codex/gemini/muse/second-opinion/design review or a consult on a plan or diff, or asks for a multi-model debate/panel on a contested fork.
 ---
 
 # Design consult
 
-A backend-agnostic protocol for getting a second opinion on a design or diff
-from a fresh agent. The packet is assembled the same way for every backend;
-only the delivery mechanism differs.
+A protocol for getting a second opinion on a design or diff from a fresh
+agent. The packet is assembled the same way for every consultant; only the
+delivery differs.
 
 ## 1. The consult packet
 
@@ -70,40 +70,48 @@ Never run consults to manufacture a disagreement precondition, and never
 re-run a settled consult as a debate. One deliberation per fork — never a
 standing default.
 
-Delivery: `mcp__ai-counsel__deliberate` (user-scope MCP server; install
-location, per-CLI auth status, and Windows notes live in memory
-`reference_ai_counsel.md`). Call shape:
+Delivery: two rounds over the consultants picked in section 5, all of them in
+parallel within a round.
 
-- **question** — the full consult packet (all four parts), with the fork
-  stated as an explicit choice between the named positions.
-- **mode** — `"conference"` (multi-round; critics see and rebut each other).
-- **participants** — 2–3, cross-family where CLI auth allows; model ids must
-  exist in the server's `config.yaml` `model_registry` or the call is
-  schema-rejected.
-- **working_directory** (required) — the repo root, so critics can read code.
+1. **Positions.** Send the full consult packet (all four parts), with the fork
+   stated as an explicit choice between the named positions.
+2. **Rebuttal.** Once every consultant has answered or failed, resend the
+   packet with every round-1 answer appended under its consultant's name. Each
+   consultant holds or switches, and answers the strongest objection raised
+   against its position. One rebuttal round, then stop.
 
-Output contract, stated in the packet: each participant gives
+Output contract, stated in the packet: each consultant gives
 1. a position on the fork — one of the named options, no new alternatives;
 2. its strongest argument and the strongest objection to the rival position;
 3. what evidence would change its mind.
-Votes ride the tool's structured voting; the packet does not restate them.
 
-Reading the result: a failed leg returns `[ERROR: ...]` as its response and
-is counted as an ABSTAIN vote, which can flip `voting_result` — judge from
-`full_debate` (or the transcript in `<working_directory>/transcripts/`),
-never from the tally alone.
+Reading the result: take each consultant's position from its own round-2
+text. A consultant that errored or returned nothing is absent and counts
+toward no option.
 
-Return path unchanged (section 6): final positions and votes are consultant
-output — fix-ladder triage, disposition table, decision terminates at the
-user.
+Return path unchanged (section 6): final positions are consultant output —
+fix-ladder triage, disposition table, decision terminates at the user.
 
-## 5. Backends (Modes A/B)
+## 5. Consultants
 
-| Backend | Delivery |
+Ask the user which consultants to include before sending anything: one
+multi-select question over this roster, your pick first. For Mode A/B pick one
+consultant from a different model family than the session that built the
+artifact; for Mode C pick three across families.
+
+| Consultant | Delivery |
 |---|---|
-| codex CLI | Pipe the packet to the codex CLI session. No repo-standard invocation exists yet — record the command you use so a convention can accrete. |
-| Fresh Claude subagent | Spawn via the Agent tool, optionally with a model override (e.g. opus / fable). The packet goes in the prompt verbatim; the subagent gets NO other conversation context — fresh eyes are the point. |
-| Manual handoff | Write the packet to a file the user can paste into any session, and tell the user where it was written. |
+| Codex 6.2 Astra | `codex exec --skip-git-repo-check --cd <tree> --sandbox read-only --model gpt-6.2-astra -c 'model_reasoning_effort="high"' - < packet.md > codex.md` |
+| Muse Wonder Full | `muse.cmd exec --model muse-wonder-full-1.0 --workspace <tree> --disable-write --disable-shell --prompt-file packet.md > muse.md` |
+| Gemini 4 Neon | `(cd <tree> && ~/.gemini/bin/agy.exe --print "Read <packet> and answer it per its output contract." --model gemini-4-neon-high --mode plan) > gemini.md` |
+| Opus 5.5, Fable 5.2 | Agent tool with `model: "opus"` or `model: "fable"`. The packet goes in the prompt verbatim; the subagent gets no other conversation context. |
+
+Write the packet to `packet.md` in a scratch directory and run each CLI from
+there through the Bash tool with `run_in_background: true`. `<tree>` is the
+worktree holding the work under review and `<packet>` is `packet.md`, both as
+absolute paths in the form `cygpath -m` prints. The flags above keep each CLI
+read-only in `<tree>`. What the commands can't say (CLI versions, PATH):
+`doc/agents/environment.md` → Consult CLIs.
 
 ## 6. Return path (hard rules)
 
