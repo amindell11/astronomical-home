@@ -42,6 +42,10 @@ namespace UI.Hangar.Displays
             if (grenades)
                 return ($"{grenades.BlastDamage:0}", "blast");
 
+            var ionMines = weapon as IonMines;
+            if (ionMines)
+                return ($"{ionMines.StallSeconds:0.#}s", "stall, no damage");
+
             throw new InvalidOperationException(
                 $"The hangar has no damage readout for {weapon.DisplayName} ({weapon.GetType().Name}).");
         }

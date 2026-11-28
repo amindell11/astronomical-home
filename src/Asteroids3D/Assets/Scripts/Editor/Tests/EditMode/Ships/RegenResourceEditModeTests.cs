@@ -13,16 +13,16 @@ namespace Tests.EditMode.Ships
             var completions = 0;
             resource.OnFullyRegenerated += () => completions++;
             resource.ApplyDamage(40f);
-            resource.Update(0.5f);
+            resource.Update(0.5f, false);
             Assert.That(resource.IsRegenerating, Is.False);
             Assert.That(resource.CurrentValue, Is.EqualTo(60f));
-            resource.Update(0.6f);
+            resource.Update(0.6f, false);
             Assert.That(resource.IsRegenerating, Is.True);
             Assert.That(completions, Is.Zero);
-            resource.Update(4f);
+            resource.Update(4f, false);
             Assert.That(resource.CurrentValue, Is.EqualTo(100f));
             Assert.That(resource.IsRegenerating, Is.False);
-            resource.Update(10f);
+            resource.Update(10f, false);
             Assert.That(completions, Is.EqualTo(1));
         }
 
@@ -47,14 +47,27 @@ namespace Tests.EditMode.Ships
         {
             var resource = new RegenResource(100f, 10f, 1f);
             resource.ApplyDamage(40f);
-            resource.Update(1f);
+            resource.Update(1f, false);
             Assert.That(resource.IsRegenerating, Is.True);
             resource.ApplyDamage(10f);
             Assert.That(resource.IsRegenerating, Is.False);
-            resource.Update(0.5f);
+            resource.Update(0.5f, false);
             Assert.That(resource.IsRegenerating, Is.False);
-            resource.Update(0.5f);
+            resource.Update(0.5f, false);
             Assert.That(resource.IsRegenerating, Is.True);
+        }
+
+        [Test]
+        public void Held_PastTheDelay_DoesNotRegenerate_UntilReleased()
+        {
+            var resource = new RegenResource(100f, 10f, 1f);
+            resource.ApplyDamage(40f);
+            resource.Update(1f, true);
+            Assert.That(resource.IsRegenerating, Is.False);
+            Assert.That(resource.CurrentValue, Is.EqualTo(60f));
+            resource.Update(0.5f, false);
+            Assert.That(resource.IsRegenerating, Is.True);
+            Assert.That(resource.CurrentValue, Is.GreaterThan(60f));
         }
     }
 }

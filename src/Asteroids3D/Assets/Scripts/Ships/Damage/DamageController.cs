@@ -49,7 +49,7 @@ namespace Ships.Damage
         private void Update()
         {
             IsInvulnerable = IsInvulnerable && InvulTimeLeft >= 0; 
-            Shield.Update(Time.deltaTime);
+            Shield.Update(Time.deltaTime, myShip && !myShip.Status.CanRegenShield);
         }
 
         public void Initialize(Keystone keystone) => this.keystone = keystone;

@@ -84,7 +84,7 @@ namespace Tests.PlayMode.Presentation
             ship.Damage.TakeDamage(Hit(80f));
             yield return new WaitForSeconds(0.7f);
             Assert.That(ring.enabled, Is.False);
-            ship.Damage.Shield.Update(1f);
+            ship.Damage.Shield.Update(1f, false);
             yield return null;
             yield return null;
             Assert.That(ring.enabled, Is.True);
@@ -93,7 +93,7 @@ namespace Tests.PlayMode.Presentation
             var recoveryRotation = ring.transform.rotation;
             yield return new WaitForSeconds(0.2f);
             Assert.That(Quaternion.Angle(ring.transform.rotation, recoveryRotation), Is.GreaterThan(10f));
-            ship.Damage.Shield.Update(0.25f);
+            ship.Damage.Shield.Update(0.25f, false);
             yield return null;
             Assert.That(ring.fillAmount, Is.EqualTo(recoveryFill), "The arc must orbit rather than fill with capacity.");
             var ringSize = ring.rectTransform.sizeDelta;
@@ -104,10 +104,10 @@ namespace Tests.PlayMode.Presentation
             ship.Damage.TakeDamage(Hit(10f));
             yield return new WaitForSeconds(0.7f);
             Assert.That(ring.enabled, Is.False, "Absorbed hits restart the recharge delay.");
-            ship.Damage.Shield.Update(1f);
+            ship.Damage.Shield.Update(1f, false);
             yield return new WaitForSeconds(0.2f);
             var orbitEnd = ring.transform.eulerAngles.z + ring.fillAmount * 360f;
-            ship.Damage.Shield.Update(4f);
+            ship.Damage.Shield.Update(4f, false);
             yield return null;
             yield return null;
             Assert.That(ring.fillAmount, Is.InRange(recoveryFill, recoveryFill + 0.1f),

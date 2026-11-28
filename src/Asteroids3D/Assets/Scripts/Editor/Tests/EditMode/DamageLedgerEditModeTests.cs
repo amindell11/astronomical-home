@@ -65,7 +65,7 @@ namespace Tests.EditMode
             var ledger = NewBoundLedger(out var dc);
             dc.TakeDamage(Hit(75f, DamageKind.Laser, 7));
             dc.Health.RestoreFraction(0.1f);
-            dc.Shield.Update(10f);
+            dc.Shield.Update(10f, false);
             dc.TakeDamage(Hit(75f, DamageKind.Laser, 7));
 
             Assert.AreEqual(100f, ledger.Rows[0].Shield);

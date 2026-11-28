@@ -49,7 +49,7 @@ namespace Tests.EditMode.Weapons
             return field switch
             {
                 WeaponModField.FireRate => weapon.GetComponent<Cooldown>(),
-                WeaponModField.Damage => true,
+                WeaponModField.Damage => !(weapon as IonMines),
                 WeaponModField.HeatCapacity or WeaponModField.Cooling => weapon.GetComponent<Heat>(),
                 WeaponModField.Magazine => rounds,
                 WeaponModField.ReloadSpeed => rounds && rounds.ReloadTime > 0f,
