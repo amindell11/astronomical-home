@@ -178,7 +178,6 @@ namespace Combat.Weapons.Arsenal
                 var hit = beamHits[i];
                 if (shooterBody && hit.rigidbody == shooterBody) continue;
                 DamageableColliders.TryGet(hit.collider, out var damageable);
-                if (ProjectileBase.IsOthersOrdnance(damageable, shooter)) continue;
                 if (damageable != null && !struck.Add(damageable)) continue;
 
                 var point = StrikePoint(hit, origin);
