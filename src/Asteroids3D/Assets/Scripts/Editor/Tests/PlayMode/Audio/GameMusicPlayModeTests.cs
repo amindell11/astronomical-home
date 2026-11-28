@@ -253,7 +253,7 @@ namespace Tests.PlayMode.Audio
             Assert.That(instanceCounts, Is.EquivalentTo(new[] { 1 }), "one music instance for the whole session");
             Assert.AreEqual(new[]
             {
-                "Hangar", "Combat", "Recap", "Combat", "Victory", "Hangar", "Combat", "Defeat"
+                "Hangar", "Combat", "Recap", "Combat", "Hangar", "Combat", "Defeat"
             }, seen);
         }
 

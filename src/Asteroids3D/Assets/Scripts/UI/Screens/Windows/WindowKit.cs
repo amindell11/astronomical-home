@@ -81,7 +81,7 @@ namespace UI.Screens.Windows
             var height = rect.sizeDelta.y;
             var back = ScreenKit.Fill(ScreenKit.Box(rect, "Back", 0f, 0f, width, height),
                 layers.Canopy ? Color.black : Body);
-            if (layers.Canopy) WindowShade.Create(layers, back, null, 0f);
+            if (layers.Canopy) WindowShade.Create(layers, back, 0f);
             Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), Ink, 0f, 1.5f);
             Label(rect, "Label", caption, 14f, 0f, width - 28f, height, 15, Ink, font);
             Label(rect, "Key", key, 14f, 0f, width - 28f, height, 15, Dim, font, TextAnchor.MiddleRight);
