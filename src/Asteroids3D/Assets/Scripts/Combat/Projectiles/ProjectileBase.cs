@@ -178,8 +178,11 @@ namespace Combat.Projectiles
         protected void RaiseHit(IDamageable other)
         {
             if (hitWord is { } word && AttackerShip) AttackerShip.Words.Raise(word, transform.position);
-            Hit?.Invoke(transform.position, other);
+            RaiseGlance(other);
         }
+
+        /// <summary>The hit's effects without its word, for a strike that deals no damage.</summary>
+        protected void RaiseGlance(IDamageable other) => Hit?.Invoke(transform.position, other);
 
         private void RaiseLaunched()
         {

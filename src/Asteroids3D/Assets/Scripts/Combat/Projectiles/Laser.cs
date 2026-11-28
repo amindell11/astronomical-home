@@ -82,7 +82,7 @@ namespace Combat.Projectiles
             startPosition = transform.position - turned.normalized * traveled;
             SetDamageScale(DamageScale * bankedDamageScale);
             HasBanked = true;
-            RaiseHit(struck);
+            RaiseGlance(struck);
         }
 
         protected override void OnReturnToPool()
