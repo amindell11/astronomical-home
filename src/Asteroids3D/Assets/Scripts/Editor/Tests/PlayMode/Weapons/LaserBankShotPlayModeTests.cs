@@ -112,6 +112,7 @@ namespace Tests.PlayMode.Weapons
             Assert.Less(Vector3.Dot(body.linearVelocity, aim), 0f, "a head-on bank sends it back the way it came");
             Assert.Less(Vector3.Dot(bolt.transform.up, aim), 0f, "the bolt faces its new heading");
             Assert.AreEqual(0f, first.Total, "the bank does not hurt the rock");
+            Assert.IsTrue(((Laser)bolt).HasBanked, "the bolt shows it has banked");
 
             var second = CreateRock(lasers.FireOrigin - lasers.FireDirection * 6f);
             Physics.SyncTransforms();

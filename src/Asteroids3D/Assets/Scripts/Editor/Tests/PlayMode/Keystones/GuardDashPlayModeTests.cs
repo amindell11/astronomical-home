@@ -123,6 +123,12 @@ namespace Tests.PlayMode.Keystones
             var hull = WorldAim * (TargetAlong + 1f);
             ship.Damage.TakeDamage(new DamageInfo(amount, DamageKind.Laser, rival.Id, 0.1f, -WorldAim * 60f, hull));
             Assert.That(guard.Ripostes, Is.EqualTo(held ? 1 : 0), "only Riposte fires the blocked shot back");
+            if (held)
+            {
+                Laser riposte = null;
+                Projectiles.ForEachLive(live => { if (live is Laser shot) riposte = shot; });
+                Assert.That(riposte.Tint.HasValue, "the returned shot wears the Riposte tint");
+            }
 
             for (var i = 0; i < MaxSteps && struck.Count == 0; i++)
             {

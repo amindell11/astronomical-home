@@ -20,6 +20,8 @@ namespace Combat.Projectiles
         protected override DamageKind Kind => DamageKind.Laser;
 
         public float LaserSpeed => laserSpeed;
+        public bool HasBanked { get; private set; }
+        public Color? Tint { get; private set; }
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
         {
@@ -38,6 +40,8 @@ namespace Combat.Projectiles
 
         public void Intercept() => intercepts = true;
 
+        public void Paint(Color tint) => Tint = tint;
+
         protected override bool Intercepts => intercepts;
 
         public void Suppress(SuppressingFire fire) => suppressing = fire;
@@ -48,7 +52,7 @@ namespace Combat.Projectiles
             if (collider == bankedOff) return;
             if (banks && collider.gameObject.layer == LayerIds.Asteroid)
             {
-                Bank(collider);
+                Bank(other, collider);
                 return;
             }
             if (suppressing != null && other is DamageController hull && hull.Ship)
@@ -56,7 +60,7 @@ namespace Combat.Projectiles
             base.OnHit(other, collider);
         }
 
-        private void Bank(Collider rock)
+        private void Bank(IDamageable struck, Collider rock)
         {
             banks = false;
             bankedOff = rock;
@@ -72,6 +76,8 @@ namespace Combat.Projectiles
             // The range cap measures from the start point, so move it to keep the path length.
             startPosition = transform.position - turned.normalized * traveled;
             SetDamageScale(DamageScale * bankedDamageScale);
+            HasBanked = true;
+            RaiseHit(struck);
         }
 
         protected override void OnReturnToPool()
@@ -79,6 +85,8 @@ namespace Combat.Projectiles
             banks = false;
             bankedDamageScale = 1f;
             bankedOff = null;
+            HasBanked = false;
+            Tint = null;
             intercepts = false;
             suppressing = null;
         }
