@@ -23,11 +23,14 @@ namespace UI.Screens
         private static readonly string[] PadButtons =
             { "<Gamepad>/buttonWest", "<Gamepad>/buttonNorth", "<Gamepad>/buttonEast" };
         private const float CardWidth = 333f;
+        internal const float CardStagger = .3f;
         private const float CardHeight = 215f;
         private const float CardGap = 29f;
         private const float Inset = 16f;
         private const float EffectHeight = 80f;
-        private const float IconSize = 20f;
+        private const float IconSize = 28f;
+        private const float LandingY = 156f;
+        private const float LandingHeight = 20f;
 
         private readonly List<InputAction> actions = new();
         private ScreenFonts fonts;
@@ -106,7 +109,8 @@ namespace UI.Screens
             var landingX = Inset;
             if (landingIcon)
             {
-                var icon = ScreenKit.Box(body, "LandingIcon", Inset, 156f, IconSize, IconSize).gameObject
+                var icon = ScreenKit.Box(body, "LandingIcon", Inset,
+                        LandingY + (LandingHeight - IconSize) / 2f, IconSize, IconSize).gameObject
                     .AddComponent<Image>();
                 icon.sprite = landingIcon;
                 icon.preserveAspect = true;
@@ -114,10 +118,10 @@ namespace UI.Screens
                 icon.raycastTarget = false;
                 landingX += IconSize + 8f;
             }
-            WindowKit.Captioned(body, "Landing", "ON", landing.ToUpperInvariant(), landingX, 156f,
+            WindowKit.Captioned(body, "Landing", "ON", landing.ToUpperInvariant(), landingX, LandingY,
                 CardWidth - Inset - landingX, 16, fonts.Label);
             ScreenKit.Button((RectTransform)window.transform, () => Choose(index), WindowKit.Lit(layers, ScreenKit.Hover));
-            window.Play();
+            window.Play(index * CardStagger);
         }
 
         private void BindKeys()

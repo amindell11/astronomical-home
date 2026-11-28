@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Player;
 using Ships;
+using Ships.Presentation;
 using Substrate;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,12 +16,14 @@ namespace UI.PlayerState
     /// <summary>
     /// Session-owned ship indicators and lock reticles share a recap fade independently of the main HUD.
     /// Each frame it picks the player's one target (the missile lock, else the enemy nearest the cursor)
-    /// and tells each indicator whether it is targeted.
+    /// and tells each indicator whether it is targeted. It pops the words raised on the player's ship,
+    /// and the hull gain, over the world.
     /// </summary>
     public sealed class ShipStatusOverlay : MonoBehaviour
     {
         private readonly Dictionary<Ship, ShipStatusIndicator> indicators = new();
         private readonly Dictionary<Ship, InstrumentAppear> reticles = new();
+        private readonly Dictionary<Ship, Action<Word, Vector3>> words = new();
         private SubscribedSet<Ship> ships;
         private Camera worldCamera;
         private Canvas canvas;
@@ -29,9 +32,11 @@ namespace UI.PlayerState
         private LockOnIndicator reticlePrefab;
         private CanopyProjection projection;
         private PlayerControls controls;
+        private Font font;
+        private Material textMaterial;
 
         public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera,
-            LockOnIndicator reticlePrefab, CanopyProjection projection)
+            LockOnIndicator reticlePrefab, CanopyProjection projection, Font font, Material textMaterial)
         {
             if (!reticlePrefab) throw new ArgumentNullException(nameof(reticlePrefab));
             if (!projection) throw new ArgumentNullException(nameof(projection));
@@ -50,6 +55,8 @@ namespace UI.PlayerState
             overlay.worldCamera = worldCamera;
             overlay.reticlePrefab = reticlePrefab;
             overlay.projection = projection;
+            overlay.font = font;
+            overlay.textMaterial = textMaterial;
             overlay.worldVisibility = new GameObject("Ship lock overlay").AddComponent<CanvasGroup>();
             overlay.worldVisibility.gameObject.layer = hud.gameObject.layer;
             overlay.ships = ships;
@@ -101,8 +108,11 @@ namespace UI.PlayerState
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
 
-        public void ShowHullGain(float amount, Vector3 worldPoint, Font font, Material material) =>
-            HullGainPopup.Show(canvas, worldCamera, font, material, amount, worldPoint);
+        public void ShowHullGain(float amount, Vector3 worldPoint) =>
+            ShowWord(new Word($"+{Mathf.Max(1, Mathf.RoundToInt(amount))} HULL", StatusBarUI.HullTint), worldPoint);
+
+        private void ShowWord(Word word, Vector3 worldPoint) =>
+            WordPopup.Show(canvas, worldCamera, font, textMaterial, word.Text, word.Color, worldPoint);
 
         private void Add(Ship ship)
         {
@@ -116,6 +126,12 @@ namespace UI.PlayerState
             reticle = Instantiate(reticlePrefab, appearance.transform);
             reticle.Initialize(ship.Lock, pose);
             reticles.Add(ship, appearance);
+            Action<Word, Vector3> pop = (word, at) =>
+            {
+                if (ship.CompareTag(TagNames.Player)) ShowWord(word, at);
+            };
+            ship.Words.Raised += pop;
+            words.Add(ship, pop);
         }
 
         private void Remove(Ship ship)
@@ -123,12 +139,15 @@ namespace UI.PlayerState
             Destroy(indicators[ship].gameObject);
             indicators.Remove(ship);
             if (reticles.Remove(ship, out var reticle)) Destroy(reticle.gameObject);
+            ship.Words.Raised -= words[ship];
+            words.Remove(ship);
         }
 
         private void OnDestroy()
         {
             controls.Dispose();
             if (worldVisibility) Destroy(worldVisibility.gameObject);
+            foreach (var (ship, pop) in words) ship.Words.Raised -= pop;
             if (ships == null) return;
             ships.OnAdd -= Add;
             ships.OnRemove -= Remove;

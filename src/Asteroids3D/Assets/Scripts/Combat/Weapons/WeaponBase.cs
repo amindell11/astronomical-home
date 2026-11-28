@@ -39,6 +39,7 @@ namespace Combat.Weapons
             var proj = SimplePool<TProj>.Get(projectilePrefab, GamePlane.WorldPointOnPlane(muzzle.position), turn * muzzle.rotation);
             proj.Initialize(shooter);
             proj.SetDamageScale(ShotDamageFactor);
+            if (shooter?.ShotWord is { } word) proj.PopOnHit(word);
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
             Prime(proj);
             proj.Launch(GamePlane.WorldDirOnPlane(turn * muzzle.up), targetPoint);

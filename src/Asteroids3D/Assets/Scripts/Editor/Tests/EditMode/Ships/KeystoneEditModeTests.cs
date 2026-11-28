@@ -660,6 +660,23 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void EnemyBulwarks_BrakeLongerAndHoldTheirRam_ThePlayerKeepsTheBaseKit()
+        {
+            AssertRam("Bulwark", 0.4f, 0f);
+            foreach (var enemy in new[] { "BulwarkMinion", "BulwarkElite", "BulwarkRival" })
+                AssertRam(enemy, 0.6f, 3f);
+        }
+
+        private static void AssertRam(string ship, float brake, float hold)
+        {
+            var prefab = AssetDatabase.LoadMainAssetAtPath($"Assets/Prefabs/Ships/{ship}.prefab") as GameObject;
+            var ram = prefab.GetComponentInChildren<Ship>(true).KeystonePrefab as RamDash;
+            Assert.That(ram, Is.Not.Null, $"{ship}'s kit is the ram");
+            Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(brake), $"{ship} brake");
+            Assert.That(ram.FirstEngageHold, Is.EqualTo(hold), $"{ship} first-engage hold");
+        }
+
+        [Test]
         public void Valis_CarriesOverdrive()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);

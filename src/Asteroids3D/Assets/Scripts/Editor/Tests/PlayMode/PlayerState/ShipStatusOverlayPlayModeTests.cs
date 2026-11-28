@@ -6,10 +6,12 @@ using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
+using Ships.Presentation;
 using Ships.Registry;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI.PlayerState;
+using UI.Popups;
 using UI.Projection;
 using UI.Weapons;
 using UnityEngine;
@@ -295,7 +297,7 @@ namespace Tests.PlayMode.PlayerState
             hud.worldCamera = camera;
             var overlay = ShipStatusOverlay.Create(hud, ships, camera,
                 TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"),
-                Projection(pickRadius: .1f, hitBarsSeconds: .3f));
+                Projection(pickRadius: .1f, hitBarsSeconds: .3f), null, null);
             var indicators = (Dictionary<Ship, ShipStatusIndicator>)typeof(ShipStatusOverlay)
                 .GetField("indicators", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(overlay);
             float Alpha(Ship target) => indicators[target].GetComponent<CanvasGroup>().alpha;
@@ -352,6 +354,42 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(LockState.Locking, player.Targeting.State, "test premise: the player locks the enemy ahead");
             yield return Pick();
             Assert.AreEqual(1f, Alpha(ahead), "The missile lock's target shows its bars");
+        }
+
+        [UnityTest]
+        public IEnumerator Words_ShowOnlyWhenRaisedOnThePlayersShip_AndHullGainIsOne()
+        {
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            camera.transform.SetParent(root.transform);
+            camera.transform.position = new Vector3(0f, 0f, -50f);
+            camera.orthographic = true;
+            registry = new ShipRegistry();
+            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            player = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 0);
+            player.tag = "Player";
+            abeam = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 1, position: new Vector3(-8f, 0f, 0f));
+            registry.ActiveShips.Add(player);
+            registry.ActiveShips.Add(abeam);
+            var hud = new GameObject("HUD").AddComponent<Canvas>();
+            hud.transform.SetParent(root.transform);
+            hud.worldCamera = camera;
+            var overlay = ShipStatusOverlay.Create(hud, registry.ActiveShips, camera,
+                TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"),
+                Projection(pickRadius: .1f, hitBarsSeconds: .3f), Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), null);
+            List<string> Shown()
+            {
+                var shown = new List<string>();
+                foreach (var popup in overlay.GetComponentsInChildren<WordPopup>()) shown.Add(popup.GetComponent<Text>().text);
+                return shown;
+            }
+
+            abeam.Words.Raise(new Word("STUNNED", Color.yellow), abeam.transform.position);
+            player.Words.Raise(new Word("BACKSTAB", Color.red), abeam.transform.position);
+            overlay.ShowHullGain(10f, abeam.transform.position);
+            yield return null;
+
+            Assert.That(Shown(), Is.EquivalentTo(new[] { "BACKSTAB", "+10 HULL" }),
+                "Only the player's own words show, beside its hull gain");
         }
 
         // Tests resume after Update, so the overlay's pick sees a change one frame later.

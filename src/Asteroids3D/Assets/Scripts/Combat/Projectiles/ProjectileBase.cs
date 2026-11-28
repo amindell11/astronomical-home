@@ -4,6 +4,7 @@ using Damage;
 using UnityEngine;
 using Utils;
 using Substrate;
+using Ships.Presentation;
 
 namespace Combat.Projectiles
 {
@@ -118,6 +119,7 @@ namespace Combat.Projectiles
         {
             Shooter = null;
             damageScale = 1f;
+            hitWord = null;
             if (!rb) return;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
@@ -132,6 +134,10 @@ namespace Combat.Projectiles
         internal float DamageScale => damageScale;
 
         private float damageScale = 1f;
+        private Word? hitWord;
+
+        /// <summary>Where this shot hits, its shooter pops the word; cleared on pool return.</summary>
+        public void PopOnHit(Word word) => hitWord = word;
 
         private void ApplyDirectDamage(IDamageable other)
         {
@@ -171,6 +177,7 @@ namespace Combat.Projectiles
 
         protected void RaiseHit(IDamageable other)
         {
+            if (hitWord is { } word && AttackerShip) AttackerShip.Words.Raise(word, transform.position);
             Hit?.Invoke(transform.position, other);
         }
 

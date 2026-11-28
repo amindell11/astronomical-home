@@ -159,25 +159,21 @@ Claude app only sees it after a restart. Until then, lift it into a single
 command without echoing it:
 `GEMINI_API_KEY="$(powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('GEMINI_API_KEY','User')")" uv run art/tools/imagegen/imagegen.py ...`
 
-## ai-counsel (cross-model debate MCP)
+## Consult CLIs
 
-Installed at `C:\Users\amind\tools\ai-counsel` (venv `.venv`), registered
-user-scope with `PYTHONUTF8=1`; wired into the `design-consult` skill as Mode C.
-Windows fixes in its `config.yaml`: npm `.cmd` shims aren't spawnable, so codex
-points at the vendored `codex.exe` absolute path (re-point after npm updates) and
-gemini at `node` + absolute `gemini-cli/dist/index.js`.
+The design-consult commands live in `.claude/skills/design-consult/SKILL.md`
+§ 5. What they can't say:
 
-- `deliberate` needs ≥2 participants and a REQUIRED `working_directory`.
-- ⚠ Model ids must exist in `config.yaml`'s `model_registry`, and the server
-  **caches it at startup** — additions need an app restart (verify with
-  `list_models`). This is why panels sometimes lose a leg.
-- ⚠ **Read `full_debate`, not the tally.** Failed legs return `[ERROR: ...]` and
-  count as ABSTAIN, so 2+ dead legs report
-  `consensus_reached: true, winning_option: "ABSTAIN"`.
-- Legs: codex WORKS (`gpt-5.6-sol`, `gpt-5.5` fallback); claude WORKS via a
-  `claude setup-token` token in `CLAUDE_CODE_OAUTH_TOKEN` (non-interactive OAuth
-  refresh is an upstream gap); gemini permanently off (account banned).
-
-Direct codex consult, when the cached registry lacks a leg:
-`codex.exe exec --skip-git-repo-check --cd <repo> --sandbox read-only --model gpt-5.6-sol -c 'model_reasoning_effort="high"' - < packet.md > out.md`
-(~2–4 min/round).
+- **codex**: `gpt-6.2-astra` needs a recent CLI. 0.159 answers "not supported
+  when using Codex with a ChatGPT account"; 0.167 and 0.172 work. Update with
+  `npm install -g @openai/codex@latest`.
+- **agy** (the Antigravity CLI, Gemini models): lives at
+  `~/.gemini/bin/agy.exe`, off PATH. `--print` ignores piped stdin, so the
+  packet travels as a file it is told to read. `--mode plan` answers a write
+  request with a plan file under `~/.gemini`, leaving the tree alone.
+  `agy models` lists the ids; the effort tier is part of the id.
+- **muse**: `muse.cmd` under Git Bash; `muse exec --list-models` lists the
+  ids. Its "workspace is untrusted" lines on stderr are expected.
+- **ai-counsel**: the debate MCP at `C:\Users\amind\tools\ai-counsel` is still
+  registered user-scope and no skill uses it. Its gemini leg ran gemini-cli on
+  the banned account.

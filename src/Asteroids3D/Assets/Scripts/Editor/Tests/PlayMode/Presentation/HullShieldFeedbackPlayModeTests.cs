@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Presentation;
 using Ships.Registry;
+using Ships.Status;
 using Ships.Visuals;
 using Tests.PlayMode.Common;
 using UI.PlayerState;
@@ -191,6 +192,34 @@ namespace Tests.PlayMode.Presentation
 
             hull.ReleaseFlash(first);
             for (var i = 0; i < surfaces.Length; i++) Assert.That(ReadColor(surfaces[i]), Is.EqualTo(originals[i]), "the last release clears");
+        }
+
+        [UnityTest]
+        public IEnumerator StatusTint_HoldsWhileTheEffectLasts_YieldsToAHeldColor_ThenClears()
+        {
+            yield return null;
+            var originals = surfaces.Select(ReadColor).ToArray();
+            float Off(int i, Color target) => Vector4.Distance(ReadColor(surfaces[i]), target);
+
+            ship.Status.Apply(StatusEffect.Stunned, 0.4f);
+            yield return null;
+            for (var i = 0; i < surfaces.Length; i++)
+                Assert.That(Off(i, StatusTint.Stunned), Is.LessThan(Vector4.Distance(originals[i], StatusTint.Stunned)),
+                    "A stunned hull pulls toward the stun tint.");
+
+            var holder = new object();
+            hull.HoldFlash(holder, Color.white);
+            yield return null;
+            foreach (var surface in surfaces) Assert.That(ReadColor(surface), Is.EqualTo(Color.white), "A held color wins.");
+            hull.ReleaseFlash(holder);
+            yield return null;
+            for (var i = 0; i < surfaces.Length; i++)
+                Assert.That(Off(i, StatusTint.Stunned), Is.LessThan(Vector4.Distance(originals[i], StatusTint.Stunned)),
+                    "The tint comes back once the held color lets go.");
+
+            yield return new WaitForSeconds(0.5f);
+            for (var i = 0; i < surfaces.Length; i++)
+                Assert.That(Off(i, originals[i]), Is.LessThan(1e-4f), "The tint clears when the effect ends.");
         }
 
         private static DamageInfo Hit(float amount, bool bypass = false) =>

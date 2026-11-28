@@ -71,8 +71,6 @@ namespace Ships
 
         [Stat, SerializeField] private LieInWait lieInWait = new();
 
-        [SerializeField] private CleanKill cleanKill = new();
-
         [Stat, SerializeField] private DuckAndLoad duckAndLoad = new();
 
         public EngineModule Engine => engine;
@@ -94,8 +92,6 @@ namespace Ships
         public Turret Turret => turret;
 
         public LieInWait LieInWait => lieInWait;
-
-        public CleanKill CleanKill => cleanKill;
 
         public DuckAndLoad DuckAndLoad => duckAndLoad;
 
@@ -131,6 +127,7 @@ namespace Ships
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public ShakeChannel Shake { get; } = new ShakeChannel();
+        public WordChannel Words { get; } = new WordChannel();
         public StatusEffects Status { get; } = new StatusEffects();
 
         /// <summary>The held passive mods, which ship-level consumers read.</summary>
@@ -139,6 +136,7 @@ namespace Ships
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
         public float ShotDamageScale => Keystone ? Keystone.ShotDamageScale : 1f;
+        public Word? ShotWord => Keystone ? Keystone.ShotWord : null;
         public float RecoveryScale => duckAndLoad.RecoveryScale(Lock, Time.time);
 
         Transform IShipStatus.Transform => transform;
@@ -187,7 +185,6 @@ namespace Ships
             headstrong.Read(Behaviours);
             turret.Read(Behaviours);
             lieInWait.Read(Behaviours);
-            cleanKill.Read(Behaviours);
             duckAndLoad.Read(Behaviours);
         }
 
@@ -302,6 +299,7 @@ namespace Ships
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons, Status);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
+            Keystone.Popped += Words.Raise;
             if (Weapons) Weapons.Fired += Keystone.NotifyFired;
             if (Weapons) Weapons.Fired += lieInWait.NotifyFired;
             Damage?.PopulateSettings(Stats);

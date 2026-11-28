@@ -103,7 +103,8 @@ namespace Ships.Presentation
                 ship.CompareTag(TagNames.Player),
                 ship.Body,
                 () => ship.Keystone.Active,
-                () => ship.Movement.Applied));
+                () => ship.Movement.Applied,
+                ship.Status));
         }
 
         public void Bind(in ShipView view)

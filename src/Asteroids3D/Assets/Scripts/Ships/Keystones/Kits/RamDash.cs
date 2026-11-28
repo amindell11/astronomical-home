@@ -6,6 +6,7 @@ using Ships.Damage;
 using Ships.Mods;
 using Substrate;
 using UnityEngine;
+using Ships.Presentation;
 
 namespace Ships.Keystones.Kits
 {
@@ -21,6 +22,8 @@ namespace Ships.Keystones.Kits
     /// </summary>
     public sealed class RamDash : Dash
     {
+        private static readonly Word RefundWord = new("REFUND", new Color(.4f, 1f, .6f));
+
         [Tooltip("Seconds the positioning thrusters brake the ship to a full stop before the ram launches.")]
         [Stat, SerializeField] private float brake = 0.4f;
 
@@ -175,7 +178,10 @@ namespace Ships.Keystones.Kits
                     shipDamage * aim * Mathf.Clamp(contact.RelativeSpeed / damageReferenceSpeed, 1f, maxSpeedBonus),
                     in contact));
                 if (Behaviours.Holds(chainRam) && target is DamageController victim && victim.Health.CurrentValue <= 0f)
+                {
                     RefundCooldown();
+                    Pop(RefundWord, contact.Point);
+                }
             }
             CreditActivation();
         }

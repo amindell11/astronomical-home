@@ -95,9 +95,9 @@ namespace UI.Screens.Windows
         }
 
         /// <summary>Opens from closed over <see cref="OpenSeconds"/> of real time.</summary>
-        public void Play()
+        public void Play(float delay = 0f)
         {
-            playedAt = Time.unscaledTime;
+            playedAt = Time.unscaledTime + delay;
             Open = 0f;
         }
 

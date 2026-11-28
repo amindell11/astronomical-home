@@ -20,7 +20,7 @@ namespace Tests.PlayMode.Weapons.Mods
     /// <summary>
     /// Turbolaser bolts fly through an enemy missile unless Point defence is held, ripper slugs always do,
     /// and a charge's blast sets off only its own shooter's charges. Steady ripper fire
-    /// with Suppression slows a ship and locks its keystone. An EMP missile's hit jams its target.
+    /// with Suppression slows a ship's turning and locks its keystone. An EMP missile's hit jams its target.
     /// A Limpet charge rides the first ship it touches and goes off there.
     /// </summary>
     [Category("Weapons")]
@@ -177,12 +177,13 @@ namespace Tests.PlayMode.Weapons.Mods
         }
 
         [UnityTest]
-        public IEnumerator Suppression_SteadyRipperFireSlowsTheTarget_AndLocksItsKeystone()
+        public IEnumerator Suppression_SteadyRipperFireSlowsTheTargetsTurn_AndLocksItsKeystone()
         {
             var guns = Mount<Rippers>(RippersPath, Vector3.zero, GamePlane.Rotation, "Suppression");
             var target = SpawnTarget(guns.FireOrigin + guns.FireDirection * 8f);
             yield return new WaitForFixedUpdate();
-            var cap = target.Rigidbody.maxLinearVelocity;
+            var turnCap = target.Rigidbody.maxAngularVelocity;
+            var speedCap = target.Rigidbody.maxLinearVelocity;
 
             yield return HoldRippersOn(guns, target, 60);
             Assert.IsTrue(target.Status.Has(StatusEffect.Suppressed), "steady fire suppresses the target");
@@ -194,7 +195,8 @@ namespace Tests.PlayMode.Weapons.Mods
             }
 
             Assert.AreEqual(0, target.Keystone.Activations, "no keystone while suppressed");
-            Assert.Less(target.Rigidbody.maxLinearVelocity, cap, "its speed cap falls");
+            Assert.Less(target.Rigidbody.maxAngularVelocity, turnCap, "it turns slower");
+            Assert.AreEqual(speedCap, target.Rigidbody.maxLinearVelocity, "its top speed holds");
         }
 
         private static IEnumerator MissileHit(ProjectileBase missile)
