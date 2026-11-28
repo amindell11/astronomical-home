@@ -110,7 +110,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 4, g: 4, b: 4, a: 1}
-    - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
+    - _OrangeGain: {r: 0.6, g: 0.55, b: 8, a: 0}
     - _PaintInkColor: {r: 0.006, g: 0.012, b: 0.018, a: 1}
     - _PaintLightColor: {r: 0.82, g: 0.93, b: 0.88, a: 1}
     - _PaintRegionColor0: {r: 0, g: 0, b: 0, a: 1}
