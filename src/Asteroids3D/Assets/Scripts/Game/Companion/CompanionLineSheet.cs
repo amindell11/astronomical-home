@@ -8,7 +8,7 @@ namespace Game.Companion
     [CreateAssetMenu(fileName = "CompanionLines", menuName = "Game/Companion Lines")]
     public sealed class CompanionLineSheet : ScriptableObject
     {
-        [Tooltip("The line file: the Line sheet tab of the lines doc, exported as markdown.")]
+        [Tooltip("The line file: the canonical CSV of every line.")]
         [SerializeField] private TextAsset lineFile;
 
         [Tooltip("One line slot per moment the companion speaks for.")]

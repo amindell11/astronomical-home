@@ -26,6 +26,8 @@ the matching doc when its branch fires:
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (design
   vault at `doc/design/`, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
+- Companion, crew or enemy lines, "sync the lines" → `doc/agents/line-sheet.md`
+  (the canonical CSV, its columns, the Claude Sheet sync).
 - Memory reads/writes → `doc/agents/memory.md` (feedback notes only; nothing repo-critical).
 - Machine/tooling facts (remote box, pool capacity, MCP setup) →
   `doc/agents/environment.md`.
