@@ -104,8 +104,15 @@ namespace Combat.Projectiles
             var shooterComponent = Shooter as Component;
             if (target == null || !shooterComponent) return false;
             if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return false;
+            if (!Intercepts && IsOthersOrdnance(target, Shooter)) return false;
             return !IsFriendly(target);
         }
+
+        /// <summary>True when this shot strikes others' live ordnance (Point defence bolts).</summary>
+        protected virtual bool Intercepts => false;
+
+        /// <summary>Live ordnance is struck only by its own shooter or by an intercepting shot.</summary>
+        public static bool IsOthersOrdnance(IDamageable target, IShooter by) => target is ProjectileBase p && p.Shooter != by;
 
         protected virtual void ResetState()
         {

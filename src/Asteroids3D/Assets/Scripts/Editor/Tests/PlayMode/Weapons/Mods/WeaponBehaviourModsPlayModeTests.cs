@@ -18,7 +18,8 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Weapons.Mods
 {
     /// <summary>
-    /// Turbolaser bolts fly through an enemy missile unless Point defence is held. Steady ripper fire
+    /// Turbolaser bolts fly through an enemy missile unless Point defence is held, ripper slugs always do,
+    /// and a charge's blast sets off only its own shooter's charges. Steady ripper fire
     /// with Suppression slows a ship and locks its keystone. An EMP missile's hit jams its target.
     /// A Limpet charge rides the first ship it touches and goes off there.
     /// </summary>
@@ -70,9 +71,12 @@ namespace Tests.PlayMode.Weapons.Mods
             return ship;
         }
 
-        private (Missile missile, ProjectileBase bolt) HeadOn(bool pointDefence)
+        private (Missile missile, ProjectileBase bolt) HeadOn(bool pointDefence) =>
+            HeadOn<Lasers>(TurboLasersPath, pointDefence ? "PointDefence" : null);
+
+        private (Missile missile, ProjectileBase bolt) HeadOn<T>(string path, string key) where T : WeaponComponent
         {
-            var guns = Mount<Lasers>(TurboLasersPath, Vector3.zero, GamePlane.Rotation, pointDefence ? "PointDefence" : null);
+            var guns = Mount<T>(path, Vector3.zero, GamePlane.Rotation, key);
             var ahead = guns.FireOrigin + guns.FireDirection * 12f;
             var launcher = Mount<Missiles>(MissilesPath, ahead,
                 Quaternion.AngleAxis(180f, GamePlane.Normal) * GamePlane.Rotation);
@@ -81,7 +85,7 @@ namespace Tests.PlayMode.Weapons.Mods
 
             var missile = (Missile)launcher.Fire(guns.FireOrigin, Projectiles);
             var bolt = guns.Fire(ahead, Projectiles);
-            Assert.IsNotNull(bolt, "the turbolasers fired");
+            Assert.IsNotNull(bolt, "the guns fired");
             return (missile, bolt);
         }
 
@@ -114,6 +118,38 @@ namespace Tests.PlayMode.Weapons.Mods
 
             Assert.IsFalse(missile.gameObject.activeSelf, "the missile is shot down");
             Assert.IsFalse(bolt.gameObject.activeSelf, "the bolt spent itself on it");
+        }
+
+        [UnityTest]
+        public IEnumerator RipperSlugs_FlyThroughAnEnemyMissile()
+        {
+            var (missile, slug) = HeadOn<Rippers>(RippersPath, null);
+            var toward = slug.GetComponent<Rigidbody>().linearVelocity;
+
+            yield return StepWhile(() => slug.gameObject.activeSelf &&
+                Vector3.Dot(slug.transform.position - missile.transform.position, toward) < 2f, 40);
+
+            Assert.IsTrue(missile.gameObject.activeSelf, "the missile flies on");
+            Assert.Greater(Vector3.Dot(slug.transform.position - missile.transform.position, toward), 0f,
+                "the slug passed through it");
+        }
+
+        [UnityTest]
+        public IEnumerator AChargesBlast_SetsOffOnlyItsOwnShootersCharges([Values] bool own)
+        {
+            var dropper = Mount<Grenades>(GrenadesPath, Vector3.zero, GamePlane.Rotation);
+            var neighbour = own ? dropper : Mount<Grenades>(GrenadesPath, Vector3.zero, GamePlane.Rotation);
+            var origin = dropper.FireOrigin;
+
+            var second = (Grenade)neighbour.Fire(origin + dropper.FireDirection * 20f, Projectiles);
+            dropper.Reset();
+            var first = (Grenade)dropper.Fire(origin - dropper.FireDirection * 20f, Projectiles);
+            first.TakeDamage(default);
+
+            yield return StepWhile(() => second.gameObject.activeSelf, 20);
+
+            Assert.AreEqual(!own, second.gameObject.activeSelf,
+                own ? "the blast chains its own shooter's charge" : "an enemy blast passes over the charge");
         }
 
         private IEnumerator HoldRippersOn(Rippers guns, Ship target, int steps)

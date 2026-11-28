@@ -53,7 +53,7 @@ namespace Combat.Weapons.Arsenal
         protected override void Prime(Laser bolt)
         {
             if (Behaviours.Holds(bankShot)) bolt.BankOnce();
-            if (!Behaviours.Holds(pointDefence)) bolt.PassOrdnance();
+            if (Behaviours.Holds(pointDefence)) bolt.Intercept();
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
