@@ -7,5 +7,6 @@ namespace Combat.Projectiles
         float Radius { get; }
         float MaxRadius { get; }
         event Action Begun;
+        event Action Released;
     }
 }
