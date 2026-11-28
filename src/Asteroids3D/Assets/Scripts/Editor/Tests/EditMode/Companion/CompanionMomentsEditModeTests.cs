@@ -127,28 +127,63 @@ namespace Tests.EditMode.Companion
         [Test]
         public void StationArrived_MapsEachKindToItsSlotAndCarriesTheSector()
         {
-            var repair = new StationArrived(StationKind.Repair, 2);
+            var repair = StationArrived.On(StationKind.Repair, 2, 0.5f);
             Assert.AreEqual("station-arrived-repair", StationArrived.RepairSlot);
             Assert.AreEqual(StationArrived.RepairSlot, repair.Slot);
             Assert.AreEqual(2, repair.Sector);
             Assert.AreEqual("2", repair.Facts["sector"]);
 
-            var mod = new StationArrived(StationKind.Mod, 1);
+            var mod = StationArrived.On(StationKind.Mod, 1, 0.5f);
             Assert.AreEqual("station-arrived-mod", StationArrived.ModSlot);
             Assert.AreEqual(StationArrived.ModSlot, mod.Slot);
             Assert.AreEqual("1", mod.Facts["sector"]);
 
-            var armory = new StationArrived(StationKind.Armory, 4);
+            var armory = StationArrived.On(StationKind.Armory, 4, 0.5f);
             Assert.AreEqual("station-arrived-armory", StationArrived.ArmorySlot);
             Assert.AreEqual(StationArrived.ArmorySlot, armory.Slot);
             Assert.AreEqual("4", armory.Facts["sector"]);
+        }
+
+        [TestCase(1.0f, "station-arrived-repair-full")]
+        [TestCase(0.69f, "station-arrived-repair")]
+        [TestCase(0.5f, "station-arrived-repair")]
+        [TestCase(0.3f, "station-arrived-repair")]
+        [TestCase(0.29f, "station-arrived-repair-critical")]
+        [TestCase(0.0f, "station-arrived-repair-critical")]
+        public void StationArrived_RepairPicksItsSlotByHullBand(float hull, string slot)
+        {
+            var arrived = StationArrived.On(StationKind.Repair, 1, hull);
+
+            Assert.AreEqual(slot, arrived.Slot);
+            Assert.AreEqual(hull, arrived.Hull);
+        }
+
+        [TestCase(0.99f)]
+        [TestCase(0.7f)]
+        public void StationArrived_RepairBetweenQuietAndFull_RaisesNothing(float hull)
+        {
+            Assert.IsNull(StationArrived.On(StationKind.Repair, 1, hull));
+        }
+
+        [TestCase(StationKind.Mod, 1.0f, StationArrived.ModSlot)]
+        [TestCase(StationKind.Mod, 0.8f, StationArrived.ModSlot)]
+        [TestCase(StationKind.Mod, 0.1f, StationArrived.ModSlot)]
+        [TestCase(StationKind.Armory, 1.0f, StationArrived.ArmorySlot)]
+        [TestCase(StationKind.Armory, 0.8f, StationArrived.ArmorySlot)]
+        [TestCase(StationKind.Armory, 0.1f, StationArrived.ArmorySlot)]
+        public void StationArrived_ModAndArmoryKeepTheirSlotAtAnyHull(StationKind kind, float hull, string slot)
+        {
+            var arrived = StationArrived.On(kind, 1, hull);
+
+            Assert.IsNotNull(arrived);
+            Assert.AreEqual(slot, arrived.Slot);
         }
 
         [Test]
         public void StationArrived_UnmappedKind_ThrowsNamingTheKind()
         {
             var kind = (StationKind)99;
-            var thrown = Assert.Throws<ArgumentOutOfRangeException>(() => new StationArrived(kind, 1));
+            var thrown = Assert.Throws<ArgumentOutOfRangeException>(() => StationArrived.On(kind, 1, 0.5f));
 
             Assert.AreEqual("kind", thrown.ParamName);
             StringAssert.Contains(kind.ToString(), thrown.Message);
@@ -424,8 +459,9 @@ namespace Tests.EditMode.Companion
             foreach (var moment in new[]
                      {
                          SectorEntered.SectorSlot, CacheClaimed.CacheSlot, ModPicked.PickSlot, ArmoryPicked.PickSlot,
-                         CloseCall.CloseCallSlot, StationArrived.RepairSlot, StationArrived.ModSlot,
-                         StationArrived.ArmorySlot, PatrolSpotted.SpottedSlot, AlarmRaised.AlarmSlot,
+                         CloseCall.CloseCallSlot, StationArrived.RepairSlot, StationArrived.RepairFullSlot,
+                         StationArrived.RepairCriticalSlot, StationArrived.ModSlot, StationArrived.ArmorySlot,
+                         PatrolSpotted.SpottedSlot, AlarmRaised.AlarmSlot,
                          PatrolSilenced.SilencedSlot, CombatStarted.StartedSlot, EliteAnnounced.AnnouncedSlot,
                          EliteBeaten.BeatenSlot, ShipEarned.EarnedSlot,
                      })

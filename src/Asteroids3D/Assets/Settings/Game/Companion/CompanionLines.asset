@@ -47,6 +47,12 @@ MonoBehaviour:
   - moment: station-arrived-repair
     speaker: Repair crew
     mustSay: 0
+  - moment: station-arrived-repair-full
+    speaker: Repair crew
+    mustSay: 0
+  - moment: station-arrived-repair-critical
+    speaker: Repair crew
+    mustSay: 0
   - moment: station-arrived-mod
     speaker: Mod crew
     mustSay: 0
