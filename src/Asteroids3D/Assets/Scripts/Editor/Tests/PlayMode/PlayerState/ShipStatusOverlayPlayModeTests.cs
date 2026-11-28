@@ -147,7 +147,7 @@ namespace Tests.PlayMode.PlayerState
             var mainHud = hud.gameObject.AddComponent<global::UI.Overlay>();
             var crosshair = Object.Instantiate(TestAssets.Load<AimCrosshair>(
                 "Assets/Prefabs/UI/Crosshair/AimCrosshair.prefab"), hud.transform);
-            crosshair.Initialize(ship, camera);
+            crosshair.Initialize(ship, camera, null);
             var weaponHud = Object.Instantiate(TestAssets.Load<WeaponResourceHud>(
                 "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), hud.transform);
             weaponHud.Initialize(null, ship.Keystone.Icon);
