@@ -13,6 +13,7 @@ using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
+using UI.Comms;
 using UI.Prompts;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -68,7 +69,7 @@ namespace Tests.PlayMode.Prompts
         {
             yield return BuildRig();
             yield return BuildHeldHunt();
-            var tutorial = new FirstSectorTutorial(rig.Overlay, hunt, 30f);
+            var tutorial = new FirstSectorTutorial(rig.Overlay, hunt, 30f, promptStepSeconds: 60f);
             yield return null;
             CollectionAssert.AreEqual(new[] { "W/S", "A/D", "MOUSE" }, Keys(), "the sector opens on the movement lines alone");
 
@@ -103,6 +104,47 @@ namespace Tests.PlayMode.Prompts
 
             tutorial.End();
             yield return AsyncAssert.WaitUntil(() => Cards().Length == 0, Timeout, "ending the sector clears the card");
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator Tutorial_StepTimesOut_MovesOnWithoutInput()
+        {
+            yield return BuildRig();
+            yield return BuildHeldHunt();
+            var tutorial = new FirstSectorTutorial(rig.Overlay, hunt, 30f, promptStepSeconds: .5f);
+            yield return null;
+
+            yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => Keys().Contains("SPACE")), Timeout,
+                "a prompt step times out onto the weapon lines");
+            CollectionAssert.DoesNotContain(Keys(), "W/S", "the movement lines have gone");
+            CollectionAssert.DoesNotContain(Keys(), "A/D", "the movement lines have gone");
+            CollectionAssert.DoesNotContain(Keys(), "MOUSE", "the movement lines have gone");
+
+            yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => tutorial.IntroDue), Timeout,
+                "the weapon step times out and the intro becomes due");
+            Assert.IsEmpty(Keys(), "no prompt line is left");
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator Tutorial_StepClockPausesWhileTheCompanionSpeaks()
+        {
+            yield return BuildRig();
+            yield return BuildHeldHunt();
+            var tutorial = new FirstSectorTutorial(rig.Overlay, hunt, 30f, promptStepSeconds: .5f);
+            yield return null;
+            rig.Overlay.CommLine.Show(new CommMessage("Companion", Color.white, "Hold still."), 2f, .4f);
+
+            var spokeUntil = Time.unscaledTime + 1f;
+            yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => Time.unscaledTime >= spokeUntil), Timeout,
+                "a second passes while the companion speaks");
+            CollectionAssert.AreEqual(new[] { "W/S", "A/D", "MOUSE" }, Keys(),
+                "the movement lines stay while the companion speaks");
+
+            rig.Overlay.CommLine.Clear();
+            yield return AsyncAssert.WaitUntil(() => Step(tutorial, () => Keys().Contains("SPACE")), Timeout,
+                "the step clock runs once the companion stops");
         }
 
         private IEnumerator BuildRig()
