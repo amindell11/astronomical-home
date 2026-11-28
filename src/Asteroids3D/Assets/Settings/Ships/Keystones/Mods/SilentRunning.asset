@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Silent running
   icon: {fileID: 0}
-  effect: Stealth holds while you coast
+  effect: 'The stealth timer only runs while you thrust, so a coast stays hidden (with a hard cap)'
   fits:
   - {fileID: 5512903418735166201, guid: a80b5c5a9a734c9b9e87bfc9d0cf0c1f, type: 3}

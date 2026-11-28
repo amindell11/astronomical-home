@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Snap turn
   icon: {fileID: 0}
-  effect: Overdrive ends with your momentum on your nose
+  effect: 'The moment Overdrive ends, your momentum turns to wherever your nose points, so you change direction at full speed instead of sliding on and slowing down'
   fits:
   - {fileID: 5512903418735166201, guid: b64c454ae5ac494db3caf3c314153dc4, type: 3}

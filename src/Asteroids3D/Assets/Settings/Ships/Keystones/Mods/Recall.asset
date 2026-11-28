@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Recall
   icon: {fileID: 0}
-  effect: Blink again to return to your start
+  effect: 'Blink leaves a marker where you started; press again within 3 s to blink back to it, keeping your speed'
   fits:
   - {fileID: 5512903418735166201, guid: 9a04567fb6d14e59bee770c95783f69b, type: 3}

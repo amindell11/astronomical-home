@@ -23,6 +23,8 @@ namespace Combat.Weapons.Mods
 
         public override string Landing(Ship ship) => ship.Weapons.LandingNames(this);
 
+        public override Sprite LandingIcon(Ship ship) => ship.Weapons.LandingIcon(this);
+
 #if UNITY_EDITOR
         internal void Configure(string displayName, string effect, params WeaponComponent[] fits)
         {

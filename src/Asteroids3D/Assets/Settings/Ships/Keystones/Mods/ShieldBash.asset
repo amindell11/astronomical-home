@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Shield bash
   icon: {fileID: 0}
-  effect: Blink through enemies to stun them
+  effect: 'Blinking (or recalling) through an enemy stuns it for a second'
   fits:
   - {fileID: 5512903418735166201, guid: 9a04567fb6d14e59bee770c95783f69b, type: 3}

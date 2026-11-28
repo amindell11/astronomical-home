@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Orbit
   icon: {fileID: 0}
-  effect: Overdrive bends your course around rocks
+  effect: 'During Overdrive, skimming a rock bends your course around it with no speed lost'
   fits:
   - {fileID: 5512903418735166201, guid: b64c454ae5ac494db3caf3c314153dc4, type: 3}

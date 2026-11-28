@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Deep strike
   icon: {fileID: 0}
-  effect: The beam hits the farthest target first
+  effect: 'The beam hits the farthest ship or asteroid on its line first, and overkill carries back toward you, so rocks in the way are hit last instead of blocking the shot'
   fits:
   - {fileID: -8301958025146036882, guid: 3fc089f1b126427bbc347956f599714b, type: 3}

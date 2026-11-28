@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Implosion
   icon: {fileID: 0}
-  effect: The blast pulls enemies in
+  effect: 'The blast pulls enemies in instead of pushing them out'
   fits:
   - {fileID: 1100000000000000202, guid: 4c9a03fda4724848a895b5640634048a, type: 3}

@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Wire guided
   icon: {fileID: 0}
-  effect: Missiles steer toward your cursor
+  effect: 'Missiles steer toward your cursor instead of the lock'
   fits:
   - {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a, type: 3}

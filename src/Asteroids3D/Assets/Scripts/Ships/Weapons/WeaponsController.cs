@@ -142,6 +142,9 @@ namespace Ships.Weapons
 
         public string LandingNames(WeaponBehaviourMod mod) => LandingNames((_, prefab) => mod.LandsOn(prefab));
 
+        public Sprite LandingIcon(WeaponBehaviourMod mod) =>
+            mod.LandsOn(primaryMount) ? Primary.HudIcon : mod.LandsOn(secondaryMount) ? Secondary.HudIcon : null;
+
         private bool Lands(Func<WeaponComponent, WeaponComponent, bool> lands) =>
             lands(Primary, primaryMount) || lands(Secondary, secondaryMount);
 

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Turret
   icon: {fileID: 0}
-  effect: Guns aim at your cursor; the hull turns slower
+  effect: 'Both weapons fire at the cursor; the hull turns at half rate, with stronger reverse thrust so you don''t bump into everything'

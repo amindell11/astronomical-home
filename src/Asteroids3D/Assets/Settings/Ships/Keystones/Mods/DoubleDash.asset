@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Double dash
   icon: {fileID: 0}
-  effect: Dash twice before the cooldown
+  effect: 'The dash can fire twice in a row before its cooldown'
   fits:
   - {fileID: 5512903418735166201, guid: 2f670f74921442afa35a8d12f18317cf, type: 3}
