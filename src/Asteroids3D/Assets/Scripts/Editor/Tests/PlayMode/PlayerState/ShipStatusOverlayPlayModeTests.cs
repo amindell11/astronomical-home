@@ -392,17 +392,17 @@ namespace Tests.PlayMode.PlayerState
             player.Lock.RaiseProgress(.5f);
             ahead.Lock.RaiseProgress(.5f);
             yield return null;
-            var tint = own.GetComponent<Image>().color;
-            Assert.AreEqual(LockOnIndicator.ThreatTint.g, tint.g, .001f, "The threat reticle is enemy red");
-            Assert.That(tint.a, Is.InRange(.55f, 1f));
+            var tint = own.Tint;
+            Assert.AreEqual(LockOnIndicator.ThreatTint.g, tint.g, .001f, "The threat reticle is in the alert ink");
+            Assert.That(tint.a, Is.InRange(.35f, .7f));
             Assert.AreEqual(Color.red, enemy.GetComponent<Image>().color, "The targeting reticle keeps its colour");
 
             player.Lock.RaiseAcquired();
             yield return null;
-            Assert.Greater(own.GetComponent<Image>().color.g, .8f, "A completed lock flashes white");
-            Assert.Greater(own.transform.localScale.x, .6f, "The flash pops the reticle open");
+            Assert.Greater(own.Tint.g, .8f, "A completed lock flashes white");
+            Assert.Greater(own.transform.localScale.x, 1f, "The flash pops the reticle open");
             yield return new WaitForSeconds(.5f);
-            Assert.AreEqual(LockOnIndicator.ThreatTint.g, own.GetComponent<Image>().color.g, .001f, "The flash settles to red");
+            Assert.AreEqual(LockOnIndicator.ThreatTint.g, own.Tint.g, .001f, "The flash settles to the alert ink");
             player.Lock.RaiseReleased();
 
             var arcs = overlay.GetComponentInChildren<ThreatEdgeArcs>();

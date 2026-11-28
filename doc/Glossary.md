@@ -801,11 +801,12 @@ Format: **term** — definition. *(authority)*
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
 - **threat reticle** — the lock-on reticle on the player's own ship, shown while an
-  enemy locks the player: enemy red, pulsing faster as the lock builds, with a white
-  flash when it completes. It drives its own scale and colour, so the reticle's
-  Animator is off. The player's targeting reticle on enemies keeps the Animator look.
+  enemy locks the player: bold brackets in the HULL CRITICAL alert ink, kept clear of
+  the hull, pulsing faster as the lock builds, slamming shut into a box on a white
+  flash when it completes. It draws its own ink, so the reticle's sprite and Animator
+  are off. The player's targeting reticle on enemies keeps the Animator look.
   *(`LockOnIndicator.IsThreat`, bound by `ShipStatusOverlay`)*
-- **edge arc** — the red arc and chevron on the screen edge pointing at an off-screen
+- **edge arc** — the pulsing alert-ink arc and chevron on the screen edge pointing at an off-screen
   tracking missile, or at an off-screen enemy whose lock-on sensor is locking the
   player, until it comes on screen or leaves play. *(`ThreatEdgeArcs`)*
 - **spent charge** — the charge-up fraction the last shot consumed, announced by

@@ -9,21 +9,26 @@ using Utils;
 namespace UI.PlayerState.Alerts
 {
     /// <summary>
-    /// The player's edge arcs: an enemy-red arc and chevron on the screen edge, sliding with the bearing,
-    /// toward each off-screen missile tracking the player and each off-screen enemy mid-lock on the player.
+    /// The player's edge arcs: a bold, pulsing arc and chevron in the alert ink on the screen edge, sliding
+    /// with the bearing, toward each off-screen missile tracking the player and each off-screen enemy mid-lock
+    /// on the player.
     /// It polls the player's lock channel and the ships each frame; whatever leaves play drops out.
     /// </summary>
     public sealed class ThreatEdgeArcs : MonoBehaviour
     {
         // Canvas units on the overlay's 1080-high canvas, so one unit is a pixel at 1080p.
         internal const float Inset = 30f;
-        private const float ArcRadius = 90f;
-        private const float ArcHalfDegrees = 26f;
+        private const float ArcRadius = 150f;
+        private const float ArcHalfDegrees = 30f;
         private const int ArcSegments = 10;
-        private const float ArcWidth = 8f;
-        private const float ChevronBack = 22f;
-        private const float ChevronArm = 15f;
-        private const float ChevronWidth = 6f;
+        private const float ArcWidth = 14f;
+        private const float ChevronBack = 40f;
+        private const float ChevronArm = 32f;
+        private const float ChevronWidth = 12f;
+        private const float PulseHz = 3f;
+        // The canopy adds ink as light, so full-strength alert ink washes out to white.
+        private const float RestAlpha = .4f;
+        private const float PeakAlpha = .7f;
 
         private readonly List<(Vector2 point, float degrees)> placed = new();
         private SubscribedSet<Ship> ships;
@@ -111,6 +116,8 @@ namespace UI.PlayerState.Alerts
 
         private void Draw(VertexHelper mesh, Rect rect)
         {
+            var tint = LockOnIndicator.ThreatTint;
+            tint.a = Mathf.Lerp(RestAlpha, PeakAlpha, .5f + .5f * Mathf.Sin(Time.time * PulseHz * 2f * Mathf.PI));
             foreach (var (point, degrees) in placed)
             {
                 var bearing = degrees * Mathf.Deg2Rad;
@@ -121,13 +128,13 @@ namespace UI.PlayerState.Alerts
                 for (var i = 1; i <= ArcSegments; i++)
                 {
                     var to = centre + Arc(bearing, Mathf.Lerp(-ArcHalfDegrees, ArcHalfDegrees, (float)i / ArcSegments));
-                    AlertInk.Stroke(mesh, from, to, ArcWidth, LockOnIndicator.ThreatTint);
+                    AlertInk.Stroke(mesh, from, to, ArcWidth, tint);
                     from = to;
                 }
                 var tip = rect.center + point - outward * ChevronBack;
                 var heel = tip - outward * ChevronArm;
-                AlertInk.Stroke(mesh, heel + side * ChevronArm, tip, ChevronWidth, LockOnIndicator.ThreatTint);
-                AlertInk.Stroke(mesh, heel - side * ChevronArm, tip, ChevronWidth, LockOnIndicator.ThreatTint);
+                AlertInk.Stroke(mesh, heel + side * ChevronArm, tip, ChevronWidth, tint);
+                AlertInk.Stroke(mesh, heel - side * ChevronArm, tip, ChevronWidth, tint);
             }
         }
 
