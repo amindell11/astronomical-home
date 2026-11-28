@@ -11,7 +11,8 @@ namespace Combat.Projectiles
 {
     /// <summary>
     /// The once-per-mine rule: each ship is stalled once, so the blast, the field and the virus
-    /// compose with no special case.
+    /// compose with no special case. It also counts the open blast and field, so the virus
+    /// knows when nothing more can catch a ship.
     /// </summary>
     public sealed class IonStallLedger
     {
@@ -57,10 +58,11 @@ namespace Combat.Projectiles
 
         public static bool TryEnemy(Collider collider, Ship carrier, out Ship enemy)
         {
-            enemy = DamageableColliders.TryGet(collider, out var owner) && owner is DamageController hull ? hull.Ship : null;
+            var hull = DamageableColliders.TryGet(collider, out var owner) ? owner as DamageController : null;
+            enemy = hull ? hull.Ship : null;
             if (!enemy) return false;
             if (!carrier)
-                throw new InvalidOperationException("An ion blast looks for enemies without a carrier.");
+                throw new InvalidOperationException("An ion mine looks for enemies without a carrier.");
             return enemy != carrier && enemy.teamNumber != carrier.teamNumber;
         }
     }

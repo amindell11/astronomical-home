@@ -38,7 +38,7 @@ namespace Combat.Projectiles
                 var source = caught[i];
                 if (!source || !source.Status.Has(StatusEffect.Stalled)) continue;
                 sourceStalled = true;
-                if (ledger.Caught.Count >= maxShips) continue;
+                if (caught.Count >= maxShips) continue;
                 Spread(source);
             }
 
