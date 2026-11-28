@@ -165,7 +165,7 @@ namespace UI.PlayerState
 
         private void ShowCard(HeldMod held, RectTransform badge)
         {
-            cardName.text = held.Count > 1 ? $"{held.Mod.DisplayName} ×{held.Count}" : held.Mod.DisplayName;
+            cardName.text = held.Mod.DisplayName;
             cardEffect.text = held.Mod.Effect;
             var effectHeight = cardEffect.preferredHeight;
             cardEffect.rectTransform.sizeDelta = new Vector2(cardEffect.rectTransform.sizeDelta.x, effectHeight);

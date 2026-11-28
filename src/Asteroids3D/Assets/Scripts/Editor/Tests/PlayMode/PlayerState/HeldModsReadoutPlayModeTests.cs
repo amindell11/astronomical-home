@@ -98,7 +98,7 @@ namespace Tests.PlayMode.PlayerState
 
             ExecuteEvents.Execute(badge, new PointerEventData(null), ExecuteEvents.pointerEnterHandler);
             Assert.IsTrue(card.gameObject.activeSelf, "hovering opens the card");
-            Assert.AreEqual("Hot rounds ×2", card.Find("Name").GetComponent<Text>().text);
+            Assert.AreEqual("Hot rounds", card.Find("Name").GetComponent<Text>().text);
             Assert.IsNotEmpty(hot.Effect);
             Assert.AreEqual(hot.Effect, card.Find("Effect").GetComponent<Text>().text, "the pick card's effect text");
 
