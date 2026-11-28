@@ -126,7 +126,7 @@ namespace Tests.PlayMode.Keystones
             if (held)
             {
                 Laser riposte = null;
-                Projectiles.ForEachLive(live => { if (live is Laser shot) riposte = shot; });
+                Projectiles.ForEachLive(live => { var shot = live as Laser; if (shot) riposte = shot; });
                 Assert.That(riposte.Tint.HasValue, "the returned shot wears the Riposte tint");
             }
 
