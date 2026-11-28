@@ -57,7 +57,9 @@ namespace Combat.Projectiles
             var carrier = AttackerShip;
             if (!carrier)
                 throw new InvalidOperationException("An ion mine drops behind a ship.");
-            var drop = GamePlane.WorldPointOnPlane(carrier.transform.position - direction * (carrier.ShipRadius + dropGap));
+            // The hull's heading, not the muzzle's: a turret mount aims the muzzle at the cursor.
+            var behind = -Vector3.ProjectOnPlane(carrier.transform.up, GamePlane.Normal).normalized;
+            var drop = GamePlane.WorldPointOnPlane(carrier.transform.position + behind * (carrier.ShipRadius + dropGap));
             transform.position = drop;
             rb.position = drop;
             rb.linearVelocity = Vector3.zero;

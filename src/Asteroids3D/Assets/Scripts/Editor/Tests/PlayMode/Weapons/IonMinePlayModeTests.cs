@@ -55,6 +55,24 @@ namespace Tests.PlayMode.Weapons
             Assert.That(Vector3.Dot(carrier.transform.position - origin, forward), Is.GreaterThan(0.2f));
         }
 
+        [Test]
+        public void Drop_WithTheMuzzleAimedBackward_StillSitsBehindTheHull()
+        {
+            var (carrier, mines) = Arm();
+            var heading = carrier.transform.up;
+            mines.transform.rotation = Quaternion.AngleAxis(180f, GamePlane.Normal) * mines.transform.rotation;
+            Assert.That(Vector3.Dot(mines.FireDirection, heading), Is.LessThan(-0.99f));
+            var mine = Fire(mines);
+            Assert.That(Vector3.Distance(mine.transform.position, Drop(carrier, mines, heading)), Is.LessThan(0.05f));
+        }
+
+        [Test]
+        public void DamageMods_DoNotFitTheMine()
+        {
+            var (_, mines) = Arm();
+            Assert.IsFalse(mines.Supports(Combat.Weapons.Mods.WeaponModField.Damage));
+        }
+
         [UnityTest]
         public IEnumerator SecondFire_WhileTheMineIsLive_SpendsNothing_AndFiresAgainOnceItIsGone()
         {

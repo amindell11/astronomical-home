@@ -1,6 +1,7 @@
 using Balance;
 using Combat.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using Substrate.Services.Projectiles;
 using UnityEngine;
 
@@ -30,6 +31,10 @@ namespace Combat.Weapons.Arsenal
             if (!rounds) rounds = GetComponent<Rounds>();
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
+
+        // The mine deals no damage, so damage mods never land on it.
+        public override bool Supports(WeaponModField field) =>
+            field != WeaponModField.Damage && base.Supports(field);
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
