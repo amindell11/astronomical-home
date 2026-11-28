@@ -3,6 +3,7 @@ using Balance;
 using Loot;
 using Substrate;
 using UnityEngine;
+using Ships.Presentation;
 
 namespace Ships.Mods
 {
@@ -10,6 +11,8 @@ namespace Ships.Mods
     [Serializable]
     public sealed class Backstab
     {
+        public static readonly Word PiercedWord = new("BACKSTAB", new Color(1f, .35f, .3f));
+
         [Tooltip("The Backstab passive key this ship reads. Required on a ship that binds run mods.")]
         [SerializeField] private PassiveMod key;
 

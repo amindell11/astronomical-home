@@ -3,6 +3,7 @@ using Movement;
 using Ships.Command;
 using Ships.Mods;
 using UnityEngine;
+using Ships.Presentation;
 
 namespace Ships.Keystones.Kits
 {
@@ -19,6 +20,8 @@ namespace Ships.Keystones.Kits
     /// </summary>
     public sealed class Stealth : Keystone
     {
+        private static readonly Color AmbushInk = new(.8f, .45f, 1f);
+
         [Tooltip("Seconds the ship stays concealed unless it fires first.")]
         [Stat, SerializeField] private float window = 3f;
 
@@ -68,6 +71,7 @@ namespace Ships.Keystones.Kits
         // Concealment counts too: the shot that breaks stealth leaves before the reveal it causes.
         public bool Ambushing => Behaviours.Holds(ambush) && (concealed || SinceActivation - revealedAt < ambushWindow);
         public override float ShotDamageScale => Ambushing ? ambushDamageScale : 1f;
+        public override Word? ShotWord => Ambushing ? new Word($"x{ambushDamageScale:0.#}", AmbushInk) : (Word?)null;
 
         public override bool ShouldActivate(in KeystoneContext context) => context.SelfShieldPct < sightShield;
 

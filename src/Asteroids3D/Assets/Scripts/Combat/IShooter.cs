@@ -1,6 +1,7 @@
 using Ships;
 using UnityEngine;
 using Ships.Registry;
+using Ships.Presentation;
 
 namespace Combat
 {
@@ -24,5 +25,8 @@ namespace Combat
 
         /// <summary>Multiplier on how fast this shooter's weapons reload and cool, read each frame.</summary>
         float RecoveryScale => 1f;
+
+        /// <summary>The word each of this shooter's shots pops where it hits, read as each shot leaves; null for none.</summary>
+        Word? ShotWord => null;
     }
 }

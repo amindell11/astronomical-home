@@ -3,11 +3,15 @@ using Damage;
 using Ships.Damage;
 using Substrate;
 using UnityEngine;
+using Ships.Presentation;
+using Ships.Status;
 
 namespace Combat.Projectiles
 {
     public class Laser : Projectile<Laser>
     {
+        private static readonly Word SuppressedWord = new("SUPPRESSED", StatusTint.Suppressed);
+
         [Header("Laser Properties")]
         [Stat, SerializeField] private float laserSpeed = 20f;
 
@@ -46,8 +50,9 @@ namespace Combat.Projectiles
                 Bank(collider);
                 return;
             }
-            if (suppressing != null && other is DamageController hull && hull.Ship)
-                suppressing.Strike(hull.Ship.Status, Time.fixedTime);
+            if (suppressing != null && other is DamageController hull && hull.Ship
+                && suppressing.Strike(hull.Ship.Status, Time.fixedTime) && AttackerShip)
+                AttackerShip.Words.Raise(SuppressedWord, hull.Ship.transform.position);
             base.OnHit(other, collider);
         }
 

@@ -6,7 +6,7 @@ namespace Combat.Projectiles
     /// <summary>
     /// One gun's steady fire: once its last <c>hits</c> strikes on the same ship all land inside
     /// <c>window</c> seconds, every further strike keeps that ship suppressed for <c>hold</c> seconds.
-    /// A strike on another ship starts the count over.
+    /// A strike on another ship starts the count over. A strike reports whether it started a suppression.
     /// </summary>
     public sealed class SuppressingFire
     {
@@ -24,7 +24,7 @@ namespace Combat.Projectiles
             this.hold = hold;
         }
 
-        public void Strike(StatusEffects struck, float now)
+        public bool Strike(StatusEffects struck, float now)
         {
             if (struck != target)
             {
@@ -33,8 +33,10 @@ namespace Combat.Projectiles
             }
             struckAt[strikes++ % struckAt.Length] = now;
             // The slot written next holds the oldest of the last hits strikes.
-            if (strikes >= struckAt.Length && now - struckAt[strikes % struckAt.Length] <= window)
-                struck.Apply(StatusEffect.Suppressed, hold);
+            if (strikes < struckAt.Length || now - struckAt[strikes % struckAt.Length] > window) return false;
+            var starts = !struck.Has(StatusEffect.Suppressed);
+            struck.Apply(StatusEffect.Suppressed, hold);
+            return starts;
         }
     }
 }

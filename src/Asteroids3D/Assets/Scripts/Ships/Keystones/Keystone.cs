@@ -6,6 +6,7 @@ using Movement;
 using Ships.Command;
 using Ships.Damage;
 using UnityEngine;
+using Ships.Presentation;
 
 namespace Ships.Keystones
 {
@@ -15,7 +16,8 @@ namespace Ships.Keystones
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
     /// effects beyond what its steps push on the ship are state on the kit that other systems observe; the
-    /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays. An AI
+    /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays; words
+    /// it pops go out on <see cref="Popped"/>, which the ship forwards to its word channel. An AI
     /// commander also reads the kit's sight, which can fire it beside the brain's own request. A ship that
     /// should arrive with the kit already running calls <see cref="ActivateOnArrival"/> before its first step.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
@@ -84,6 +86,11 @@ namespace Ships.Keystones
 
         /// <summary>Multiplier on every hit the ship's own shots deal, fixed as each shot leaves.</summary>
         public virtual float ShotDamageScale => 1f;
+
+        /// <summary>The word each of the ship's own shots pops where it hits, fixed as each shot leaves; null for none.</summary>
+        public virtual Word? ShotWord => null;
+
+        public event Action<Word, Vector3> Popped;
 
         /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
         public virtual float PeakSpeedScale => 1f;
@@ -174,6 +181,8 @@ namespace Ships.Keystones
             readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
 
         protected void RestartCooldown() => readyAt = clock + cooldown;
+
+        protected void Pop(Word word, Vector3 at) => Popped?.Invoke(word, at);
 
         /// <summary>Whether the collider belongs to a ship on another team than the host's.</summary>
         protected bool TryEnemy(Collider collider, out Ship enemy)
