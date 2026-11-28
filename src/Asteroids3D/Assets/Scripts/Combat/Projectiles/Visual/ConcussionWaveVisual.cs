@@ -7,7 +7,7 @@ using Substrate;
 namespace Combat.Projectiles.Visual
 {
     /// <summary>
-    /// The boundary ring and animated disc follow the damage radius in the game plane.
+    /// The boundary ring and animated disc follow the blast front's radius in the game plane.
     /// Disc playback uses radius progress so pooled detonations restart without a separate animation clock.
     /// </summary>
     [RequireComponent(typeof(LineRenderer))]

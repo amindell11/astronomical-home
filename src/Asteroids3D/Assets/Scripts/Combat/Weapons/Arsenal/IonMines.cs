@@ -33,7 +33,6 @@ namespace Combat.Weapons.Arsenal
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            if (live) return null;
             var mine = (IonMine)base.Fire(targetPoint, projectiles);
             if (!mine) return null;
             live = mine;
@@ -52,9 +51,7 @@ namespace Combat.Weapons.Arsenal
         public override void Reset()
         {
             base.Reset();
-            if (live)
-                live.ReturnedToPool -= OnMineEnded;
-            live = null;
+            OnMineEnded();
         }
 
         private void OnMineEnded()
