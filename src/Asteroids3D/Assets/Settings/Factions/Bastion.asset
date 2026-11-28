@@ -20,11 +20,13 @@ MonoBehaviour:
     kit: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
     pilot: {fileID: 2192947864415885685, guid: 206554d511c77e94bb28a5ff32fbd6d4, type: 3}
     hull: []
+    palettes: {fileID: 11400000, guid: c93d59412fa75b5980f0f52aea1b1809, type: 2}
   minion:
     ship: {fileID: 8715764876294517832, guid: 2337aeffb200b9847b977efe36c79ec7, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 3896597625443593707, guid: 0199e1b0cb12a294c9973652e150124d, type: 3}
     hull: []
+    palettes: {fileID: 11400000, guid: a1dbbcba73745ff9bce78dc0137fa4a8, type: 2}
     scale:
       size: 1
       mass: 1
@@ -35,11 +37,17 @@ MonoBehaviour:
   elite:
     ship: {fileID: 8715764876294517832, guid: 15aa9b6efa76b684fa06068f028e4eea, type: 3}
     hull: []
+    palettes: {fileID: 11400000, guid: 50fc885f5f355da79ea16e6ad4bbdf70, type: 2}
     displayName: Bastion Bulwark
   unlocks: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
   flame: {fileID: 2100000, guid: 8b59b8dceb3942a38da30f0cc1084eae, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.16862746, g: 0.8235294, b: 0.96862745, a: 1}
+  localePalettes:
+  - locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+    palette: bastion-red
+  - locale: {fileID: 5133432934505610864, guid: 935b6bfe642839647a70b11027d391dd, type: 3}
+    palette: clan-blue
   stationDress:
     palettes:
     - name: Red hull

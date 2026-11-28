@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Nightshade Midnight
+  m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _PAINT_LAYERS
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: 775a1ba403e1542fb41527d62cbadc87, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintInkMap:
+        m_Texture: {fileID: 2800000, guid: acfce0ee11125a45b477b2698240939d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintLightMap:
+        m_Texture: {fileID: 2800000, guid: 1c29b3431cae5c558c12262f25e28531, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintRegionMask0:
+        m_Texture: {fileID: 2800000, guid: 68072f38a7975a878f72a9e056510695, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintRegionMask1:
+        m_Texture: {fileID: 2800000, guid: 5d782b60cec75821820aaf8ac557525d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintShadowMap:
+        m_Texture: {fileID: 2800000, guid: 70b921f23ebd5861ad4d50922e24b540, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WearMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientStrength: 0.35
+    - _BumpScale: 1
+    - _CastShadowStrength: 0.6
+    - _DebrisVisibility: 1
+    - _DetailAlbedoMapScale: 0
+    - _EmissionStrength: 0.35
+    - _LineSoftness: 0.08
+    - _LineStrength: 0
+    - _LineThreshold: 0.12
+    - _PaintEmissionBlend: 0
+    - _PaintInkStrength: 0.75
+    - _PaintLayers: 1
+    - _PaintLightStrength: 0.65
+    - _PaintRegionCount: 6
+    - _PaintRegionLightLift: 0.2
+    - _PaintSaturation: 1
+    - _PaintShadowStrength: 0.85
+    - _PaletteLighting: 1
+    - _PigmentPreservation: 0
+    - _ShadowSoftness: 0.1
+    - _ShadowThreshold: 0.35
+    - _SootStrength: 0
+    - _SpecularStrength: 0
+    - _TextureStrength: 0
+    - _UseRelief: 0
+    - _WearStrength: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OrangeGain: {r: 1, g: 1, b: 1, a: 1}
+    - _PaintInkColor: {r: 0.050708714, g: 0.03876, b: 0.11207494, a: 1}
+    - _PaintLightColor: {r: 0.86859969, g: 0.86268659, b: 0.88048596, a: 1}
+    - _PaintRegionColor0: {r: 0.67451009, g: 0.96078448, b: 0.28627464, a: 1}
+    - _PaintRegionColor1: {r: 0.11764688, g: 0.10980247, b: 0.14901802, a: 1}
+    - _PaintRegionColor2: {r: 0.83137265, g: 0.82352959, b: 0.84705865, a: 1}
+    - _PaintRegionColor3: {r: 0.11764688, g: 0.10980247, b: 0.14901802, a: 1}
+    - _PaintRegionColor4: {r: 0.60392139, g: 0.59607868, b: 0.63529429, a: 1}
+    - _PaintRegionColor5: {r: 0.89411754, g: 1, b: 0.63921601, a: 1}
+    - _PaperColor: {r: 0.83137265, g: 0.82352959, b: 0.84705865, a: 1}
+    - _ShadowColor: {r: 0.5, g: 0.6, b: 0.72, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

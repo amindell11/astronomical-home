@@ -318,7 +318,7 @@ namespace Substrate.Sectors.Elements.Hunt
                     field, placementAttempts);
                 var ship = units.SpawnShip(minion.ship, minion.pilot, team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field, minion.Loadout, minion.scale);
-                faction.Faction.Dress(ship, minion);
+                faction.Faction.Dress(ship, minion, faction.Locale);
                 var route = PatrolRoute.Waypoints(center, GamePlane.WorldPointToPlane(sector.transform.position),
                     GamePlane.WorldPointToPlane(position), feel.routeStartPass);
                 var patrol = new Patrol(ship, (AICommander)ship.Commander, route);

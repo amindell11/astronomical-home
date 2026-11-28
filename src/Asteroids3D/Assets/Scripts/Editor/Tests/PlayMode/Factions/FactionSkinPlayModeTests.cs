@@ -6,11 +6,13 @@ using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
+using Ships.Presentation;
 using Ships.Registry;
 using Ships.Visuals.Breakup;
 using Substrate;
 using Substrate.Sectors.Factions;
 using Substrate.Services;
+using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
 using UI.PlayerState;
@@ -22,7 +24,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Factions
 {
-    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its four thrust systems the faction flame at a white start colour, and its shield ring the faction colour; the elite wears its own set and flame.</summary>
+    /// <summary>A faction skin on a spawned Crimson: its hull wears the faction's set slot for slot, its four thrust systems the faction flame at a white start colour, and its shield ring the faction colour; the elite wears its own set and flame. Shoal's ranks wear the palette their locale maps, slot by region, and their wrecks wear it too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSkinPlayModeTests : PlayModeWorldFixture
@@ -141,6 +143,103 @@ namespace Tests.PlayMode.Factions
             Assert.IsTrue(woreSkin);
         }
 
+        [UnityTest]
+        public IEnumerator Dress_ShoalRanksWearTheirLocalesPalette_ByRegion(
+            [Values("BlueCrescent", "CoralSunset", "CyanAurora")] string localeName,
+            [Values("rival", "minion", "elite")] string rank)
+        {
+            var shoal = LoadShoal();
+            var locale = LoadLocale(localeName);
+            var chassis = RankShip(shoal, rank);
+            var ship = Spawn(chassis);
+
+            DressRank(shoal, ship, rank, locale);
+            yield return null;
+
+            var authored = HullSlots(chassis);
+            var worn = HullSlots(ship);
+            if (localeName != "CoralSunset")
+            {
+                CollectionAssert.AreEqual(authored, worn, "rust and unmapped locales keep the chassis's own paint");
+                yield break;
+            }
+
+            var shoalSet = RankPalettes(shoal, rank).Regions("shoal").ToDictionary(region => region.name);
+            var swapped = 0;
+            for (var i = 0; i < authored.Length; i++)
+            {
+                if (!shoalSet.TryGetValue(authored[i].name, out var region))
+                {
+                    Assert.AreSame(authored[i], worn[i], $"slot {i} '{authored[i].name}' is no region");
+                    continue;
+                }
+                Assert.AreSame(region, worn[i], $"slot {i} '{authored[i].name}'");
+                swapped++;
+            }
+            Assert.Greater(swapped, 0);
+        }
+
+        [UnityTest]
+        public IEnumerator Death_AShoalWreckWearsItsLocalesPalette()
+        {
+            var shoal = LoadShoal();
+            var ship = Spawn(shoal.signature.ship);
+            DressRank(shoal, ship, "rival", LoadLocale("CoralSunset"));
+            yield return null;
+            ship.Damage.TakeDamage(new DamageInfo(
+                100000f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, ship.transform.position));
+
+            var rust = shoal.signature.palettes.Regions("shoal-rust");
+            var shoalSet = shoal.signature.palettes.Regions("shoal");
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
+            var woreShoal = false;
+            foreach (var renderer in debris.GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    CollectionAssert.DoesNotContain(rust, material);
+                    if (shoalSet.Any(region => region.name == material.name)) woreShoal = true;
+                }
+            Assert.IsTrue(woreShoal);
+        }
+
+        private static Faction LoadShoal()
+        {
+            var shoal = AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset");
+            Assert.IsNotNull(shoal, "Shoal faction loads");
+            return shoal;
+        }
+
+        private static LocaleSky LoadLocale(string localeName)
+        {
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{localeName}.prefab");
+            Assert.IsNotNull(locale, $"{localeName} locale loads");
+            return locale;
+        }
+
+        private static Ship RankShip(Faction faction, string rank) => rank switch
+        {
+            "rival" => faction.signature.ship,
+            "minion" => faction.minion.ship,
+            _ => faction.elite.ship,
+        };
+
+        private static ShipPalettes RankPalettes(Faction faction, string rank) => rank switch
+        {
+            "rival" => faction.signature.palettes,
+            "minion" => faction.minion.palettes,
+            _ => faction.elite.palettes,
+        };
+
+        private static void DressRank(Faction faction, Ship ship, string rank, LocaleSky locale)
+        {
+            switch (rank)
+            {
+                case "rival": faction.Dress(ship, faction.Rival, locale); break;
+                case "minion": faction.Dress(ship, faction.Minion, locale); break;
+                default: faction.DressElite(ship, locale); break;
+            }
+        }
+
         private (Faction faction, Ship chassis) NewFaction(Ship chassis)
         {
             var slots = chassis.VisualRig.Silhouette.SelectMany(surface => surface.sharedMaterials).ToArray();
@@ -173,9 +272,9 @@ namespace Tests.PlayMode.Factions
         private static void Wear(Faction faction, Ship ship, bool elite)
         {
             if (elite)
-                faction.DressElite(ship);
+                faction.DressElite(ship, null);
             else
-                faction.Dress(ship, new FactionRank(faction.signature.ship, null, null, ShipScale.One, faction.signature.hull));
+                faction.Dress(ship, new FactionRank(faction.signature.ship, null, null, ShipScale.One, faction.signature.hull), null);
         }
 
         private static Material[] HullSlots(Ship ship) =>
