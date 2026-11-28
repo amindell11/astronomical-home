@@ -8,10 +8,17 @@ using UnityEngine;
 namespace Combat.Weapons.Arsenal
 {
     /// <summary>
-    /// Drops one ion mine at a time. An AI fires it only with a target inside the blast.
+    /// Drops one ion mine at a time, with the Virus and Static field mods.
+    /// An AI fires it only with a target inside the blast.
     /// </summary>
     public class IonMines : WeaponBase<IonMine>
     {
+        [Header("Virus")]
+        [SerializeField] private WeaponBehaviourMod virus;
+
+        [Header("Static field")]
+        [SerializeField] private WeaponBehaviourMod staticField;
+
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -40,6 +47,7 @@ namespace Combat.Weapons.Arsenal
         {
             var mine = (IonMine)base.Fire(targetPoint, projectiles);
             if (!mine) return null;
+            mine.Carry(Behaviours.Holds(virus), Behaviours.Holds(staticField));
             live = mine;
             mine.ReturnedToPool += OnMineEnded;
             return mine;

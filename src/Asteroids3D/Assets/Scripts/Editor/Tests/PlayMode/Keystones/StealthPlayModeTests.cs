@@ -11,6 +11,7 @@ using Ships;
 using Ships.Command;
 using Ships.Keystones.Kits;
 using Ships.Mods;
+using Ships.Status;
 using Substrate;
 using Tests.Common;
 using Tests.PlayMode.Common;
@@ -269,6 +270,19 @@ namespace Tests.PlayMode.Keystones
                 yield return new WaitForFixedUpdate();
             }
             Assert.That(stealth.Active, Is.False, "the primary still breaks stealth");
+        }
+
+        [UnityTest]
+        public IEnumerator Exposed_ShowsAConcealedNightshade_OnTheNextFixedStep()
+        {
+            yield return SpawnNightshade(Vector3.zero, team: 1);
+            nightshade.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(nightshade.Lock.IsConcealed, Is.True);
+
+            nightshade.Status.Apply(StatusEffect.Exposed, 1f);
+            yield return new WaitForFixedUpdate();
+            Assert.That(nightshade.Lock.IsConcealed, Is.False, "an exposed ship shows on the next fixed step");
         }
 
         private IEnumerator SpawnNightshade(Vector3 at, int team)

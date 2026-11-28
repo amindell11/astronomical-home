@@ -1,11 +1,5 @@
 using Balance;
 using System;
-using System.Collections.Generic;
-using Damage;
-using Ships;
-using Ships.Damage;
-using Ships.Presentation;
-using Ships.Status;
 using UnityEngine;
 using Utils;
 using Substrate;
@@ -14,8 +8,6 @@ namespace Combat.Projectiles
 {
     public sealed class IonBlast : MonoBehaviour, IBlastFront
     {
-        private static readonly Word StalledWord = new("STALLED", StatusTint.Stalled);
-
         [Header("Blast")]
         [Stat, SerializeField, Min(0.01f)] private float maxRadius = 12f;
         [Stat, SerializeField, Min(0.01f)] private float expandSpeed = 20f;
@@ -28,25 +20,27 @@ namespace Combat.Projectiles
         [Tooltip("Fraction of the stall a repeat within the window lasts.")]
         [Stat, SerializeField, Range(0f, 1f)] private float repeatScale = 0.5f;
 
-        private readonly HashSet<Ship> stalled = new();
+        private IonStallLedger ledger;
+        private bool open;
         private float radius;
-        private Ship carrier;
 
         public float Radius => radius;
         public float MaxRadius => maxRadius;
         public float StallSeconds => stallSeconds;
+        internal float ExpandSpeed => expandSpeed;
         internal float RepeatWindow => repeatWindow;
         internal float RepeatScale => repeatScale;
 
         public event Action Begun;
         public event Action Released;
 
-        public void Begin(Ship carrier)
+        public void Begin(IonStallLedger ledger)
         {
-            if (!carrier) throw new ArgumentNullException(nameof(carrier));
-            this.carrier = carrier;
+            if (ledger == null) throw new ArgumentNullException(nameof(ledger));
+            this.ledger = ledger;
+            ledger.Open();
+            open = true;
             radius = 0f;
-            stalled.Clear();
             Begun?.Invoke();
         }
 
@@ -61,6 +55,11 @@ namespace Combat.Projectiles
         public void ReturnToPoolImmediate()
         {
             Released?.Invoke();
+            if (open)
+            {
+                ledger.Close();
+                open = false;
+            }
             SimplePool<IonBlast>.Release(this);
         }
 
@@ -78,19 +77,9 @@ namespace Combat.Projectiles
 
             for (var i = 0; i < hitCount; i++)
             {
-                if (!TryEnemy(buffer[i], carrier, out var ship) || !stalled.Add(ship)) continue;
-                ship.Status.ApplyDiminishing(StatusEffect.Stalled, stallSeconds, repeatWindow, repeatScale);
-                carrier.Words.Raise(StalledWord, ship.transform.position);
+                if (!IonStallLedger.TryEnemy(buffer[i], ledger.Carrier, out var ship)) continue;
+                ledger.TryStall(ship);
             }
-        }
-
-        internal static bool TryEnemy(Collider collider, Ship carrier, out Ship enemy)
-        {
-            enemy = DamageableColliders.TryGet(collider, out var owner) && owner is DamageController hull ? hull.Ship : null;
-            if (!enemy) return false;
-            if (!carrier)
-                throw new InvalidOperationException("An ion blast looks for enemies without a carrier.");
-            return enemy != carrier && enemy.teamNumber != carrier.teamNumber;
         }
     }
 }

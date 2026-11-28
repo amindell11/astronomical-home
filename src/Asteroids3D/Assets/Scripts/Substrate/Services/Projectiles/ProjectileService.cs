@@ -110,8 +110,8 @@ namespace Substrate.Services.Projectiles
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool += onReturned; break;
                 default:
-                    var blast = instance as IBlastFront;
-                    if (blast != null) blast.Released += onReturned;
+                    var releasable = instance as IReleasable;
+                    if (releasable != null) releasable.Released += onReturned;
                     break;
             }
         }
@@ -122,8 +122,8 @@ namespace Substrate.Services.Projectiles
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool -= onReturned; break;
                 default:
-                    var blast = instance as IBlastFront;
-                    if (blast != null) blast.Released -= onReturned;
+                    var releasable = instance as IReleasable;
+                    if (releasable != null) releasable.Released -= onReturned;
                     break;
             }
         }

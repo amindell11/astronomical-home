@@ -839,6 +839,9 @@ Format: **term** — definition. *(authority)*
   still live, shield regen paused. A repeat stall on the same ship within the repeat
   window is shorter, in place of per-class durations.
   *(`StatusEffect.Stalled`, `StatusEffects.ApplyDiminishing`)*
+- **exposed** — a status the ion mine's Static field puts on enemies inside it. A concealed
+  ship shows at once and cannot stay hidden until it wears off, shortly after it leaves the
+  field. *(`StatusEffect.Exposed`, `Stealth`)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
   *(`WeaponComponent.FirePattern`; #1410)*
