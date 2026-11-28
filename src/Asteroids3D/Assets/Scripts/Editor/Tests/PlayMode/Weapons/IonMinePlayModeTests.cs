@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Combat.Projectiles;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using NUnit.Framework;
 using Ships;
 using Ships.Status;
@@ -21,6 +22,9 @@ namespace Tests.PlayMode.Weapons
     public class IonMinePlayModeTests : PlayModeWorldFixture
     {
         private const string PrefabPath = "Assets/Prefabs/Weapons/IonMines.prefab";
+        private const string VirusModPath = "Assets/Settings/Weapons/Mods/Behaviours/Virus.asset";
+        private const string FieldModPath = "Assets/Settings/Weapons/Mods/Behaviours/StaticField.asset";
+        private const float Pad = 0.25f;
 
         private readonly List<Ship> ships = new();
 
@@ -208,6 +212,235 @@ namespace Tests.PlayMode.Weapons
                 Is.EqualTo(blast.StallSeconds * blast.RepeatScale).Within(0.15f));
         }
 
+        [UnityTest]
+        public IEnumerator Virus_PassesTheStallToAnAllyOutsideTheBlast_AndSkipsTheCarriersTeam()
+        {
+            var (carrier, mines) = Arm();
+            Hold(mines, VirusModPath);
+            var spec = mines.projectilePrefab;
+            var blast = spec.BlastPrefab;
+            var virus = spec.VirusPrefab;
+            var axis = GamePlane.Right;
+            var source = Ship(1, axis * 200f);
+            var hull = HullAlong(source, axis);
+            var inside = blast.MaxRadius - hull - Pad;
+            var outside = BlastReach(blast) + hull + Pad;
+            Assert.That(inside - hull, Is.GreaterThan(spec.ProximityRadius),
+                "test premise: the stalled ship is outside proximity");
+            Assert.That(outside - inside - hull, Is.LessThan(virus.SpreadRadius),
+                "test premise: spread reaches an ally parked outside the blast");
+
+            var ally = Ship(1, axis * 220f);
+            var friend = Ship(0, axis * 240f);
+            var mine = Fire(mines);
+            var origin = mine.transform.position;
+            var sourceAt = origin + axis * inside;
+            var allyAt = origin + axis * outside;
+            var friendAt = allyAt + Vector3.Cross(axis, GamePlane.Normal).normalized * (hull + Pad);
+            Park(source, sourceAt);
+            Park(ally, allyAt);
+            Park(friend, friendAt);
+            Assert.That(Vector3.Distance(allyAt, origin) - hull, Is.GreaterThan(BlastReach(blast)));
+            Assert.That(Vector3.Distance(friendAt, origin) - hull, Is.GreaterThan(BlastReach(blast)));
+            Assert.That(Vector3.Distance(allyAt, sourceAt) - hull, Is.LessThan(virus.SpreadRadius));
+            Assert.That(Vector3.Distance(friendAt, sourceAt) - hull, Is.LessThan(virus.SpreadRadius));
+
+            yield return Until(() => source.Status.Has(StatusEffect.Stalled), 600);
+            Assert.IsTrue(source.Status.Has(StatusEffect.Stalled), "the blast stalls the enemy");
+            yield return Until(() => ally.Status.Has(StatusEffect.Stalled), 20);
+            Assert.IsTrue(ally.Status.Has(StatusEffect.Stalled), "the stall passes to its ally");
+            Assert.IsFalse(friend.Status.Has(StatusEffect.Stalled), "a ship of the carrier's team in that spot is never stalled");
+            Assert.IsFalse(carrier.Status.Has(StatusEffect.Stalled));
+        }
+
+        [UnityTest]
+        public IEnumerator Virus_StopsAtMaxShips_AndStallsNoneTwice()
+        {
+            var (_, mines) = Arm();
+            Hold(mines, VirusModPath);
+            var spec = mines.projectilePrefab;
+            var blast = spec.BlastPrefab;
+            var virus = spec.VirusPrefab;
+            var axis = GamePlane.Right;
+            var sample = Ship(1, axis * 200f);
+            var hull = HullAlong(sample, axis);
+            var inside = blast.MaxRadius - hull - Pad;
+            var hop = virus.SpreadRadius - hull - Pad;
+            Assert.That(hop, Is.GreaterThan(0f), "test premise: spread clears a hull");
+            Assert.That(inside - hull, Is.GreaterThan(spec.ProximityRadius),
+                "test premise: the first ship is outside proximity");
+            Assert.That(inside + hop - hull, Is.GreaterThan(BlastReach(blast)),
+                "test premise: the next ally is outside the blast");
+
+            var line = new Ship[virus.MaxShips + 1];
+            line[0] = sample;
+            for (var i = 1; i < line.Length; i++)
+                line[i] = Ship(1, axis * (220f + i * 20f));
+            var mine = Fire(mines);
+            var origin = mine.transform.position;
+            for (var i = 0; i < line.Length; i++)
+                Park(line[i], origin + axis * (inside + i * hop));
+            for (var i = 1; i < line.Length; i++)
+                Assert.That(Vector3.Distance(line[i].transform.position, line[i - 1].transform.position) - hull,
+                    Is.LessThan(virus.SpreadRadius), "test premise: each ally is inside the spread of the one before it");
+
+            for (var i = 0; i < virus.MaxShips; i++)
+            {
+                yield return Until(() => line[i].Status.Has(StatusEffect.Stalled), i == 0 ? 600 : 20);
+                Assert.That(line[i].Status.Remaining(StatusEffect.Stalled),
+                    Is.EqualTo(blast.StallSeconds).Within(0.15f), $"ship {i} caught once");
+            }
+            for (var i = 0; i < 8; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsFalse(line[virus.MaxShips].Status.Has(StatusEffect.Stalled), "the cap stops the pass");
+        }
+
+        [UnityTest]
+        public IEnumerator StaticField_StallsAnEnemyEnteringAfterTheBlast_AndIgnoresTheCarriersTeam()
+        {
+            var (_, mines) = Arm();
+            Hold(mines, FieldModPath);
+            var spec = mines.projectilePrefab;
+            var blast = spec.BlastPrefab;
+            var field = spec.FieldPrefab;
+            Assert.That(blast.MaxRadius / blast.ExpandSpeed + 0.5f, Is.LessThan(field.Seconds),
+                "test premise: the field outlasts the blast");
+
+            var axis = GamePlane.Right;
+            var friend = Ship(0, axis * 200f);
+            var arriving = Ship(1, axis * 220f);
+            var late = Ship(1, axis * 240f);
+            var hull = HullAlong(friend, axis);
+            var friendDist = hull + 1.5f;
+            Assert.That(friendDist + hull, Is.LessThan(field.Radius),
+                "test premise: the carrier-team ship sits inside the field");
+            IonBlast wave = null;
+            IonStaticField zone = null;
+            var mine = Fire(mines);
+            mine.Spawned += (spawned, _) =>
+            {
+                var asBlast = spawned as IonBlast;
+                if (asBlast) wave = asBlast;
+                var asField = spawned as IonStaticField;
+                if (asField) zone = asField;
+            };
+            var origin = mine.transform.position;
+            Park(friend, origin + axis * friendDist);
+
+            yield return Until(() => wave && !wave.gameObject.activeSelf, 600);
+            Assert.That(zone && zone.gameObject.activeSelf, Is.True, "the field is still up after the blast");
+            Assert.IsFalse(arriving.Status.Has(StatusEffect.Stalled));
+            Assert.IsFalse(friend.Status.Has(StatusEffect.Stalled), "a carrier-team ship inside is never stalled");
+
+            Park(arriving, origin);
+            yield return Until(() => arriving.Status.Has(StatusEffect.Stalled), 15);
+            Assert.IsTrue(arriving.Status.Has(StatusEffect.Stalled), "flying into the field stalls it");
+            Assert.IsFalse(friend.Status.Has(StatusEffect.Stalled), "a carrier-team ship inside is never stalled");
+
+            var budget = Mathf.CeilToInt(field.Seconds / Time.fixedDeltaTime) + 10;
+            yield return Until(() => zone && !zone.gameObject.activeSelf, budget);
+            Assert.IsFalse(zone.gameObject.activeSelf, "the field ends");
+            Park(late, origin);
+            for (var i = 0; i < 8; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsFalse(late.Status.Has(StatusEffect.Stalled), "an enemy who enters after the field is not stalled");
+        }
+
+        [UnityTest]
+        public IEnumerator StaticFieldAndVirus_AFieldStallPassesToAnAllyNearby()
+        {
+            var (_, mines) = Arm();
+            Hold(mines, VirusModPath, FieldModPath);
+            var spec = mines.projectilePrefab;
+            var blast = spec.BlastPrefab;
+            var field = spec.FieldPrefab;
+            var virus = spec.VirusPrefab;
+            Assert.That(blast.MaxRadius / blast.ExpandSpeed + 0.5f, Is.LessThan(field.Seconds),
+                "test premise: the field outlasts the blast");
+
+            var axis = GamePlane.Right;
+            var source = Ship(1, axis * 200f);
+            var ally = Ship(1, axis * 220f);
+            var hull = HullAlong(source, axis);
+            var sourceDist = field.Radius - hull - Pad;
+            var allyDist = field.Radius + hull + Pad;
+            Assert.That(sourceDist, Is.GreaterThan(0f));
+            Assert.That(sourceDist + hull, Is.LessThan(field.Radius));
+            Assert.That(allyDist - hull, Is.GreaterThan(field.Radius), "the ally stays outside the field");
+            Assert.That(allyDist - sourceDist - hull, Is.LessThan(virus.SpreadRadius),
+                "test premise: the ally outside the field is inside the spread");
+
+            IonBlast wave = null;
+            IonStaticField zone = null;
+            var mine = Fire(mines);
+            mine.Spawned += (spawned, _) =>
+            {
+                var asBlast = spawned as IonBlast;
+                if (asBlast) wave = asBlast;
+                var asField = spawned as IonStaticField;
+                if (asField) zone = asField;
+            };
+            var origin = mine.transform.position;
+
+            yield return Until(() => wave && !wave.gameObject.activeSelf, 600);
+            Assert.That(zone && zone.gameObject.activeSelf, Is.True);
+            Assert.IsFalse(source.Status.Has(StatusEffect.Stalled));
+            Assert.IsFalse(ally.Status.Has(StatusEffect.Stalled));
+
+            Park(source, origin + axis * sourceDist);
+            Park(ally, origin + axis * allyDist);
+            yield return Until(() => source.Status.Has(StatusEffect.Stalled), 15);
+            Assert.IsTrue(source.Status.Has(StatusEffect.Stalled), "the field stalls the enemy");
+            yield return Until(() => ally.Status.Has(StatusEffect.Stalled), 15);
+            Assert.IsTrue(ally.Status.Has(StatusEffect.Stalled), "that stall passes to its ally");
+        }
+
+        [UnityTest]
+        public IEnumerator WithoutEitherMod_TheMineLeavesNoFieldAndNoSpread()
+        {
+            var (_, mines) = Arm();
+            var spec = mines.projectilePrefab;
+            var blast = spec.BlastPrefab;
+            var virus = spec.VirusPrefab;
+            var axis = GamePlane.Right;
+            var source = Ship(1, axis * 200f);
+            var ally = Ship(1, axis * 220f);
+            var late = Ship(1, axis * 240f);
+            var hull = HullAlong(source, axis);
+            var inside = blast.MaxRadius - hull - Pad;
+            var outside = BlastReach(blast) + hull + Pad;
+            Assert.That(inside - hull, Is.GreaterThan(spec.ProximityRadius));
+            Assert.That(outside - inside - hull, Is.LessThan(virus.SpreadRadius),
+                "test premise: an ally sits where the virus would pass the stall");
+
+            var spawned = new List<MonoBehaviour>();
+            IonBlast wave = null;
+            var mine = Fire(mines);
+            mine.Spawned += (child, _) =>
+            {
+                spawned.Add(child);
+                var asBlast = child as IonBlast;
+                if (asBlast) wave = asBlast;
+            };
+            var origin = mine.transform.position;
+            Park(source, origin + axis * inside);
+            Park(ally, origin + axis * outside);
+
+            yield return Until(() => source.Status.Has(StatusEffect.Stalled), 600);
+            for (var i = 0; i < 8; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsFalse(ally.Status.Has(StatusEffect.Stalled), "without Virus the stall does not spread");
+            Assert.That(spawned, Has.Count.EqualTo(1));
+            Assert.IsNotNull(spawned[0] as IonBlast, "the mine spawns only its blast");
+
+            yield return Until(() => wave && !wave.gameObject.activeSelf, 200);
+            Park(late, origin);
+            for (var i = 0; i < 8; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsFalse(late.Status.Has(StatusEffect.Stalled),
+                "without Static field an enemy who arrives after the blast is not stalled");
+        }
+
         private (Ship carrier, IonMines mines) Arm(bool moving = false)
         {
             var carrier = Ship(0, Vector3.zero, moving);
@@ -234,8 +467,54 @@ namespace Tests.PlayMode.Weapons
             mines.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             Assert.IsNotNull(mines.projectilePrefab);
             Assert.IsNotNull(mines.projectilePrefab.BlastPrefab);
+            Assert.IsNotNull(mines.projectilePrefab.VirusPrefab);
+            Assert.IsNotNull(mines.projectilePrefab.FieldPrefab);
             Assert.IsNotNull(mines.Rounds);
             return mines;
+        }
+
+        private static void Hold(IonMines mines, params string[] paths)
+        {
+            var mods = new WeaponBehaviourMod[paths.Length];
+            for (var i = 0; i < paths.Length; i++)
+            {
+                mods[i] = TestAssets.Load<WeaponBehaviourMod>(paths[i]);
+                Assert.IsNotNull(mods[i], paths[i]);
+            }
+            mines.Behaviours.Set(mods);
+        }
+
+        private static void Park(Ship ship, Vector3 at)
+        {
+            var onPlane = GamePlane.WorldPointOnPlane(at);
+            ship.transform.position = onPlane;
+            ship.Rigidbody.position = onPlane;
+            ship.Rigidbody.linearVelocity = Vector3.zero;
+            Physics.SyncTransforms();
+        }
+
+        private static float HullAlong(Ship ship, Vector3 axis)
+        {
+            var reach = 0f;
+            foreach (var collider in ship.Colliders)
+            {
+                if (!collider || collider.gameObject.layer != LayerIds.Ship) continue;
+                var bounds = collider.bounds;
+                var along = Vector3.Dot(bounds.center - ship.transform.position, axis);
+                var extent = bounds.extents.x * Mathf.Abs(axis.x)
+                    + bounds.extents.y * Mathf.Abs(axis.y)
+                    + bounds.extents.z * Mathf.Abs(axis.z);
+                reach = Mathf.Max(reach, along + extent, extent - along);
+            }
+            Assert.That(reach, Is.GreaterThan(0f), "test premise: the ship has a hull on the ship layer");
+            return reach;
+        }
+
+        private static float BlastReach(IonBlast blast)
+        {
+            var step = blast.ExpandSpeed * Time.fixedDeltaTime;
+            var sweeps = Mathf.Max(1, Mathf.CeilToInt(blast.MaxRadius / step - 0.0001f));
+            return sweeps * step;
         }
 
         private IonMine Fire(IonMines mines)

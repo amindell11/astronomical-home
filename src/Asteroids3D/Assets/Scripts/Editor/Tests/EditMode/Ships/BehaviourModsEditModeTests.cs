@@ -160,12 +160,12 @@ namespace Tests.EditMode.Ships
             {
                 "Bank shot", "Stopping power", "Deep strike", "Shrapnel rocks", "Wire guided", "Implosion",
                 "Battering ram", "Ambush", "Recall", "Orbit", "Riposte", "Backstab",
-                "Point defence", "Suppression", "EMP warhead", "Limpet",
+                "Point defence", "Suppression", "EMP warhead", "Limpet", "Virus", "Static field",
                 "Headstrong", "Turret", "Lie in wait", "Duck and load",
                 "Chain ram", "Double dash", "Shield bash", "Relentless", "Silent running", "Quiet ordnance",
             }, pool.mods.Select(mod => mod.DisplayName));
 
-            var weapons = new[] { "Lasers", "TurboLasers", "Rippers", "Scattergun", "Railgun", "Missiles", "Grenades" }.Select(Weapon).ToArray();
+            var weapons = new[] { "Lasers", "TurboLasers", "Rippers", "Scattergun", "Railgun", "Missiles", "Grenades", "IonMines" }.Select(Weapon).ToArray();
             var kits = new[] { "Bulwark_Dash", "Nightshade_Stealth", "Crimson_Blink", "Valis_Overdrive", "Vanguard_Dash" }
                 .Select(Kit).ToArray();
             foreach (var mod in pool.mods.Cast<BehaviourMod>())

@@ -11,6 +11,7 @@ namespace Ships.Status
         EnginesOut = 2,
         Suppressed = 3,
         Stalled = 4,
+        Exposed = 5,
     }
 
     /// <summary>
@@ -22,7 +23,7 @@ namespace Ships.Status
     /// </summary>
     public sealed class StatusEffects
     {
-        private const int Count = 5;
+        private const int Count = 6;
 
         private readonly float[] endsAt = new float[Count];
         private readonly float[] lastApplied = new float[Count];

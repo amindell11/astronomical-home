@@ -2,6 +2,7 @@ using Balance;
 using Movement;
 using Ships.Command;
 using Ships.Mods;
+using Ships.Status;
 using UnityEngine;
 using Ships.Presentation;
 
@@ -10,9 +11,10 @@ namespace Ships.Keystones.Kits
     /// <summary>
     /// Nightshade's kit: no impulse, a window in which the ship is concealed, ended early by its own
     /// first shot. Concealment is one flag on the ship's lock channel, raised as an event, so every
-    /// lock and seeker on the ship lets go on the step it starts. Projectiles still hit; stealth
-    /// hides the ship, it does not dodge, but it raises the cap and thrust like Overdrive so the
-    /// ship can leave where it was last seen. It pays when it breaks a missile's track.
+    /// lock and seeker on the ship lets go on the step it starts. An exposed ship cannot stay concealed.
+    /// Projectiles still hit; stealth hides the ship, it does not dodge, but it raises the cap and
+    /// thrust like Overdrive so the ship can leave where it was last seen. It pays when it breaks a
+    /// missile's track.
     /// Over the last moments of the window the hull tells that the ship is about to show. With Ambush,
     /// the ship's shots hit harder from concealment until a short while after it shows. With Silent
     /// running the window counts only the time the pilot thrusts, under a hard cap on the time hidden;
@@ -95,6 +97,11 @@ namespace Ships.Keystones.Kits
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
             if (!concealed) return default;
+            if (Host.Ship.Status.Has(StatusEffect.Exposed))
+            {
+                Reveal();
+                return default;
+            }
             if (Thrusting) thrustedFor += dt;
             if (Left <= 0f) Reveal();
             return default;

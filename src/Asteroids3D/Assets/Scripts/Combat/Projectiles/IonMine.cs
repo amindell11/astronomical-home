@@ -9,7 +9,7 @@ namespace Combat.Projectiles
 {
     /// <summary>
     /// Drops behind the carrier at rest, arms, and goes off on an enemy in proximity or at
-    /// the fuse. Its IonBlast stalls enemy ships only.
+    /// the fuse. The detonation stalls enemy ships only, and Virus and Static field share that stall.
     /// Design: arc #1775.
     /// </summary>
     public class IonMine : Projectile<IonMine>, ITransientSpawner, IDetonating
@@ -29,8 +29,14 @@ namespace Combat.Projectiles
         [Header("Blast")]
         [Stat, SerializeField] private IonBlast blastPrefab;
 
+        [Header("Mods")]
+        [Stat, SerializeField] private IonVirus virusPrefab;
+        [Stat, SerializeField] private IonStaticField fieldPrefab;
+
         private bool detonated;
         private float sinceLaunch;
+        private bool carryVirus;
+        private bool carryField;
 
         private bool Armed => sinceLaunch >= armingTime;
 
@@ -38,6 +44,8 @@ namespace Combat.Projectiles
         protected override DamageKind Kind => DamageKind.ConcussionWave;
 
         public IonBlast BlastPrefab => blastPrefab;
+        public IonVirus VirusPrefab => virusPrefab;
+        public IonStaticField FieldPrefab => fieldPrefab;
         internal float DropGap => dropGap;
         internal float ArmingTime => armingTime;
         internal float FuseTime => fuseTime;
@@ -49,7 +57,19 @@ namespace Combat.Projectiles
         protected override void Awake()
         {
             base.Awake();
+            if (!virusPrefab)
+                throw new InvalidOperationException("An ion mine needs its virus.");
+            if (!fieldPrefab)
+                throw new InvalidOperationException("An ion mine needs its static field.");
             SimplePool<IonBlast>.Warm(blastPrefab);
+            SimplePool<IonVirus>.Warm(virusPrefab);
+            SimplePool<IonStaticField>.Warm(fieldPrefab);
+        }
+
+        public void Carry(bool virus, bool staticField)
+        {
+            carryVirus = virus;
+            carryField = staticField;
         }
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
@@ -84,7 +104,7 @@ namespace Combat.Projectiles
             var hitCount = Physics.OverlapSphereNonAlloc(transform.position, proximityRadius, buffer,
                 1 << LayerIds.Ship, QueryTriggerInteraction.Ignore);
             for (var i = 0; i < hitCount; i++)
-                if (IonBlast.TryEnemy(buffer[i], AttackerShip, out _)) return true;
+                if (IonStallLedger.TryEnemy(buffer[i], AttackerShip, out _)) return true;
             return false;
         }
 
@@ -96,9 +116,23 @@ namespace Combat.Projectiles
             if (detonated) return;
             detonated = true;
 
+            var ledger = new IonStallLedger(AttackerShip, blastPrefab.StallSeconds, blastPrefab.RepeatWindow,
+                blastPrefab.RepeatScale);
             var blast = SimplePool<IonBlast>.Get(blastPrefab, transform.position, Quaternion.identity);
-            blast.Begin(AttackerShip);
+            blast.Begin(ledger);
             Spawned?.Invoke(blast, blast.ReturnToPoolImmediate);
+            if (carryField)
+            {
+                var field = SimplePool<IonStaticField>.Get(fieldPrefab, transform.position, Quaternion.identity);
+                field.Begin(ledger);
+                Spawned?.Invoke(field, field.ReturnToPoolImmediate);
+            }
+            if (carryVirus)
+            {
+                var virus = SimplePool<IonVirus>.Get(virusPrefab, transform.position, Quaternion.identity);
+                virus.Begin(ledger);
+                Spawned?.Invoke(virus, virus.ReturnToPoolImmediate);
+            }
             OnDetonated?.Invoke(transform.position);
             Dispose();
         }
@@ -107,6 +141,8 @@ namespace Combat.Projectiles
         {
             detonated = false;
             sinceLaunch = 0f;
+            carryVirus = false;
+            carryField = false;
         }
     }
 }
