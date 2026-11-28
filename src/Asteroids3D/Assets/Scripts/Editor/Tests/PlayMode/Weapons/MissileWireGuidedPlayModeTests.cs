@@ -97,6 +97,10 @@ namespace Tests.PlayMode.Weapons
             yield return Steer(left, 40);
             Assert.Less(Along(missile, Side), towardRight - 0.3f, "it turns after the aim point when it moves");
             Assert.IsFalse(missile.IsTracking, "it steers by the wire, not a lock");
+            Assert.IsTrue(missile.IsWired && launcher.WireLive, "the launcher reports its wire live");
+
+            missile.ReturnToPoolImmediate();
+            Assert.IsFalse(launcher.WireLive, "the wire dies with the missile");
         }
     }
 }

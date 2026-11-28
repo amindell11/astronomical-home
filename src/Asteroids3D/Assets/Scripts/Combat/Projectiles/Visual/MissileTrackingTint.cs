@@ -5,7 +5,8 @@ namespace Combat.Projectiles.Visual
 {
     /// <summary>
     /// Stand-in tracking readout until the shooter-feedback slice of #958 lands: the missile body
-    /// turns red while it flies without a target — a dumbfire launch, or a missile that lost track.
+    /// turns red while it flies without a target — a dumbfire launch, or a missile that lost track —
+    /// and blue while it flies on a wire.
     /// </summary>
     [RequireComponent(typeof(Missile))]
     public sealed class MissileTrackingTint : MonoBehaviour, IPresentationPart
@@ -15,6 +16,7 @@ namespace Combat.Projectiles.Visual
         private Missile missile;
         private MeshRenderer body;
         private MaterialPropertyBlock block;
+        private MaterialPropertyBlock wiredBlock;
 
         private void Awake()
         {
@@ -22,6 +24,8 @@ namespace Combat.Projectiles.Visual
             body = GetComponentInChildren<MeshRenderer>();
             block = new MaterialPropertyBlock();
             block.SetColor(BaseColorId, Color.red);
+            wiredBlock = new MaterialPropertyBlock();
+            wiredBlock.SetColor(BaseColorId, Color.blue);
         }
 
         private void OnEnable()
@@ -39,7 +43,8 @@ namespace Combat.Projectiles.Visual
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        // A locked launch gets its target right after Launched, so it repaints before any frame renders.
-        private void Refresh() => body.SetPropertyBlock(missile.IsTracking ? null : block);
+        // A locked or wired launch gets its guidance right after Launched, so it repaints before any frame renders.
+        private void Refresh() =>
+            body.SetPropertyBlock(missile.IsWired ? wiredBlock : missile.IsTracking ? null : block);
     }
 }

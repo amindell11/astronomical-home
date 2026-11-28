@@ -1,8 +1,7 @@
 using Balance;
 using System;
 using AI.Scanning.Sensors;
-using Combat.Projectiles;
-using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Movement;
 using Ships;
 using UnityEngine;
@@ -28,7 +27,7 @@ namespace Combat.Targeting
         [Tooltip("Seconds after acquisition a lock holds outside the cone, range or sightline; stealth still breaks it. Player sensors only.")]
         [Stat, SerializeField, Min(0f)] private float lockGrace = 1f;
 
-        [SerializeField] internal WeaponBase<Missile> weapon;
+        [SerializeField] internal Missiles weapon;
 
         internal float MaxLockDistance => weapon.projectilePrefab.Reach;
 
@@ -85,7 +84,7 @@ namespace Combat.Targeting
         private void Awake()
         {
             if (!weapon)
-                weapon = GetComponent<WeaponBase<Missile>>();
+                weapon = GetComponent<Missiles>();
 
             selfShip = GetComponentInParent<Ship>();
             if (selfShip)
@@ -106,7 +105,8 @@ namespace Combat.Targeting
 
         private bool CanLock()
         {
-            return weapon && weapon.CanFire() && selfShip.Status.CanLock;
+            // A wired missile ignores the lock, so the sensor never starts one.
+            return weapon && weapon.CanFire() && !weapon.WireGuided && selfShip.Status.CanLock;
         }
 
         private void OnEnable()
