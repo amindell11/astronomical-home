@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45761ff579d16bd46a39cc2ddd73f5fb, type: 3}
+  m_Name: FarFieldAtlas
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: 5339c1c2633ae7f44999dff51c3e14cf, type: 2}
+  halfSizes:
+  - 1.8536404
+  - 2.1300163
+  - 3.2388651
+  - 5.3165393
+  - 4.8520513
+  - 5.0138116
+  - 3.2781355
+  - 1.8196918
+  - 2.5573788
+  - 4.542174
+  handOffSeconds: 0.4

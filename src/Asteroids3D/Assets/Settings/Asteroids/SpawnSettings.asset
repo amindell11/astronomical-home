@@ -108,3 +108,4 @@ MonoBehaviour:
     type: 3}
   poolCapacity: 200
   maxPoolSize: 500
+  farField: {fileID: 11400000, guid: 6ce04179594067647930f34a5477822c, type: 2}

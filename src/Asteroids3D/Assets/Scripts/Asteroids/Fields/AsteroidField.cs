@@ -16,6 +16,7 @@ namespace Asteroids.Fields
         protected AsteroidSpawner AsteroidSpawner { get; private set; }
 
         private bool presentationEnabled = true;
+        protected bool PresentationEnabled => presentationEnabled;
 
         protected virtual void Awake()
         {

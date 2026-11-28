@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Asteroids.Fields.Core;
+using Asteroids.Fields.FarField;
 using Asteroids.Spawning;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Substrate;
 
 namespace Asteroids.Fields
@@ -34,6 +36,7 @@ namespace Asteroids.Fields
         internal bool initialized;
         private int appliedSettingsVersion;
         private bool rebuildRequested;
+        private FarFieldLayer farField;
 
         // Cached settings
         protected float loadRadius;
@@ -137,6 +140,8 @@ namespace Asteroids.Fields
 
         private void InitializeField()
         {
+            farField?.Dispose();
+            farField = null;
             CacheSettings();
 
             var spawnSettings = AsteroidSpawner ? AsteroidSpawner.Settings : null;
@@ -160,6 +165,9 @@ namespace Asteroids.Fields
             var layout = new AsteroidFieldLayout(seed, genParams);
             Model = new AsteroidFieldModel(layout);
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
+            if (PresentationEnabled && spawnSettings.farField)
+                farField = new FarFieldLayer(layout, spawnSettings.farField, loadRadius, unloadRadius,
+                    Mathf.Pow(spawnSettings.massScaleRange.y, 1f / 3f), fieldOriginPlane, AreChunkRocksLive);
 
             AsteroidSpawner.PreSizePool(Mathf.CeilToInt(settings.WorstCaseLoadedCount() * densityScale));
             AsteroidSpawner.SetCollisionDamageLaw(
@@ -222,10 +230,25 @@ namespace Asteroids.Fields
             rebuildRequested = true;
         }
 
+        private void OnEnable() => RenderPipelineManager.beginCameraRendering += RenderFarField;
+
+        private void OnDisable() => RenderPipelineManager.beginCameraRendering -= RenderFarField;
+
         private void OnDestroy()
         {
             if (AsteroidSpawner) AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
+            farField?.Dispose();
         }
+
+        private void RenderFarField(ScriptableRenderContext context, Camera cam)
+        {
+            if (!initialized || farField == null) return;
+            farField.Render(cam, RelativePlanePos(CurrentAnchorPos()));
+        }
+
+        private bool AreChunkRocksLive(Vector2Int chunk) =>
+            streamer.IsLoaded(chunk) && !queuedChunks.Contains(chunk)
+            && !(hasInProgressChunk && inProgressChunk == chunk);
 
         private void Update()
         {
