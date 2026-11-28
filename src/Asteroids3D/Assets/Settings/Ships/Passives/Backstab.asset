@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Backstab
   icon: {fileID: 0}
-  effect: Rear hits ignore shields
+  effect: 'Hits on an enemy''s rear arc ignore its shield'

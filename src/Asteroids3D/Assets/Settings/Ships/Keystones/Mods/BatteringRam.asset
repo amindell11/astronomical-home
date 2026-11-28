@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Battering ram
   icon: {fileID: 0}
-  effect: Your ram shatters heavy rocks
+  effect: 'Your ram shatters rocks up to three times your ship''s mass instead of being stopped by them'
   fits:
   - {fileID: 5512903418735166201, guid: c35e8833433744a0bcce3e406a3841e0, type: 3}

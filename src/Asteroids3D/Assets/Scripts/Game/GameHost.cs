@@ -806,7 +806,8 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player), rigInstance.Screens);
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player),
+                mod => mod.LandingIcon(player), rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;

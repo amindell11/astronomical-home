@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Suppression
   icon: {fileID: 0}
-  effect: Steady fire slows the target and locks its keystone
+  effect: 'A target under steady ripper fire is slowed and can''t boost or use its ability'
   fits:
   - {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}

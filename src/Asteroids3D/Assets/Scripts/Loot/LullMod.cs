@@ -28,6 +28,9 @@ namespace Loot
         /// <summary>What a pick lands on, for the card; asked only of a mod that fits.</summary>
         public abstract string Landing(Ship ship);
 
+        /// <summary>The weapon or keystone glyph a pick lands on, or null for a ship-wide mod.</summary>
+        public virtual Sprite LandingIcon(Ship ship) => null;
+
 #if UNITY_EDITOR
         protected void SetDisplayName(string value) => displayName = value;
 #endif

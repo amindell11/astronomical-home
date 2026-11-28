@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Lie in wait
   icon: {fileID: 0}
-  effect: Hold still by a heavy rock to hide
+  effect: 'Holding still against a heavy asteroid for a second hides you until you thrust or fire'

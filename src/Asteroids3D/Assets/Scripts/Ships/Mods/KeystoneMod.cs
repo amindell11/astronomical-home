@@ -23,6 +23,8 @@ namespace Ships.Mods
 
         public override string Landing(Ship ship) => ship.KeystonePrefab.DisplayName;
 
+        public override Sprite LandingIcon(Ship ship) => ship.KeystonePrefab.Icon;
+
 #if UNITY_EDITOR
         internal void Configure(string displayName, string effect, params Keystone[] fits)
         {

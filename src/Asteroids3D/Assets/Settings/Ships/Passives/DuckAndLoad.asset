@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Duck and load
   icon: {fileID: 0}
-  effect: Reload and cool faster while unseen
+  effect: 'Weapons reload and cool much faster while no enemy can see you'

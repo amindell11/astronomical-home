@@ -96,6 +96,9 @@ namespace Tests.PlayMode.Loot
             Assert.IsFalse(stoppingPower.Fits(ship), "no scattergun carried");
             Assert.IsTrue(recall.Fits(ship));
             Assert.AreEqual("Blink", recall.Landing(ship));
+            Assert.AreSame(ship.Weapons.Primary.HudIcon, bankShot.LandingIcon(ship), "a weapon mod shows its weapon");
+            Assert.AreSame(ship.KeystonePrefab.Icon, recall.LandingIcon(ship), "a keystone mod shows its keystone");
+            Assert.IsNull(Passive("Backstab").LandingIcon(ship), "a passive shows no glyph");
             Assert.IsFalse(riposte.Fits(ship), "another ship's keystone");
             Assert.IsTrue(Passive("Backstab").Fits(ship), "a passive fits any ship");
 

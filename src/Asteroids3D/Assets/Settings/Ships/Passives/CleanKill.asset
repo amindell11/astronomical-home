@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Clean kill
   icon: {fileID: 0}
-  effect: Unseen kills raise no alarm
+  effect: 'Killing an enemy that never saw you raises no alarm; anyone who finds the wreck searches there instead'

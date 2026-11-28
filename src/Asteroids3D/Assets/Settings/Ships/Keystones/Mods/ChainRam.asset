@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Chain ram
   icon: {fileID: 0}
-  effect: A ram kill readies your next ram
+  effect: 'A ram kill refunds the whole cooldown'
   fits:
   - {fileID: 5512903418735166201, guid: c35e8833433744a0bcce3e406a3841e0, type: 3}

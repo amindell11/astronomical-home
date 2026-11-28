@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Point defence
   icon: {fileID: 0}
-  effect: Bolts shoot down enemy missiles and mines
+  effect: 'Bolts destroy enemy missiles and mines they hit'
   fits:
   - {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}

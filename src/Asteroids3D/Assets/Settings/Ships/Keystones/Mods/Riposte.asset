@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Riposte
   icon: {fileID: 0}
-  effect: Blocked shots fire back at the shooter
+  effect: 'Shots blocked by the guard fire back at whoever shot them'
   fits:
   - {fileID: 5512903418735166201, guid: 2f670f74921442afa35a8d12f18317cf, type: 3}

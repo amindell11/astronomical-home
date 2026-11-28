@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Quiet ordnance
   icon: {fileID: 0}
-  effect: Ordnance fires without breaking stealth
+  effect: 'Ordnance doesn''t break stealth; only your main weapon does'
   fits:
   - {fileID: 5512903418735166201, guid: a80b5c5a9a734c9b9e87bfc9d0cf0c1f, type: 3}

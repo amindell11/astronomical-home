@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Stopping power
   icon: {fileID: 0}
-  effect: Pellets shove the target away
+  effect: 'Pellets shove the target away, harder the more of them land'
   fits:
   - {fileID: 7985871129484166944, guid: ef279288f5fd37e46aafb105e278dc70, type: 3}

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Shrapnel rocks
   icon: {fileID: 0}
-  effect: Shattered rocks fly at enemies
+  effect: 'Asteroids you shatter break with more energy, fly away from you, and hurt enemies more'
