@@ -112,6 +112,7 @@ namespace Tests.PlayMode.Weapons
             Assert.Less(Vector3.Dot(body.linearVelocity, aim), 0f, "a head-on bank sends it back the way it came");
             Assert.Less(Vector3.Dot(bolt.transform.up, aim), 0f, "the bolt faces its new heading");
             Assert.AreEqual(0f, first.Total, "the bank does not hurt the rock");
+            Assert.IsTrue(((Laser)bolt).HasBanked, "the bolt shows it has banked");
 
             var second = CreateRock(lasers.FireOrigin - lasers.FireDirection * 6f);
             Physics.SyncTransforms();
@@ -119,6 +120,27 @@ namespace Tests.PlayMode.Weapons
 
             Assert.IsFalse(bolt.gameObject.activeSelf, "it banks only once");
             Assert.Greater(second.Total, 0f);
+        }
+
+        [UnityTest]
+        public IEnumerator BankShot_ABankedBoltHitsTwiceAsHardAsAStraightOne()
+        {
+            var straight = MountLasers(bankShot: false);
+            var target = CreateRock(straight.FireOrigin + straight.FireDirection * 6f);
+            Physics.SyncTransforms();
+            yield return Fly(straight.Fire(target.transform.position, Projectiles), 60);
+            var straightDamage = target.Total;
+            Object.DestroyImmediate(target.gameObject);
+
+            var lasers = MountLasers(bankShot: true);
+            var first = CreateRock(lasers.FireOrigin + lasers.FireDirection * 6f);
+            var second = CreateRock(lasers.FireOrigin - lasers.FireDirection * 6f);
+            Physics.SyncTransforms();
+            yield return Fly(lasers.Fire(first.transform.position, Projectiles), 120);
+
+            Assert.Greater(straightDamage, 0f, "the straight bolt lands");
+            Assert.AreEqual(0f, first.Total, "the bank does not hurt the rock");
+            Assert.AreEqual(2f * straightDamage, second.Total, 1e-3f, "the banked bolt deals double");
         }
     }
 }

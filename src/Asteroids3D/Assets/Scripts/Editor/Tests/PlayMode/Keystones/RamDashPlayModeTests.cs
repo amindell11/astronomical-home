@@ -94,12 +94,15 @@ namespace Tests.PlayMode.Keystones
             if (held) ram.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(BatteringRamPath) });
             var massScale = new SerializedObject(ram).FindProperty("massScale").floatValue;
             var rock = SpawnRock(Nose * 5f, mass: 2f * bulwark.Rigidbody.mass * massScale, onFragment: null);
+            var batteredThrough = 0;
+            ram.BatteredThrough += _ => batteredThrough++;
 
             yield return RamUntilResolved();
 
             Assert.That(rock.Damage.Health <= 0f, Is.EqualTo(held),
                 held ? "Battering ram breaks a rock up to three times the ramming mass" : "without it the rock survives");
             Assert.That(ram.PaidActivations, Is.EqualTo(held ? 1 : 0));
+            Assert.That(batteredThrough, Is.EqualTo(held ? 1 : 0), "breaking through shakes the camera");
         }
 
         [UnityTest]

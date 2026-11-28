@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7617100545363093338}
   - component: {fileID: 7985871129484166944}
   - component: {fileID: 8394956787872104069}
+  - component: {fileID: 2147225984877757095}
   m_Layer: 0
   m_Name: Scattergun
   m_TagString: Untagged
@@ -116,3 +117,18 @@ MonoBehaviour:
       Data3: -494978114
       Data4: 360353945
     Path: event:/Weapons/Ripper/Fire
+--- !u!114 &2147225984877757095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4181607342585582469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298094611ee84405814e5dec23a589c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 1c750f7ce3e493b4fb910db5e9fd9bff, type: 2}
+  spark: {fileID: 3106640619505725824, guid: ed105f9d58ca9b64d8653e00530a9d9f, type: 3}
+  sparkGrowth: 0.35

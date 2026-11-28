@@ -22,6 +22,9 @@ namespace Combat.Projectiles.Visual
             new Keyframe(1f, 1f)
         );
 
+        [Tooltip("Multiplies the bolt's colour once it has banked off a rock.")]
+        [SerializeField] private Color bankedTint = new(1f, 0.35f, 1f, 1f);
+
         private Laser laser;
         private Renderer[] renderers;
         private Color[] originalColors;
@@ -73,11 +76,12 @@ namespace Combat.Projectiles.Visual
         private void ApplyFade(float alphaFactor)
         {
             block.SetFloat(PhaseId, cracklePhase);
+            var tint = laser.HasBanked ? bankedTint : laser.Tint ?? Color.white;
             for (var i = 0; i < renderers.Length; i++)
             {
                 var renderer = renderers[i];
                 if (!renderer) continue;
-                var color = originalColors[i];
+                var color = originalColors[i] * tint;
                 color.a *= alphaFactor;
                 block.SetColor(BaseColorId, color);
                 block.SetColor(ColorId, color);

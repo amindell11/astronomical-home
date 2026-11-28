@@ -21,6 +21,8 @@ namespace Combat.Weapons.Arsenal
 
         [Header("Bank Shot")]
         [SerializeField] private WeaponBehaviourMod bankShot;
+        [Tooltip("With Bank shot held: multiplier on a bolt's damage once it has banked off a rock.")]
+        [Stat, SerializeField, Min(0f)] private float bankedDamageScale = 2f;
 
         [Header("Point Defence")]
         [Tooltip("Without it held, bolts fly through enemy missiles and charges.")]
@@ -52,7 +54,7 @@ namespace Combat.Weapons.Arsenal
 
         protected override void Prime(Laser bolt)
         {
-            if (Behaviours.Holds(bankShot)) bolt.BankOnce();
+            if (Behaviours.Holds(bankShot)) bolt.BankOnce(bankedDamageScale);
             if (Behaviours.Holds(pointDefence)) bolt.Intercept();
         }
 

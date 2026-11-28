@@ -1,3 +1,4 @@
+using System;
 using Asteroids;
 using Balance;
 using Damage;
@@ -102,6 +103,9 @@ namespace Ships.Keystones.Kits
         public float BraceAngle => braceAngle;
         public int BracedHits { get; private set; }
         public Vector3 LastBracedPoint { get; private set; }
+
+        /// <summary>With Battering ram held, the contact point of each rock the live ram shatters.</summary>
+        public event Action<Vector3> BatteredThrough;
         public bool Braking => brakeStepsLeft != -1;
         public bool Bracing => Braking || RamLive;
         private float SinceLaunch => SinceActivation - launchedAt;
@@ -168,9 +172,11 @@ namespace Ships.Keystones.Kits
                     contact.Point, ForceMode.Impulse);
             if (target is AsteroidDamage)
             {
-                var heaviest = contact.SelfMass * (Behaviours.Holds(batteringRam) ? batteringRamMass : 1f);
+                var battering = Behaviours.Holds(batteringRam);
+                var heaviest = contact.SelfMass * (battering ? batteringRamMass : 1f);
                 if (!contact.OtherBody || contact.OtherBody.mass >= heaviest) return;
                 target.TakeDamage(Hit(float.MaxValue, in contact));
+                if (battering) BatteredThrough?.Invoke(contact.Point);
             }
             else
             {

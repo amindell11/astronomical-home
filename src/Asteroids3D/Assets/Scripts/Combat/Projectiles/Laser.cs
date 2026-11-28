@@ -16,6 +16,7 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float laserSpeed = 20f;
 
         private bool banks;
+        private float bankedDamageScale = 1f;
         private Collider bankedOff;
         private bool intercepts;
         private SuppressingFire suppressing;
@@ -23,6 +24,8 @@ namespace Combat.Projectiles
         protected override DamageKind Kind => DamageKind.Laser;
 
         public float LaserSpeed => laserSpeed;
+        public bool HasBanked { get; private set; }
+        public Color? Tint { get; private set; }
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
         {
@@ -32,10 +35,16 @@ namespace Combat.Projectiles
             base.Launch(direction, targetPoint);
         }
 
-        /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
-        public void BankOnce() => banks = true;
+        /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it; the turned bolt's damage scales by <paramref name="damageScale"/>.</summary>
+        public void BankOnce(float damageScale)
+        {
+            banks = true;
+            bankedDamageScale = damageScale;
+        }
 
         public void Intercept() => intercepts = true;
+
+        public void Paint(Color tint) => Tint = tint;
 
         protected override bool Intercepts => intercepts;
 
@@ -47,7 +56,7 @@ namespace Combat.Projectiles
             if (collider == bankedOff) return;
             if (banks && collider.gameObject.layer == LayerIds.Asteroid)
             {
-                Bank(collider);
+                Bank(other, collider);
                 return;
             }
             if (suppressing != null && other is DamageController hull && hull.Ship
@@ -56,7 +65,7 @@ namespace Combat.Projectiles
             base.OnHit(other, collider);
         }
 
-        private void Bank(Collider rock)
+        private void Bank(IDamageable struck, Collider rock)
         {
             banks = false;
             bankedOff = rock;
@@ -71,12 +80,18 @@ namespace Combat.Projectiles
                                  * transform.rotation;
             // The range cap measures from the start point, so move it to keep the path length.
             startPosition = transform.position - turned.normalized * traveled;
+            SetDamageScale(DamageScale * bankedDamageScale);
+            HasBanked = true;
+            RaiseGlance(struck);
         }
 
         protected override void OnReturnToPool()
         {
             banks = false;
+            bankedDamageScale = 1f;
             bankedOff = null;
+            HasBanked = false;
+            Tint = null;
             intercepts = false;
             suppressing = null;
         }

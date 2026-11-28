@@ -30,6 +30,9 @@ namespace Ships.Keystones.Kits
         [Tooltip("With Riposte, the shot a blocked hit fires back; it carries the blocked hit's damage.")]
         [SerializeField] private Laser riposteShot;
 
+        [Tooltip("With Riposte, multiplies the returned shot's colour so it reads as Vanguard's.")]
+        [SerializeField] private Color riposteTint = new(1f, 0.8f, 0.3f, 1f);
+
         [Tooltip("The Double dash keystone mod, whose holding lets the dash fire twice before its cooldown starts.")]
         [SerializeField] private KeystoneMod doubleDash;
 
@@ -105,6 +108,7 @@ namespace Ships.Keystones.Kits
             var shot = SimplePool<Laser>.Get(riposteShot, from, GamePlane.PlanePose(GamePlane.Normal, back));
             shot.Initialize(Host.Shooter);
             shot.SetDamageScale(hit.Amount / shot.Damage);
+            shot.Paint(riposteTint);
             shot.PopOnHit(RiposteWord);
             Host.Projectiles.Register(shot, shot.ReturnToPoolImmediate);
             shot.Launch(back, from + back);

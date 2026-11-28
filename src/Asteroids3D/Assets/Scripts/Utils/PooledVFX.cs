@@ -8,6 +8,14 @@ namespace Utils
         private ParticleSystem[] systems;
         private float cachedMaxDuration = -1f;
 
+        /// <summary>Takes an instance from the pool at <paramref name="scale"/>; pooled instances keep their last scale, so every caller sets one.</summary>
+        public static PooledVFX Play(PooledVFX prefab, Vector3 position, Quaternion rotation, float scale = 1f)
+        {
+            var vfx = SimplePool<PooledVFX>.Get(prefab, position, rotation);
+            vfx.transform.localScale = Vector3.one * scale;
+            return vfx;
+        }
+
         private void Awake()  => systems = GetComponentsInChildren<ParticleSystem>(true);
 
         private void OnEnable()

@@ -49,6 +49,7 @@ namespace Combat.Projectiles
         private float aliveTime;
 
         public bool IsTracking => target;
+        public bool IsWired => wire != null;
 
         public Kinematics Kinematics => kinematicsPoller.Kinematics;
 
@@ -64,7 +65,11 @@ namespace Combat.Projectiles
         }
 
         /// <summary>Steers at the point <paramref name="aimPoint"/> reads each step, in place of a lock.</summary>
-        public void Wire(Func<Vector3> aimPoint) => wire = aimPoint;
+        public void Wire(Func<Vector3> aimPoint)
+        {
+            wire = aimPoint;
+            TrackingChanged?.Invoke();
+        }
 
         public void Jam(float seconds) => jamSeconds = seconds;
 

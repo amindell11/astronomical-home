@@ -84,7 +84,7 @@ namespace Tests.PlayMode.Crosshairs
 #if UNITY_EDITOR
             var prefab = AssetDatabase.LoadAssetAtPath<AimCrosshair>("Assets/Prefabs/UI/Crosshair/AimCrosshair.prefab");
             crosshair = Object.Instantiate(prefab, root.transform);
-            crosshair.Initialize(ship, gameplayCamera);
+            crosshair.Initialize(ship, gameplayCamera, null);
             crosshair.gameObject.SetActive(true);
             weaponHud = Object.Instantiate(AssetDatabase.LoadAssetAtPath<WeaponResourceHud>(
                 "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), root.transform);

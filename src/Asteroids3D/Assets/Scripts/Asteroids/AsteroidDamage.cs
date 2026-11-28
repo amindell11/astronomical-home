@@ -23,6 +23,7 @@ namespace Asteroids
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
         public event Action<Vector3> OnHit;
+        public event Action Thrown;
 
         private void Awake()
         {
@@ -74,7 +75,11 @@ namespace Asteroids
         }
 
         /// <summary>Marks this fragment as thrown by <paramref name="ship"/>'s Shrapnel rocks.</summary>
-        public void ThrownBy(Ship ship) => thrower = ship;
+        public void ThrownBy(Ship ship)
+        {
+            thrower = ship;
+            Thrown?.Invoke();
+        }
 
         public void HandleCollision(Collision collision)
         {
