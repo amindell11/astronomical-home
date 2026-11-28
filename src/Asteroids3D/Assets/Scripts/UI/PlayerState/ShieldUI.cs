@@ -1,6 +1,7 @@
 using System;
 using Combat.Targeting;
 using Damage;
+using Ships;
 using Ships.Damage;
 using Ships.Presentation;
 using Substrate;
@@ -14,6 +15,9 @@ namespace UI.PlayerState
     {
         [SerializeField, Min(0.1f)] private float fullHold = 1f;
 
+        [Tooltip("With Headstrong, how far the front arc brightens toward white, 0 to 1.")]
+        [SerializeField, Range(0f, 1f)] private float headstrongHighlight = 0.4f;
+
         private const float RecoveryArc = 1.4f;
         private const float RecoverySpeed = 2.3f;
         private const float CompletionDuration = 0.6f;
@@ -25,6 +29,7 @@ namespace UI.PlayerState
         private static readonly int RingColor = Shader.PropertyToID("_Color");
         private IDamageEvents source;
         private ShipVisualRig rig;
+        private Ship ship;
         private Transform root;
         private LockChannel enemyLock;
         private Image ring;
@@ -43,6 +48,7 @@ namespace UI.PlayerState
             ring = GetComponent<Image>();
             rig = GetComponentInParent<ShipVisualRig>();
             if (!rig) throw new InvalidOperationException("Shield ring requires a ship visual rig.");
+            ship = rig.GetComponentInParent<Ship>();
             if (!ring.material || !ring.material.HasProperty(ArcLength))
                 throw new InvalidOperationException("Shield ring requires its ShieldGlow material.");
             material = new Material(ring.material);
@@ -189,6 +195,12 @@ namespace UI.PlayerState
 
         private void Draw(float fill, float start, float alpha, float tips, float trail = 0f, float highlight = 0f)
         {
+            // The hangar preview's rig has no ship.
+            if (ship && ship.Headstrong.Held)
+            {
+                ClipToFront(ref fill, ref start);
+                highlight = Mathf.Max(highlight, headstrongHighlight);
+            }
             transform.SetPositionAndRotation(root.position - Vector3.forward * 0.05f,
                 GamePlane.Rotation * Quaternion.AngleAxis(start * Mathf.Rad2Deg - 90f, Vector3.forward));
             ring.fillAmount = fill;
@@ -199,6 +211,26 @@ namespace UI.PlayerState
             material.SetFloat(Trail, trail);
             material.SetFloat(Highlight, highlight);
             ring.enabled = alpha > 0f && fill > 0f;
+        }
+
+        // Arcs run counter-clockwise from start; an arc that leaves the front and comes back keeps its longer run.
+        private void ClipToFront(ref float fill, ref float start)
+        {
+            const float turn = Mathf.PI * 2f;
+            var span = ship.Headstrong.FrontArcHalfAngle * Mathf.Deg2Rad * 2f;
+            var from = Mathf.Atan2(root.up.y, root.up.x) - span * 0.5f;
+            var length = fill * turn;
+            var offset = Mathf.Repeat(start - from, turn);
+            var inside = Mathf.Max(0f, Mathf.Min(offset + length, span) - offset);
+            var wrapped = Mathf.Clamp(offset + length - turn, 0f, span);
+            if (inside + wrapped >= span - 1e-4f)
+            {
+                start = from;
+                fill = span / turn;
+                return;
+            }
+            start = inside >= wrapped ? from + offset : from;
+            fill = Mathf.Max(inside, wrapped) / turn;
         }
 
         private static float Smooth(float value) => Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(value));

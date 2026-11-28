@@ -191,6 +191,7 @@ namespace Tests.PlayMode.Keystones
             var opening = primary.Fire(aim, Projectiles);
             Assert.That(opening, Is.Not.Null, "the opening shot leaves");
             Assert.That(stealth.Active, Is.False, "and breaks stealth");
+            Assert.That(stealth.AmbushLingering, Is.True, "the hull tint holds through the window after the reveal");
             Assert.That(opening.DamageScale, Is.EqualTo(3f).Within(1e-4f), "the shot that breaks stealth hits three times as hard");
 
             ProjectileBase follow = null;
@@ -205,6 +206,7 @@ namespace Tests.PlayMode.Keystones
             for (var i = 0; i < 100 && stealth.Ambushing; i++)
                 yield return new WaitForFixedUpdate();
             Assert.That(stealth.Ambushing, Is.False, "the window closes");
+            Assert.That(stealth.AmbushLingering, Is.False, "and the tint lets go with it");
             ProjectileBase late = null;
             for (var i = 0; i < 30 && !late; i++)
             {

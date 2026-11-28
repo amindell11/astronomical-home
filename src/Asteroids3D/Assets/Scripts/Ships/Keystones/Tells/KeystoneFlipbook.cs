@@ -30,7 +30,7 @@ namespace Ships.Keystones.Tells
         private Renderer[] renderers;
         private Transform[] sheetTransforms;
         private MaterialPropertyBlock block;
-        private int seenActivations;
+        private int seenPresses;
         private bool seenActive;
         private int seenHits;
         private LayerPlay[] play;
@@ -110,7 +110,7 @@ namespace Ships.Keystones.Tells
             block = new MaterialPropertyBlock();
             BuildSheets();
             play = new LayerPlay[layers.Length];
-            seenActivations = keystone.Activations;
+            seenPresses = keystone.TelledPresses;
             seenActive = keystone.Active;
             seenHits = keystone.Hits;
         }
@@ -152,8 +152,8 @@ namespace Ships.Keystones.Tells
 
         private void LateUpdate()
         {
-            var press = keystone.Activations > seenActivations;
-            seenActivations = keystone.Activations;
+            var press = keystone.TelledPresses > seenPresses;
+            seenPresses = keystone.TelledPresses;
             var hit = keystone.Hits > seenHits;
             seenHits = keystone.Hits;
             // A hit proves the kit went live, even when both fell between two frames.

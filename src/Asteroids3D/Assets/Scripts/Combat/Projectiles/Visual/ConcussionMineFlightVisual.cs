@@ -78,13 +78,13 @@ namespace Combat.Projectiles.Visual
             var lit = Mathf.Repeat(blinkPhase, 1f) < 0.5f;
             if (lit == blinkLit) return;
             blinkLit = lit;
-            if (lit) blinking.HoldFlash(limpetBlink);
-            else blinking.ReleaseFlash();
+            if (lit) blinking.HoldFlash(this, limpetBlink);
+            else blinking.ReleaseFlash(this);
         }
 
         private void StopBlink()
         {
-            if (blinkLit && blinking) blinking.ReleaseFlash();
+            if (blinkLit && blinking) blinking.ReleaseFlash(this);
             blinkLit = false;
             blinking = null;
             blinkPhase = 0f;

@@ -14935,6 +14935,7 @@ GameObject:
   - component: {fileID: 3329361744963321735}
   - component: {fileID: 7485980348268028267}
   - component: {fileID: 5959759570422215558}
+  - component: {fileID: 2718093645109822731}
   m_Layer: 7
   m_Name: ShipBaseRig
   m_TagString: Ship
@@ -15062,6 +15063,20 @@ MonoBehaviour:
   explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
     type: 3}
   collisionExplosionPrefab: {fileID: 0}
+--- !u!114 &2718093645109822731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6ef63b288724a40acdb5965e164c9d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dim: {r: 0, g: 0, b: 0, a: 1}
+  strength: 0.5
 --- !u!1 &925614821042537757
 GameObject:
   m_ObjectHideFlags: 0

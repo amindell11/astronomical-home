@@ -33,7 +33,7 @@ namespace Ships.Keystones.Tells
         private Transform rig;
         private Vector3 authoredScale;
         private HullVisuals hull;
-        private int seenActivations;
+        private int seenPresses;
         private float startedAt;
         private bool playing;
 
@@ -41,7 +41,7 @@ namespace Ships.Keystones.Tells
         {
             if (!keystone)
                 throw new InvalidOperationException($"KeystoneEmergence on '{name}' needs its keystone.");
-            seenActivations = keystone.Activations;
+            seenPresses = keystone.TelledPresses;
 
             var ship = GetComponentInParent<Ship>();
             if (!ship || !ship.VisualRig) return;
@@ -57,20 +57,20 @@ namespace Ships.Keystones.Tells
             if (!playing) return;
             playing = false;
             if (rig) rig.localScale = authoredScale;
-            if (hull) hull.ReleaseFlash();
+            if (hull) hull.ReleaseFlash(this);
         }
 
         private void LateUpdate()
         {
             if (!hull) return;
 
-            if (keystone.Activations > seenActivations)
+            if (keystone.TelledPresses > seenPresses)
             {
                 startedAt = Time.time;
                 playing = true;
             }
 
-            seenActivations = keystone.Activations;
+            seenPresses = keystone.TelledPresses;
             if (!playing) return;
 
             var t = Time.time - startedAt;
@@ -79,7 +79,7 @@ namespace Ships.Keystones.Tells
                 var u = t / opening;
                 var e = 1f - (1f - u) * (1f - u);
                 rig.localScale = authoredScale * Mathf.Lerp(startScale, 1f, e);
-                hull.HoldFlash(dark, 1f - e);
+                hull.HoldFlash(this, dark, 1f - e);
                 return;
             }
 
@@ -87,11 +87,11 @@ namespace Ships.Keystones.Tells
             var flashed = opening > 0f ? t - opening : t;
             if (flashTime > 0f && flashed < flashTime)
             {
-                hull.HoldFlash(flash, 1f - flashed / flashTime);
+                hull.HoldFlash(this, flash, 1f - flashed / flashTime);
                 return;
             }
 
-            hull.ReleaseFlash();
+            hull.ReleaseFlash(this);
             playing = false;
         }
     }

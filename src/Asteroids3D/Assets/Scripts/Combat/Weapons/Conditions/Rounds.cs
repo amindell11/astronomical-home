@@ -49,6 +49,7 @@ namespace Combat.Weapons.Conditions
         public event Action Recovered;
 
         public int AmmoCount { get; private set; }
+        public bool RecoveryBoosted => weapon.RecoveryScale > 1f;
         public int MaxAmmo => mods.Rounds(maxAmmo);
         public float ReloadTime => mods.Apply(WeaponModField.ReloadSpeed, reloadTime);
         public RefillMode Refill => refill;

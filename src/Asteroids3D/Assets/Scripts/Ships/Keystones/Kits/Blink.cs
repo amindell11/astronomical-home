@@ -47,6 +47,7 @@ namespace Ships.Keystones.Kits
         private int blockers;
         private Vector2? marker;
         private bool releasedSinceJump;
+        private int recalls;
         private readonly Collider[] overlap = new Collider[8];
         private readonly List<ITrackingMissile> trackedAtJump = new();
 
@@ -55,6 +56,10 @@ namespace Ships.Keystones.Kits
         public override string DisplayName => "Blink";
         public float Range => range;
         public Vector2? Marker => marker;
+
+        /// <summary>Share of the recall window still to run while the marker stands, 1 at the blink down to 0.</summary>
+        public float MarkerLeft => marker.HasValue ? Mathf.Clamp01(1f - SinceActivation / recallWindow) : 0f;
+        public override int TelledPresses => Activations + recalls;
         protected override bool TakesPressOnCooldown => marker.HasValue && SinceActivation <= recallWindow;
         public override bool Active => SinceActivation < TellSeconds;
 
@@ -100,10 +105,15 @@ namespace Ships.Keystones.Kits
             }
             if (!releasedSinceJump) return default;
             marker = null;
+            recalls++;
             return Jump(kinematics.pos, start - kinematics.pos);
         }
 
-        protected override void OnReset() => marker = null;
+        protected override void OnReset()
+        {
+            marker = null;
+            recalls = 0;
+        }
 
         // Still flying but no longer tracking this ship; a missile that hit or expired has despawned.
         private bool LostTrack(ITrackingMissile missile)
