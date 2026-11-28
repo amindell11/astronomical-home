@@ -26,6 +26,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 1
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 6ded356b5f3ae954581ff90d68672eae, type: 2}
     columns: 32
     rows: 2
@@ -36,8 +38,15 @@ MonoBehaviour:
     anchorAhead: -0.4
     depth: 0.4
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Jets, front corners
-    show: 1
+    show: 0
     size: 1
     opacity: 1
     speed: 1
@@ -45,6 +54,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 0
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 3352fd1606d9c784d9c65679d63b7149, type: 2}
     columns: 12
     rows: 2
@@ -55,8 +66,15 @@ MonoBehaviour:
     anchorAhead: 0
     depth: -0.4
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Jets, side pods
-    show: 1
+    show: 0
     size: 1
     opacity: 1
     speed: 1
@@ -64,6 +82,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 0
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 05223068b2bb55047bed0286cadfe732, type: 2}
     columns: 12
     rows: 2
@@ -74,8 +94,15 @@ MonoBehaviour:
     anchorAhead: 0
     depth: -0.4
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Jets, boom vents
-    show: 1
+    show: 0
     size: 1
     opacity: 1
     speed: 1
@@ -83,6 +110,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 0
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 9a68e1bc07152964999126d3c3b7d66f, type: 2}
     columns: 12
     rows: 2
@@ -93,6 +122,13 @@ MonoBehaviour:
     anchorAhead: 0
     depth: -0.4
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Smear glow
     show: 1
     size: 1
@@ -102,6 +138,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 1
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: cc81e458adf88db46ad7d9f7ac406409, type: 2}
     columns: 13
     rows: 3
@@ -112,6 +150,13 @@ MonoBehaviour:
     anchorAhead: 0.5
     depth: -0.45
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Smear
     show: 1
     size: 1
@@ -121,6 +166,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 1
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 27092f85012717d40aef4e52455a0122, type: 2}
     columns: 13
     rows: 3
@@ -131,6 +178,13 @@ MonoBehaviour:
     anchorAhead: 0.5
     depth: -0.5
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Crescent glow
     show: 1
     size: 1
@@ -140,6 +194,8 @@ MonoBehaviour:
     fadeOut: 0.08
     startsOn: 1
     endsWithLive: 1
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 32073db7b7a250443bb19574b0c97a0d, type: 2}
     columns: 10
     rows: 3
@@ -150,6 +206,13 @@ MonoBehaviour:
     anchorAhead: 0.5
     depth: -0.55
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Crescent
     show: 1
     size: 1
@@ -159,6 +222,8 @@ MonoBehaviour:
     fadeOut: 0.08
     startsOn: 1
     endsWithLive: 1
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: 7fbeaccd5a96c0248b631a144c050647, type: 2}
     columns: 10
     rows: 3
@@ -169,6 +234,13 @@ MonoBehaviour:
     anchorAhead: 0.5
     depth: -0.6
     staysAtLaunch: 0
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Hit glow
     show: 1
     size: 0.7
@@ -178,6 +250,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 2
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: ec104e0ba40282047b7b6bf348f32b6a, type: 2}
     columns: 6
     rows: 3
@@ -188,6 +262,13 @@ MonoBehaviour:
     anchorAhead: 0
     depth: -0.65
     staysAtLaunch: 1
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
   - name: Hit
     show: 1
     size: 0.7
@@ -197,6 +278,8 @@ MonoBehaviour:
     fadeOut: 0
     startsOn: 2
     endsWithLive: 0
+    loops: 0
+    loopFrom: 0
     material: {fileID: 2100000, guid: c6341d0ae6569af42b93717d022e5fa9, type: 2}
     columns: 6
     rows: 3
@@ -207,3 +290,10 @@ MonoBehaviour:
     anchorAhead: 0
     depth: -0.7
     staysAtLaunch: 1
+    startsBehind: 0
+    followsTravel: 0
+    goneAtSpeed: 0
+    fullAtSpeed: 0
+    lengthAtRest: 0
+    lengthFullAtSpeed: 0
+    turnLag: 0
