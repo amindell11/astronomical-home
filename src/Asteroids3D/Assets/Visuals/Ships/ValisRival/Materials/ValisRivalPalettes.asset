@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8712d185a684ef8ba4d050d81a3f1b3, type: 3}
+  m_Name: ValisRivalPalettes
+  m_EditorClassIdentifier: 
+  palettes:
+  - name: shoal-rust
+    regions:
+    - {fileID: 2100000, guid: 837148d7bf545dcebadc11e43d69b1d7, type: 2}
+    - {fileID: 2100000, guid: 13b587385ba056c1b82f1934ac157ea0, type: 2}
+    - {fileID: 2100000, guid: a1dfa02f03015d03beafed9f249efe3e, type: 2}
+    - {fileID: 2100000, guid: 4f8c44d5685b5eff89056de39405dcfb, type: 2}
+    - {fileID: 2100000, guid: d708b6b1ac8c57bc9746a5e06d40c333, type: 2}
+    - {fileID: 2100000, guid: a6b2f6e91db75e66954c528813df4d2e, type: 2}
+    - {fileID: 2100000, guid: b230a036bc4d56b5a34289b91c73ba0c, type: 2}
+  - name: shoal
+    regions:
+    - {fileID: 2100000, guid: 74bae1b3ddec54d78cdeca36b14edbb8, type: 2}
+    - {fileID: 2100000, guid: 1fbecf534f155f958b00a9296af9ec33, type: 2}
+    - {fileID: 2100000, guid: 48abb5d8ca2652609382827f57b910cb, type: 2}
+    - {fileID: 2100000, guid: 527a16f2b18051c097a810add4e9ae19, type: 2}
+    - {fileID: 2100000, guid: e9e51f43e4b45afe9ead2cb01e10f81f, type: 2}
+    - {fileID: 2100000, guid: ce3619eeaa1d5f259fc697d8a6571cdf, type: 2}
+    - {fileID: 2100000, guid: 0b2d65e5e3b759f0b4211fe0301263f8, type: 2}

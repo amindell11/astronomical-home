@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Balance;
 using Combat.Weapons;
 using Ships;
@@ -6,6 +7,7 @@ using Ships.Command;
 using Ships.Loadout;
 using Ships.Presentation;
 using Substrate.Sectors.Elements.Stations.Visual;
+using Substrate.Services.Locales;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -49,6 +51,10 @@ namespace Substrate.Sectors.Factions
         [Tooltip("Shield ring colour every faction ship wears.")]
         public Color shieldRing = new(0.51f, 0.75f, 0.76f, 1f);
 
+        [Tooltip("The hull palette every rank wears in a locale's sectors, by palette name; each rank's palettes must hold it. " +
+                 "A locale not listed, or an empty list → each chassis's own paint.")]
+        public LocalePalette[] localePalettes = Array.Empty<LocalePalette>();
+
         [Header("Stations")]
         [Tooltip("How the find stations in this faction's sectors are dressed: a dressed model for each kind and the palettes they roll.")]
         public StationDress stationDress;
@@ -88,7 +94,8 @@ namespace Substrate.Sectors.Factions
                 Require(signature.ship, "signature ship");
                 Require(signature.kit, "rival kit");
                 Require(signature.pilot, "rival pilot");
-                return new FactionRank(signature.ship, signature.kit, signature.pilot, ShipScale.One, signature.hull);
+                return new FactionRank(signature.ship, signature.kit, signature.pilot, ShipScale.One, signature.hull,
+                    signature.palettes);
             }
         }
 
@@ -101,21 +108,73 @@ namespace Substrate.Sectors.Factions
                 Require(minion.pilot, "minion pilot");
                 if (minion.scale == null)
                     throw new InvalidOperationException($"Faction '{name}' sets no minion scale.");
-                return new FactionRank(minion.ship, minion.kit, minion.pilot, minion.scale, minion.hull);
+                return new FactionRank(minion.ship, minion.kit, minion.pilot, minion.scale, minion.hull, minion.palettes);
             }
         }
 
-        public void Dress(Ship ship, in FactionRank rank) =>
-            ship.VisualRig.Wear(new ShipLivery(rank.hull, flame, shieldRing));
+        // locale: interim world-state seam (AGENTS.md wiring rule 3), handed down on the call that needs it.
+        public void Dress(Ship ship, in FactionRank rank, LocaleSky locale) =>
+            ship.VisualRig.Wear(new ShipLivery(rank.hull, flame, shieldRing,
+                palette: PaletteOf(rank.palettes, locale)));
 
-        public void DressElite(Ship ship) =>
-            ship.VisualRig.Wear(new ShipLivery(elite.hull, eliteFlame, shieldRing));
+        // locale: interim world-state seam (AGENTS.md wiring rule 3), handed down on the call that needs it.
+        public void DressElite(Ship ship, LocaleSky locale) =>
+            ship.VisualRig.Wear(new ShipLivery(elite.hull, eliteFlame, shieldRing,
+                palette: PaletteOf(elite.palettes, locale)));
+
+        public void CheckPalettes()
+        {
+            foreach (var entry in localePalettes)
+            {
+                if (!entry.locale || string.IsNullOrWhiteSpace(entry.palette))
+                    throw new InvalidOperationException($"Faction '{name}' lists a locale palette without a locale or a palette name.");
+                CheckPalette(entry, "rival", signature.ship, signature.palettes);
+                CheckPalette(entry, "minion", minion.ship, minion.palettes);
+                CheckPalette(entry, "elite", elite.ship, elite.palettes);
+            }
+        }
+
+        private void CheckPalette(LocalePalette entry, string rank, Ship ship, ShipPalettes palettes)
+        {
+            if (!ship) return;
+            var paints = $"Faction '{name}' paints locale '{entry.locale.name}' in palette '{entry.palette}'";
+            if (!palettes || !palettes.Has(entry.palette))
+                throw new InvalidOperationException($"{paints}, which the {rank} ship '{ship.name}' has no set for.");
+            var missing = palettes.MissingRegion(entry.palette, ship.VisualRig.Silhouette);
+            if (missing != null)
+                throw new InvalidOperationException(
+                    $"{paints}; the {rank} ship '{ship.name}' wears region '{missing}', which that set does not paint.");
+        }
+
+        private void OnValidate() => CheckPalettes();
+
+        private IReadOnlyList<Material> PaletteOf(ShipPalettes palettes, LocaleSky locale)
+        {
+            foreach (var entry in localePalettes)
+            {
+                if (entry.locale != locale) continue;
+                if (!palettes)
+                    throw new InvalidOperationException(
+                        $"Faction '{name}' paints locale '{locale.name}' in palette '{entry.palette}' on a rank with no palettes.");
+                return palettes.Regions(entry.palette);
+            }
+            return null;
+        }
 
         private void Require(UnityEngine.Object value, string field)
         {
             if (value) return;
             throw new InvalidOperationException($"Faction '{name}' sets no {field}.");
         }
+    }
+
+    [Serializable]
+    public struct LocalePalette
+    {
+        public LocaleSky locale;
+
+        [Tooltip("The palette every rank wears in that locale's sectors, e.g. 'shoal-rust'.")]
+        public string palette;
     }
 
     [Serializable]
@@ -131,6 +190,9 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("Every hull material slot of that chassis, in silhouette order, in faction paint. Empty → the chassis's own paint.")]
         public Material[] hull;
+
+        [Tooltip("This chassis's hull palettes, which the locale palettes pick from. Unset → no palette; no locale palette may then be listed.")]
+        public ShipPalettes palettes;
     }
 
     [Serializable]
@@ -148,6 +210,9 @@ namespace Substrate.Sectors.Factions
         [Tooltip("Every hull material slot of that chassis, in silhouette order, in faction paint. Empty → the chassis's own paint.")]
         public Material[] hull;
 
+        [Tooltip("This chassis's hull palettes, which the locale palettes pick from. Unset → no palette; no locale palette may then be listed.")]
+        public ShipPalettes palettes;
+
         [Tooltip("Size and hull factors on the minion chassis.")]
         public ShipScale scale;
     }
@@ -160,6 +225,9 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("Every hull material slot of that chassis, in silhouette order, in faction paint. Empty → the chassis's own paint.")]
         public Material[] hull;
+
+        [Tooltip("This chassis's hull palettes, which the locale palettes pick from. Unset → no palette; no locale palette may then be listed.")]
+        public ShipPalettes palettes;
 
         [Tooltip("The name the elite's health bar and arrival banner show, whichever sector it ends.")]
         public string displayName;
