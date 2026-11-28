@@ -20,8 +20,9 @@ namespace Tests.EditMode.Weapons
             fire.Strike(target, 0.2f);
             Assert.IsFalse(target.Has(StatusEffect.Suppressed), "two hits are not yet steady fire");
 
-            fire.Strike(target, 0.4f);
+            Assert.IsTrue(fire.Strike(target, 0.4f), "the strike that pins reports it");
             Assert.AreEqual(Hold, target.Remaining(StatusEffect.Suppressed), 1e-5f, "three inside half a second are");
+            Assert.IsFalse(fire.Strike(target, 0.41f), "a strike that only extends the pin starts nothing");
         }
 
         [Test]

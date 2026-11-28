@@ -56,13 +56,15 @@ namespace Tests.PlayMode.Loot
         }
 
         [Test]
-        public void ABackstabbersRearHit_SkipsTheShield_AndAFrontHitDoesNot()
+        public void ABackstabbersRearHit_SkipsTheShield_AndPopsItsWord_AndAFrontHitDoesNot()
         {
             var attacker = SpawnCrimson(new Vector3(0f, -40f, 0f), TestAssets.Load<PassiveMod>(BackstabPath));
             var victim = SpawnCrimson(Vector3.zero);
             var shield = victim.Damage.Shield.CurrentValue;
             var hull = victim.Damage.Health.CurrentValue;
             Assert.IsTrue(attacker.Backstab.Held, "the shipped key reaches the prefab's Backstab");
+            var words = new List<string>();
+            attacker.Words.Raised += (word, _) => words.Add(word.Text);
 
             DamageInfo From(Vector3 point) =>
                 new(10f, DamageKind.Laser, attacker.Id, 0.1f, Vector3.zero, point, attacker: attacker);
@@ -70,10 +72,12 @@ namespace Tests.PlayMode.Loot
             victim.Damage.TakeDamage(From(victim.transform.position - victim.transform.up * 2f));
             Assert.AreEqual((shield, hull - 10f), (victim.Damage.Shield.CurrentValue, victim.Damage.Health.CurrentValue),
                 "a rear hit goes straight to the hull");
+            Assert.That(words, Is.EqualTo(new[] { "BACKSTAB" }), "a rear hit pops the word on the attacker");
 
             victim.Damage.TakeDamage(From(victim.transform.position + victim.transform.up * 2f));
             Assert.AreEqual((shield - 10f, hull - 10f), (victim.Damage.Shield.CurrentValue, victim.Damage.Health.CurrentValue),
                 "a front hit meets the shield");
+            Assert.That(words, Has.Count.EqualTo(1), "a front hit pops nothing");
         }
 
         [UnityTest]

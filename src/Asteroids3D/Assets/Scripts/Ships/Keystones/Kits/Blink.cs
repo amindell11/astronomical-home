@@ -7,6 +7,7 @@ using Ships.Status;
 using Substrate;
 using UnityEngine;
 using Utils;
+using Ships.Presentation;
 
 namespace Ships.Keystones.Kits
 {
@@ -19,6 +20,8 @@ namespace Ships.Keystones.Kits
     /// </summary>
     public sealed class Blink : Keystone
     {
+        private static readonly Word StunnedWord = new("STUNNED", StatusTint.Stunned);
+
         private const int ClearanceSteps = 12;
         private const float TellSeconds = 0.25f;
         private const float PaidSeconds = 0.25f;
@@ -125,7 +128,11 @@ namespace Ships.Keystones.Kits
             var count = Physics.OverlapCapsuleNonAlloc(GamePlane.PlanePointToWorld(from), GamePlane.PlanePointToWorld(to),
                 Host.Radius, swept, 1 << LayerIds.Ship, QueryTriggerInteraction.Ignore);
             for (var i = 0; i < count; i++)
-                if (TryEnemy(swept[i], out var enemy)) enemy.Status.Apply(StatusEffect.Stunned, shieldBashStun);
+            {
+                if (!TryEnemy(swept[i], out var enemy)) continue;
+                enemy.Status.Apply(StatusEffect.Stunned, shieldBashStun);
+                Pop(StunnedWord, enemy.transform.position);
+            }
         }
 
         private Vector2 ClearJump(Vector2 from, Vector2 jump)

@@ -4,6 +4,7 @@ using Ships.Mods;
 using Substrate;
 using UnityEngine;
 using Utils;
+using Ships.Presentation;
 
 namespace Ships.Keystones.Kits
 {
@@ -18,6 +19,8 @@ namespace Ships.Keystones.Kits
     /// </summary>
     public sealed class Overdrive : Keystone
     {
+        private static readonly Color OrbitInk = new(1f, .7f, .3f);
+
         [Tooltip("Seconds after activation during which speed, thrust and maneuverability stay raised.")]
         [Stat, SerializeField] private float window = 3f;
 
@@ -120,7 +123,12 @@ namespace Ships.Keystones.Kits
                 return;
             }
             var near = TryNearestRock(kinematics.pos, skimReach, out _, out var rock);
-            if (near && rock != skimmed) skims = Mathf.Min(skims + 1, skimMaxStacks);
+            if (near && rock != skimmed)
+            {
+                var stacked = Mathf.Min(skims + 1, skimMaxStacks);
+                if (stacked > skims) Pop(new Word($"ORBIT x{stacked}", OrbitInk), Body.worldCenterOfMass);
+                skims = stacked;
+            }
             skimmed = near ? rock : null;
             sinceSkim = near ? 0f : sinceSkim + dt;
             if (sinceSkim >= skimHold) skims = 0;
