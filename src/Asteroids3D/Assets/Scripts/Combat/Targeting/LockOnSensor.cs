@@ -25,7 +25,7 @@ namespace Combat.Targeting
         [Stat, SerializeField] private float lockOnTime = 0.6f;
         [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
         [Stat, SerializeField] private float lockExpiry = 3f;
-        [Tooltip("Seconds a granted lock holds through the cone, range and rocks; stealth still breaks it. Only a player's sensor grants it.")]
+        [Tooltip("Seconds after acquisition a lock holds outside the cone, range or sightline; stealth still breaks it. Player sensors only.")]
         [Stat, SerializeField, Min(0f)] private float lockGrace = 1f;
 
         [SerializeField] internal WeaponBase<Missile> weapon;
