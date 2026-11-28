@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Balance;
 using Damage;
@@ -45,11 +46,15 @@ namespace Combat.Projectiles
 
         public PelletBlast(float shove) => this.shove = shove;
 
+        /// <summary>Per landing: the point, and how many of the pull's pellets that body has taken so far.</summary>
+        public event Action<Vector3, int> Landed;
+
         public void Land(Rigidbody body, Vector3 direction, Vector3 point)
         {
             landed.TryGetValue(body, out var count);
             landed[body] = ++count;
             body.AddForceAtPosition(direction * (shove * count), point, ForceMode.Impulse);
+            Landed?.Invoke(point, count);
         }
     }
 }

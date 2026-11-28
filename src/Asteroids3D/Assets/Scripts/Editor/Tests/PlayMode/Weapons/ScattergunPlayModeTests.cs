@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
@@ -26,6 +27,7 @@ namespace Tests.PlayMode.Weapons
         private const string StoppingPowerPath = "Assets/Settings/Weapons/Mods/Behaviours/StoppingPower.asset";
 
         private readonly List<GameObject> spawned = new();
+        private readonly List<int> landed = new();
         private float savedTimeScale;
         private float savedCaptureDelta;
 
@@ -45,6 +47,7 @@ namespace Tests.PlayMode.Weapons
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
+            landed.Clear();
             base.TearDown();
         }
 
@@ -210,11 +213,14 @@ namespace Tests.PlayMode.Weapons
         {
             var plain = new List<float>();
             yield return BlastAlongTheShot(Vector3.zero, false, plain);
+            Assert.That(landed, Is.Empty, "without Stopping power no landing is announced");
             var stopping = new List<float>();
             yield return BlastAlongTheShot(GamePlane.PlaneDirToWorld(new Vector2(80f, 0f)), true, stopping);
 
             Assert.Greater(plain[0], 0f, "the bare pellets still knock the target back");
             Assert.Greater(stopping[0], plain[0] * 1.5f, "landing together, the pellets shove harder than their sum");
+            Assert.That(landed, Has.Count.GreaterThan(1), "each landing pellet is announced, for the shake and spark");
+            Assert.That(landed, Is.EqualTo(Enumerable.Range(1, landed.Count)), "counting up as they land");
         }
 
         private IEnumerator BlastAlongTheShot(Vector3 at, bool stoppingPower, List<float> speedAlongShot)
@@ -226,6 +232,7 @@ namespace Tests.PlayMode.Weapons
             var gun = (Scatterguns)shooter.Weapons.Primary;
             if (stoppingPower)
                 gun.Behaviours.Set(new[] { TestAssets.Load<WeaponBehaviourMod>(StoppingPowerPath) });
+            gun.PelletLanded += (_, count) => landed.Add(count);
 
             var target = Object.Instantiate(TestAssets.LoadCrimsonPrefab(),
                 gun.FireOrigin + gun.FireDirection * 4f, GamePlane.Rotation);

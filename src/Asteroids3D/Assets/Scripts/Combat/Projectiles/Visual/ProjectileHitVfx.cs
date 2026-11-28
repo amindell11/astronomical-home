@@ -38,7 +38,7 @@ namespace Combat.Projectiles.Visual
         {
             if (!hitEffect) return;
             var rotation = alignWithProjectile ? transform.rotation : Quaternion.identity;
-            if (pooledHitEffect) SimplePool<PooledVFX>.Get(pooledHitEffect, position, rotation);
+            if (pooledHitEffect) PooledVFX.Play(pooledHitEffect, position, rotation);
             else Instantiate(hitEffect, position, rotation);
         }
     }

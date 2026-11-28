@@ -44,6 +44,9 @@ namespace Combat.Weapons.Arsenal
         public float Range => projectilePrefab.MaxDistance;
         public int Pellets => pellets;
         public float SpreadDegrees => spreadDegrees;
+
+        /// <summary>With Stopping power held, per pellet landing: the point, and how many of the pull's pellets that body has taken.</summary>
+        public event Action<Vector3, int> PelletLanded;
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
 
@@ -61,6 +64,7 @@ namespace Combat.Weapons.Arsenal
 
             var muzzle = Muzzles[0];
             var blast = Behaviours.Holds(stoppingPower) ? new PelletBlast(stoppingShove) : null;
+            if (blast != null) blast.Landed += (point, count) => PelletLanded?.Invoke(point, count);
             Laser first = null;
             var half = spreadDegrees * 0.5f;
             var last = pellets - 1;

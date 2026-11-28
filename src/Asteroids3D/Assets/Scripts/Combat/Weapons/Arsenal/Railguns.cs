@@ -60,6 +60,9 @@ namespace Combat.Weapons.Arsenal
         /// <summary>Per beam hit: the point and what it struck, null when the collider takes no damage.</summary>
         public event Action<Vector3, IDamageable> Hit;
 
+        /// <summary>With Deep strike held, the point of the beam's first strike, its farthest.</summary>
+        public event Action<Vector3> DeepStruck;
+
         [Header("Conditions")]
         [Stat, SerializeField] private ChargeTime charge;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -182,7 +185,11 @@ namespace Combat.Weapons.Arsenal
 
                 var point = StrikePoint(hit, origin);
                 // Farthest-first, the beam reaches its first strike whatever stops it after.
-                if (deep) end ??= OnBeamLine(origin, direction, point);
+                if (deep && end == null)
+                {
+                    end = OnBeamLine(origin, direction, point);
+                    DeepStruck?.Invoke(point);
+                }
                 remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
                     impactMass, direction * impactSpeed, point, attacker: shooter as Ships.Ship)) ?? 0f;
                 Hit?.Invoke(point, damageable);

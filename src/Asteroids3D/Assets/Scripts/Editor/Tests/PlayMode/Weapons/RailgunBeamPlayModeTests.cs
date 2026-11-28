@@ -294,9 +294,13 @@ namespace Tests.PlayMode.Weapons
             var far = CreateSoak(Aim * 10f, toughness: 10f);
             Physics.SyncTransforms();
             var predicted = railgun.FirstStrikePoint();
+            var deepStrikes = new List<Vector3>();
+            railgun.DeepStruck += deepStrikes.Add;
 
             Fire();
 
+            Assert.That(deepStrikes, Has.Count.EqualTo(1), "only the first strike throws the large spark");
+            Assert.Less(Vector3.Distance(deepStrikes[0], Aim * 9.5f), 0.01f, "at the far target");
             Assert.AreEqual(railgun.Damage, Amount(far), 0.001f, "the rock in front no longer shields the far target");
             Assert.AreEqual(railgun.Damage - 10f, Amount(rock), 0.001f, "the overkill comes back to the near rock");
             CollectionAssert.AreEqual(new IDamageable[] { far, rock }, struck, "farthest first");
