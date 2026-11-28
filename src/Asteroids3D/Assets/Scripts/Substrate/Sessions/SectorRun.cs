@@ -69,6 +69,24 @@ namespace Substrate.Sessions
             return dealt;
         }
 
+        public static void PutFirst(Faction[] dealt, string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            var index = -1;
+            for (var i = 0; i < dealt.Length; i++)
+            {
+                if (!string.Equals(dealt[i].id, id, StringComparison.OrdinalIgnoreCase)) continue;
+                index = i;
+                break;
+            }
+
+            if (index < 0)
+                throw new ArgumentException(
+                    $"No dealt faction has id '{id}'. This deal has: {string.Join(", ", dealt.Select(faction => faction.id))}.",
+                    nameof(id));
+            (dealt[index], dealt[0]) = (dealt[0], dealt[index]);
+        }
+
         internal List<LocaleSky> DrawableLocales() =>
             localePool.Except(sectors.Where(row => !row.random).Select(row => row.locale)).ToList();
     }

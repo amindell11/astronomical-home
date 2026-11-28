@@ -11,6 +11,7 @@ using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 
 namespace Combat.Weapons
 {
@@ -63,6 +64,15 @@ namespace Combat.Weapons
 
         /// <summary>The mods in force on this mount; the authored weapon until a controller hands some down.</summary>
         public WeaponMods Mods { get; private set; } = WeaponMods.None;
+
+        /// <summary>The held weapon behaviour mods that land on this mount.</summary>
+        public HeldBehaviours Behaviours { get; } = new();
+
+        /// <summary>Multiplier on a shot's authored damage as it leaves: the damage mods and the shooter's own scale.</summary>
+        protected float ShotDamageFactor => Mods.Factor(WeaponModField.Damage) * (shooter?.ShotDamageScale ?? 1f);
+
+        /// <summary>Multiplier on how fast this weapon's conditions reload and cool, from its shooter.</summary>
+        public float RecoveryScale => shooter?.RecoveryScale ?? 1f;
 
         protected virtual void Awake()
         {

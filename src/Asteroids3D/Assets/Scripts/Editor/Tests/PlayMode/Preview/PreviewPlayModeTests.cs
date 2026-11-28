@@ -91,7 +91,7 @@ namespace Tests.PlayMode.Preview
             var player = rig.Player;
             var start = player.transform.position;
             var shots = 0;
-            player.Weapons.Fired += () => shots++;
+            player.Weapons.Fired += _ => shots++;
             input.Set(mouse.position, new Vector2(Screen.width * .5f, Screen.height * .8f));
             input.Press(keyboard.wKey);
             input.Press(mouse.leftButton);

@@ -131,8 +131,11 @@ namespace Combat.Projectiles
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             var attackerId = Shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             other?.TakeDamage(new DamageInfo(damage * damageScale, Kind, attackerId,
-                mass, impactVelocity, transform.position, DirectHitBypassesShield));
+                mass, impactVelocity, transform.position, DirectHitBypassesShield, AttackerShip));
         }
+
+        /// <summary>The shooter as a ship, whose passives ride its hits; null for a non-ship shooter.</summary>
+        protected Ships.Ship AttackerShip => Shooter as Ships.Ship;
 
         protected virtual bool DirectHitBypassesShield => false;
 

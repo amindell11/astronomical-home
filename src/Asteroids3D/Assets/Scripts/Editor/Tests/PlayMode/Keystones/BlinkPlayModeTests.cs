@@ -7,16 +7,21 @@ using Asteroids.Spawning;
 using Combat;
 using Combat.Projectiles;
 using Damage;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Ships.Registry;
+using Ships.Status;
 using Substrate;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Keystones
@@ -28,9 +33,12 @@ namespace Tests.PlayMode.Keystones
         private const string MissilePath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
+        private const string RecallPath = "Assets/Settings/Ships/Keystones/Mods/Recall.asset";
+        private const string ShieldBashPath = "Assets/Settings/Ships/Keystones/Mods/ShieldBash.asset";
 
         private readonly List<GameObject> spawned = new();
         private Ship crimson;
+        private Ship rival;
         private Blink blink;
 
         private sealed class StubShooter : MonoBehaviour, IShooter
@@ -43,6 +51,7 @@ namespace Tests.PlayMode.Keystones
         public override void TearDown()
         {
             ShipTestFactory.DestroyShip(crimson);
+            ShipTestFactory.DestroyShip(rival);
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -65,6 +74,128 @@ namespace Tests.PlayMode.Keystones
             Assert.That(jump.x, Is.EqualTo(blink.Range).Within(0.5f), "the jump is clamped to range along the aim");
             Assert.That(Mathf.Abs(jump.y), Is.LessThan(0.5f), "only the one step of drift on top");
             Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, velocity), Is.LessThan(0.5f), "velocity is preserved");
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_AFreshPressOnCooldown_JumpsBackToTheStart_KeepingVelocity()
+        {
+            yield return SpawnCrimson();
+            blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+            var velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
+            crimson.Rigidbody.linearVelocity = velocity;
+            var start = Plane(crimson.Rigidbody.position);
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            Assert.That(blink.Marker.HasValue && Vector2.Distance(blink.Marker.Value, start) < 0.5f, Is.True,
+                "the blink marks where it started");
+            for (var i = 0; i < 3; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(Plane(crimson.Rigidbody.position).x - start.x, Is.GreaterThan(blink.Range - 1f),
+                "the press that blinked does not also recall");
+            Assert.That(blink.Ready, Is.False, "the blink is on cooldown");
+
+            var before = crimson.Rigidbody.linearVelocity;
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(Mathf.Abs(Plane(crimson.Rigidbody.position).x - start.x), Is.LessThan(0.5f), "back at the marker");
+            Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, before), Is.LessThan(0.5f), "keeping its velocity");
+            Assert.That(blink.Activations, Is.EqualTo(1), "a recall is not a second blink");
+            Assert.That(blink.Marker, Is.Null, "the marker is spent");
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_ReachesTheKit_FromThePlayersSpaceBar_WhileTheBlinkIsOnCooldown()
+        {
+            var input = new PlayModeInputTestFixture();
+            input.Setup();
+            try
+            {
+                var keyboard = InputSystem.AddDevice<Keyboard>();
+                yield return SpawnCrimson();
+                blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+                crimson.AddCommander(TestAssets.LoadPlayerPilot());
+                var start = Plane(crimson.Rigidbody.position);
+
+                yield return Tap(input, keyboard, () => blink.Activations == 1, "the first press blinks");
+                for (var i = 0; i < 3; i++)
+                    yield return new WaitForFixedUpdate();
+                Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.GreaterThan(blink.Range - 1f));
+                Assert.That(blink.Ready, Is.False, "test premise: the blink is on cooldown");
+
+                yield return Tap(input, keyboard, () => !blink.Marker.HasValue, "the second press recalls");
+                Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.LessThan(1f), "back at the start");
+                Assert.That(blink.Activations, Is.EqualTo(1));
+                Assert.That(crimson.KeystoneTakesPress, Is.False, "with the marker spent, a press waits for the cooldown");
+            }
+            finally
+            {
+                input.TearDown();
+            }
+        }
+
+        private static IEnumerator Tap(PlayModeInputTestFixture input, Keyboard keyboard, System.Func<bool> done, string what)
+        {
+            input.Press(keyboard.spaceKey);
+            for (var i = 0; i < 30 && !done(); i++)
+                yield return new WaitForFixedUpdate();
+            input.Release(keyboard.spaceKey);
+            Assert.That(done(), Is.True, what);
+        }
+
+        [UnityTest]
+        public IEnumerator Recall_OutsideItsWindow_OrWithoutTheMod_DoesNothing([Values] bool held)
+        {
+            yield return SpawnCrimson();
+            if (held) blink.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RecallPath) });
+            var start = Plane(crimson.Rigidbody.position);
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            var window = new SerializedObject(blink).FindProperty("recallWindow").floatValue;
+            var wait = held ? Mathf.CeilToInt(window / Time.fixedDeltaTime) + 2 : 3;
+            for (var i = 0; i < wait; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(blink.Ready, Is.False, "the press comes on cooldown");
+            var landed = Plane(crimson.Rigidbody.position);
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), landed), Is.LessThan(0.5f), "no jump back");
+        }
+
+        [UnityTest]
+        public IEnumerator ShieldBash_StunsAnEnemyTheBlinkPassesThrough_AndTheRecallBack([Values] bool held)
+        {
+            yield return SpawnCrimson();
+            var mods = new List<BehaviourMod> { TestAssets.Load<KeystoneMod>(RecallPath) };
+            if (held) mods.Add(TestAssets.Load<KeystoneMod>(ShieldBashPath));
+            blink.Behaviours.Set(mods.ToArray());
+            var start = Plane(crimson.Rigidbody.position);
+            rival = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), GamePlane.PlanePointToWorld(start + new Vector2(6f, 0f)),
+                GamePlane.Rotation);
+            rival.Initialize(1, 0, Projectiles);
+            yield return new WaitForFixedUpdate();
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f, abilityTarget = start + new Vector2(30f, 0f) });
+            yield return new WaitForFixedUpdate();
+            Assert.That(Plane(crimson.Rigidbody.position).x - start.x, Is.GreaterThan(blink.Range - 1f),
+                "test premise: the blink jumps clean past the enemy");
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.EqualTo(held),
+                held ? "the blink stuns the enemy it passes through" : "without Shield bash it flies on");
+            var stun = new SerializedObject(blink).FindProperty("shieldBashStun").floatValue;
+            if (held)
+                Assert.That(rival.Status.Remaining(StatusEffect.Stunned), Is.EqualTo(stun).Within(0.05f), "for the stun's length");
+
+            for (var i = 0; i < Mathf.CeilToInt(stun / Time.fixedDeltaTime) + 2; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.False, "the stun wears off");
+
+            crimson.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(Vector2.Distance(Plane(crimson.Rigidbody.position), start), Is.LessThan(1f), "test premise: recalled");
+            Assert.That(rival.Status.Has(StatusEffect.Stunned), Is.EqualTo(held), "the recall back through it stuns it again");
         }
 
         [UnityTest]

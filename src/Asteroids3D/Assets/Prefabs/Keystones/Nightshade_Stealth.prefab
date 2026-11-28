@@ -54,6 +54,12 @@ MonoBehaviour:
   sightShield: 0.3
   speedScale: 1.3
   thrustScale: 1.45
+  ambush: {fileID: 11400000, guid: c1aa2949daba44c3abd4ba5b6332b061, type: 2}
+  ambushWindow: 1.5
+  ambushDamageScale: 3
+  silentRunning: {fileID: 11400000, guid: 978ef8b8fab440cca95ea34573db5285, type: 2}
+  silentRunningCap: 6
+  quietOrdnance: {fileID: 11400000, guid: 2d360e42c62b4723bf7a8f97679f4058, type: 2}
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0

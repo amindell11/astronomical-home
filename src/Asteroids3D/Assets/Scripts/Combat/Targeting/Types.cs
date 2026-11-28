@@ -35,8 +35,8 @@ namespace Combat.Targeting
 
     /// <summary>
     /// One target's missile-lock events, raised by whoever locks it, the missiles tracking it,
-    /// kept by those missiles, and its concealment flag, set by the target itself. It lives as
-    /// long as the target.
+    /// kept by those missiles, its concealment, held by the target's own hiding parts, and when
+    /// it was last sighted, stamped by whoever sees it. It lives as long as the target.
     /// </summary>
     public sealed class LockChannel
     {
@@ -56,16 +56,27 @@ namespace Combat.Targeting
         /// <summary>Raised the moment the target conceals itself; locks and seekers drop it on the spot.</summary>
         public event Action Concealed;
 
-        public bool IsConcealed { get; private set; }
+        private int concealers;
 
+        public bool IsConcealed => concealers > 0;
+
+        public float LastSightedAt { get; private set; } = float.NegativeInfinity;
+
+        /// <summary>Each part that hides the target conceals once and reveals once; it shows when the last lets go.</summary>
         public void Conceal()
         {
-            if (IsConcealed) return;
-            IsConcealed = true;
+            if (concealers++ > 0) return;
             Concealed?.Invoke();
         }
 
-        public void Reveal() => IsConcealed = false;
+        public void Reveal()
+        {
+            if (concealers == 0)
+                throw new InvalidOperationException("Reveal without a matching Conceal: every hiding part reveals only what it concealed.");
+            concealers--;
+        }
+
+        public void NoteSighted(float time) => LastSightedAt = time;
 
         public void RaiseProgress(float value)
         {

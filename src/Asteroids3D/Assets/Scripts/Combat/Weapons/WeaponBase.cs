@@ -1,7 +1,6 @@
 using Balance;
 using System;
 using Combat.Projectiles;
-using Combat.Weapons.Mods;
 using Substrate;
 using UnityEngine;
 using Utils;
@@ -39,10 +38,14 @@ namespace Combat.Weapons
             var turn = Quaternion.AngleAxis(yawDegrees, GamePlane.Normal);
             var proj = SimplePool<TProj>.Get(projectilePrefab, GamePlane.WorldPointOnPlane(muzzle.position), turn * muzzle.rotation);
             proj.Initialize(shooter);
-            proj.SetDamageScale(Mods.Factor(WeaponModField.Damage));
+            proj.SetDamageScale(ShotDamageFactor);
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
+            Prime(proj);
             proj.Launch(GamePlane.WorldDirOnPlane(turn * muzzle.up), targetPoint);
             return proj;
         }
+
+        /// <summary>Readies each projectile with this weapon's held behaviours before it flies.</summary>
+        protected virtual void Prime(TProj projectile) { }
     }
 }

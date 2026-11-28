@@ -1,0 +1,38 @@
+{
+  "color_space": "linear-sRGB",
+  "default": "dusk-violet",
+  "palettes": {
+    "dusk-violet": {
+      "Nightshade Midnight": [
+        0.119538,
+        0.068478,
+        0.242281,
+        1
+      ],
+      "Nightshade Violet": [
+        0.049707,
+        0.022174,
+        0.127438,
+        1
+      ],
+      "Nightshade Edge": [
+        0.412543,
+        0.913099,
+        0.066626,
+        1
+      ],
+      "Nightshade Recess": [
+        0.003347,
+        0.002428,
+        0.01096,
+        1
+      ],
+      "Nightshade Glass": [
+        0.003347,
+        0.002428,
+        0.01096,
+        1
+      ]
+    }
+  }
+}

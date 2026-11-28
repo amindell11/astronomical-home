@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "shadow_coverage": 0.33,
+  "shadow_depth": 0.3,
+  "side_wall_depth": 0.7,
+  "brush": {
+    "image": "../nightshade/textures/painted-brush-source.png",
+    "scale": 1.3,
+    "contrast": 3.2,
+    "blend": 0.25
+  },
+  "ramp": [
+    [
+      0.1,
+      0.38
+    ],
+    [
+      0.55,
+      0.64
+    ],
+    [
+      0.92,
+      1.0
+    ]
+  ],
+  "sweep": {
+    "weight_x": 0.65,
+    "light_above": 0.66,
+    "jitter": 0.5,
+    "light": 0.55
+  },
+  "ink": {
+    "inset": 0.0035,
+    "rim": 0.007,
+    "rim_light": 0.25,
+    "wall_facing": 0.65
+  },
+  "plates": {
+    "cap_facing": 0.9,
+    "thin_wall": 0.12
+  },
+  "regions": {
+    "Nightshade Midnight": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Nightshade Violet": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Nightshade Edge": {
+      "plate": true,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Nightshade Recess": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Nightshade Glass": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Veil Mark": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    }
+  },
+  "canopy_glass": [
+    "Upper canopy glazing",
+    "Lower canopy glazing"
+  ],
+  "canopy_frames": [
+    "Cockpit upper retaining rail",
+    "Cockpit lower retaining rail",
+    "Cockpit inset secondary rail",
+    "Cockpit rear retaining collar",
+    "Cockpit upper glazing gasket",
+    "Cockpit lower glazing gasket"
+  ],
+  "accents": [
+    {
+      "part": "Dorsal central blade",
+      "target": "emission",
+      "where": {
+        "x": [
+          0,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.271083,
+        0.6,
+        0.04378
+      ]
+    }
+  ],
+  "material": {
+    "shadow_strength": 0.85,
+    "light_strength": 0.65,
+    "ink_strength": 0.75,
+    "light_lift": 0.2,
+    "ink_color": [
+      0.004,
+      0.003,
+      0.012
+    ],
+    "emission_blend": 0,
+    "lighting": {
+      "_SpecularStrength": 0,
+      "_PaletteLighting": 1
+    }
+  },
+  "paint_space": "folded",
+  "authored_regions": "authored-regions.json"
+}
