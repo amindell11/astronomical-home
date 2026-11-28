@@ -165,13 +165,32 @@ namespace Tests.PlayMode.Presentation
             var originals = surfaces.Select(ReadColor).ToArray();
             foreach (var color in new[] { Color.white, Color.cyan })
             {
-                hull.HoldFlash(color);
+                hull.HoldFlash(this, color);
                 ship.Damage.TakeDamage(Hit(10f, true));
                 yield return new WaitForSeconds(0.1f);
                 foreach (var surface in surfaces) Assert.That(ReadColor(surface), Is.EqualTo(color));
-                hull.ReleaseFlash();
+                hull.ReleaseFlash(this);
                 for (var i = 0; i < surfaces.Length; i++) Assert.That(ReadColor(surfaces[i]), Is.EqualTo(originals[i]));
             }
+        }
+
+        [UnityTest]
+        public IEnumerator HeldColors_ShowTheNewestHolder_AndReleasingOneLeavesTheOthers()
+        {
+            yield return null;
+            var originals = surfaces.Select(ReadColor).ToArray();
+            var first = new object();
+            var second = new object();
+
+            hull.HoldFlash(first, Color.white);
+            hull.HoldFlash(second, Color.cyan);
+            foreach (var surface in surfaces) Assert.That(ReadColor(surface), Is.EqualTo(Color.cyan), "the newest hold shows");
+
+            hull.ReleaseFlash(second);
+            foreach (var surface in surfaces) Assert.That(ReadColor(surface), Is.EqualTo(Color.white), "the older hold comes back");
+
+            hull.ReleaseFlash(first);
+            for (var i = 0; i < surfaces.Length; i++) Assert.That(ReadColor(surfaces[i]), Is.EqualTo(originals[i]), "the last release clears");
         }
 
         private static DamageInfo Hit(float amount, bool bypass = false) =>

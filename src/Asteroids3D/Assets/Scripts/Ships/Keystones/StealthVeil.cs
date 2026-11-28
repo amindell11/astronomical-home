@@ -106,8 +106,8 @@ namespace Ships.Keystones
         {
             if (on == tinted || !hullVisuals) return;
             tinted = on;
-            if (on) hullVisuals.HoldFlash(ambushTint, ambushTintStrength);
-            else hullVisuals.ReleaseFlash();
+            if (on) hullVisuals.HoldFlash(this, ambushTint, ambushTintStrength);
+            else hullVisuals.ReleaseFlash(this);
         }
 
         private void PlayTell()

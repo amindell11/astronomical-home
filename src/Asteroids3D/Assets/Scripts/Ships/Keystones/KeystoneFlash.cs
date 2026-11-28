@@ -87,13 +87,13 @@ namespace Ships.Keystones
                 return;
             }
 
-            hull.HoldFlash(color, 1f - Mathf.Pow(releasedFor / release, releaseCurve));
+            hull.HoldFlash(this, color, 1f - Mathf.Pow(releasedFor / release, releaseCurve));
         }
 
         private void Hold(bool on)
         {
-            if (on && (!held || releasedFor > 0f)) hull.HoldFlash(color);
-            if (!on && held) hull.ReleaseFlash();
+            if (on && (!held || releasedFor > 0f)) hull.HoldFlash(this, color);
+            if (!on && held) hull.ReleaseFlash(this);
             held = on;
             releasedFor = 0f;
         }

@@ -34,8 +34,8 @@ namespace Ships.Visuals
         {
             if (on == held) return;
             held = on;
-            if (on) hull.HoldFlash(dim, strength);
-            else hull.ReleaseFlash();
+            if (on) hull.HoldFlash(this, dim, strength);
+            else hull.ReleaseFlash(this);
         }
     }
 }

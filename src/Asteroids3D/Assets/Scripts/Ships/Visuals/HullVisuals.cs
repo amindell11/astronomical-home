@@ -10,6 +10,7 @@ namespace Ships.Visuals
     /// Owns hull hit flashes and held keystone colors across the authored hull surfaces,
     /// and re-reads its colors on every wear.
     /// A held color takes priority over damage, including on hulls whose other damage effects are disabled.
+    /// Each holder owns its own request; the most recently started one still held shows.
     /// </summary>
     public sealed class HullVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
@@ -23,6 +24,7 @@ namespace Ships.Visuals
         private readonly List<Color> surfaceColors = new();
         private readonly List<Renderer> contours = new();
         private readonly List<Color> contourColors = new();
+        private readonly List<(object owner, Color color, float strength)> holds = new();
         private MaterialPropertyBlock block;
         private ShipVisualRig rig;
         private Renderer[] renderers;
@@ -74,12 +76,17 @@ namespace Ships.Visuals
             if (isActiveAndEnabled) Subscribe();
         }
 
-        private void OnEnable() => Subscribe();
+        private void OnEnable()
+        {
+            Subscribe();
+            if (holds.Count > 0) ShowHeld();
+        }
 
         private void OnDisable()
         {
             Unsubscribe();
-            ReleaseFlash();
+            elapsed = float.PositiveInfinity;
+            ApplyDamageFlash(0f);
         }
 
         private void Subscribe()
@@ -120,20 +127,29 @@ namespace Ships.Visuals
             ApplyDamageFlash(attack * decay);
         }
 
-        public void HoldFlash(Color color, float strength = 1f)
+        public void HoldFlash(object owner, Color color, float strength = 1f)
         {
-            flashHeld = true;
-            elapsed = float.PositiveInfinity;
-            ApplyDamageFlash(0f);
-            for (var i = 0; i < surfaces.Count; i++)
-                SetSurface(i, Color.Lerp(surfaceColors[i], color, strength), strength);
+            var index = holds.FindIndex(hold => hold.owner == owner);
+            if (index < 0) holds.Add((owner, color, strength));
+            else holds[index] = (owner, color, strength);
+            ShowHeld();
         }
 
-        public void ReleaseFlash()
+        public void ReleaseFlash(object owner)
         {
-            flashHeld = false;
+            holds.RemoveAll(hold => hold.owner == owner);
+            ShowHeld();
+        }
+
+        private void ShowHeld()
+        {
+            flashHeld = holds.Count > 0;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
+            if (!flashHeld) return;
+            var (_, color, strength) = holds[holds.Count - 1];
+            for (var i = 0; i < surfaces.Count; i++)
+                SetSurface(i, Color.Lerp(surfaceColors[i], color, strength), strength);
         }
 
         private void ApplyDamageFlash(float strength)
