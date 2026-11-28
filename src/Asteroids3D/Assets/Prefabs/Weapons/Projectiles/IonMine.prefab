@@ -124,6 +124,10 @@ MonoBehaviour:
   proximityRadius: 4
   blastPrefab: {fileID: 2159919425921105659, guid: 62798c0830216a0498cdc21c6dcd5a24,
     type: 3}
+  virusPrefab: {fileID: 1331401448305614509, guid: ea639d3b5368faf40b724f22cda23ba6,
+    type: 3}
+  fieldPrefab: {fileID: 3749212986740674698, guid: f69fc8f0ae4c4a440a5a065c443ecfff,
+    type: 3}
 --- !u!1 &1997650279519653389
 GameObject:
   m_ObjectHideFlags: 0
