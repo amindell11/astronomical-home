@@ -120,7 +120,8 @@ namespace Tests.PlayMode.Preview
             yield return AdvanceToBreakdown(recap);
             var button = recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
             var rect = (RectTransform)button.transform;
-            input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center)));
+            input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(rect.GetComponentInParent<Canvas>().rootCanvas.worldCamera,
+                rect.TransformPoint(rect.rect.center)));
             yield return null;
             input.Press(mouse.leftButton);
             yield return null;

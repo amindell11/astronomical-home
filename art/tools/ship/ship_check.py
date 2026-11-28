@@ -105,6 +105,7 @@ def check(scene, ship):
 
     evaluation = ship_source.Evaluation(scene)
     collider_triangles = 0
+    collider_heights = []
     for name, obj in objects.items():
         if name in roles.ignored or obj is origin:
             continue
@@ -143,10 +144,14 @@ def check(scene, ship):
             if in_collider:
                 mesh.calc_loop_triangles()
                 collider_triangles += len(mesh.loop_triangles)
+                space = evaluation.to_space(name)
+                collider_heights += [(space @ v.co).z for v in mesh.vertices]
         finally:
             bpy.data.meshes.remove(mesh)
     if collider_triangles > COLLIDER_TRIANGLES:
         find("collider", "role.collider", f"{collider_triangles} triangles; at most {COLLIDER_TRIANGLES}")
+    if collider_heights and not min(collider_heights) < 0 < max(collider_heights):
+        find("collider", "role.collider", "Does not cross the play plane (z = 0), so shots and rams pass through")
     for block, path in _missing_files():
         find("missing_file", block, f"Missing external file {path}")
     if scene.unit_settings.scale_length != 1.0:

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Combat.Weapons.Mods;
 using NUnit.Framework;
 using UI.Screens;
+using UI.Screens.Windows;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -58,7 +59,7 @@ namespace Tests.PlayMode.Screens
                 Mod("Extra missile", WeaponModField.Magazine, 1f),
             };
             screen = LullPickScreen.Create(root.transform, offers,
-                mod => ((WeaponMod)mod).Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles");
+                mod => ((WeaponMod)mod).Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles", null);
             yield return null;
 
             Assert.AreEqual("MOD 01", Text("Cards/Card1/Title"));
@@ -85,7 +86,7 @@ namespace Tests.PlayMode.Screens
                 Mod("b", WeaponModField.Damage, 0.25f),
                 Mod("c", WeaponModField.Damage, 0.25f),
             };
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             screen.Choose(1);
@@ -102,7 +103,7 @@ namespace Tests.PlayMode.Screens
                 Mod("a", WeaponModField.Damage, 0.25f),
                 Mod("b", WeaponModField.Damage, 0.25f),
             };
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             var card = screen.transform.Find("Cards/Card2").GetComponent<Button>();
@@ -113,7 +114,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(1, screen.Choice, "clicking the second card picks it");
 
             Object.Destroy(screen.gameObject);
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             var skip = screen.transform.Find("Skip").GetComponent<Button>();
@@ -126,20 +127,58 @@ namespace Tests.PlayMode.Screens
         public IEnumerator Choose_Skip_ReadsAsSkip()
         {
             screen = LullPickScreen.Create(root.transform, new List<WeaponMod> { Mod("a", WeaponModField.Damage, 0.25f) },
-                _ => "Lasers");
+                _ => "Lasers", null);
             yield return null;
 
             screen.Choose(LullPickScreen.Skip);
             Assert.AreEqual(LullPickScreen.Skip, screen.Choice);
         }
 
+        [UnityTest]
+        public IEnumerator AnOpeningWindow_KeepsItsCornersCut_AsDeepAsItsOpenHeightAllows()
+        {
+            screen = LullPickScreen.Create(root.transform, new List<WeaponMod> { Mod("a", WeaponModField.Damage, 0.25f) },
+                _ => "Lasers", null);
+            yield return null;
+            var card = (RectTransform)screen.transform.Find("Cards/Card1");
+            var window = card.GetComponent<ScreenWindow>();
+            var clip = card.GetComponent<RectMask2D>();
+            var frame = card.Find("Frame").GetComponent<ChamferedShape>();
+            var back = card.Find("Back").GetComponent<ChamferedShape>();
+            var bar = card.Find("Bar").GetComponent<ChamferedShape>();
+            var slope = Mathf.Tan(40f * Mathf.Deg2Rad);
+
+            foreach (var open in new[] { .1f, .26f, .4f, .59f, 1f })
+            {
+                window.Open = open;
+                var shown = frame.rectTransform.rect;
+                Assert.That(shown.height, Is.EqualTo(card.rect.height - clip.padding.y - clip.padding.w).Within(.01f),
+                    $"at {open} the outline is the opening, not a clip of the full window");
+                Assert.That(shown.width, Is.EqualTo(card.rect.width - clip.padding.x - clip.padding.z).Within(.01f));
+                Assert.That(frame.DrawnChamfer, Is.GreaterThan(0f), $"at {open} the corners are cut");
+                Assert.That(frame.DrawnChamfer, Is.EqualTo(Mathf.Min(frame.Chamfer, shown.height * .5f / slope))
+                    .Within(.01f), $"at {open} the cuts on one side meet at most");
+                Assert.AreEqual(shown, back.rectTransform.rect, "the body fills the outline");
+                Assert.AreEqual(frame.DrawnChamfer, back.DrawnChamfer);
+                Assert.That(bar.rectTransform.anchoredPosition, Is.EqualTo(frame.rectTransform.anchoredPosition),
+                    "the bar fills down from the outline's top");
+                Assert.That(bar.rectTransform.rect.width, Is.EqualTo(shown.width).Within(.01f));
+                Assert.That(bar.rectTransform.rect.height, Is.LessThanOrEqualTo(shown.height));
+            }
+
+            window.Open = .26f;
+            Assert.That(frame.DrawnChamfer, Is.LessThan(frame.Chamfer), "early in the unfold the cut is shallower");
+            window.Open = .4f;
+            Assert.AreEqual(frame.Chamfer, frame.DrawnChamfer, "a tall enough opening has the full cut");
+        }
+
         [Test]
         public void Create_RefusesAnEmptyOrOversizedOffer()
         {
-            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, new List<WeaponMod>(), _ => ""));
+            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, new List<WeaponMod>(), _ => "", null));
             var four = new List<WeaponMod>();
             for (var i = 0; i < 4; i++) four.Add(Mod($"m{i}", WeaponModField.Damage, 0.25f));
-            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, four, _ => ""));
+            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, four, _ => "", null));
         }
     }
 }

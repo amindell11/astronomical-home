@@ -48,7 +48,7 @@ namespace AI.Tactics
         public bool ambushes;
         [Tooltip("Units ahead of the target's nose the ship flies to while hidden.")]
         [Min(0f)] public float ambushAhead = 15f;
-        [Tooltip("Seconds the ambush holds from its start: the hidden run plus the strike after the ship shows.")]
+        [Tooltip("Seconds the ambush holds after the ship shows: its strike, guns hot.")]
         [Min(0f)] public float ambushHold = 4f;
 
         [Header("When hurt")]

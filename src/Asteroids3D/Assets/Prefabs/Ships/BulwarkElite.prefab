@@ -326,7 +326,7 @@ PrefabInstance:
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.5680001
+      value: 0.0194
       objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000004, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -341,7 +341,7 @@ PrefabInstance:
     - target: {fileID: 1420000000000000004, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.5680001
+      value: 0.0194
       objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -351,7 +351,7 @@ PrefabInstance:
     - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.49200034
+      value: 0.0954
       objectReference: {fileID: 0}
     - target: {fileID: 1820339427924761457, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -490,7 +490,7 @@ PrefabInstance:
     - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.8580004
+      value: -0.2706
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -505,17 +505,17 @@ PrefabInstance:
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.x
-      value: 472.5
+      value: 601.2014
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.y
-      value: 315
+      value: 400.801
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.z
-      value: 540
+      value: 687.0874
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -530,7 +530,7 @@ PrefabInstance:
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.8580004
+      value: -0.2706
       objectReference: {fileID: 0}
     - target: {fileID: 9020035807346396797, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

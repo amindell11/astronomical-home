@@ -331,6 +331,7 @@ MonoBehaviour:
   - bone: {fileID: 2320243020682802379}
     restRotation: {x: 0.00000004086624, y: 0.014190067, z: 0.1730674, w: -0.9848077}
   transitionSeconds: 0.5
+  liveSweepDegrees: 8
 --- !u!1 &3480466902761544428
 GameObject:
   m_ObjectHideFlags: 0
@@ -944,17 +945,17 @@ PrefabInstance:
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.x
-      value: 226.6875
+      value: 288.4335
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.y
-      value: 30.875
+      value: 39.2849
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.z
-      value: 239.6875
+      value: 304.9745
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

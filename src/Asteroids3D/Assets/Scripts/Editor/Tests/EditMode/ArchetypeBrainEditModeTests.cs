@@ -773,6 +773,42 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Ambush_StrikesForItsHold_CountedFromTheMomentTheShipShows()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.ambushes = true;
+            temper.ambushHold = 4f;
+            temper.minimumHold = 0f;
+            createdTempers.Add(temper);
+            var target = targetHost.AddComponent<Ship>();
+            PinPose(target, new Vector2(20f, 0f));
+            var self = new GameObject("Self").AddComponent<Ship>();
+            self.transform.SetParent(brainHost.transform);
+            self.Lock.Conceal();
+            var status = new StubStatus
+            {
+                Kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
+                BoostAvailable = false,
+            };
+            var ctx = Fighting(status, self, target);
+            var brain = NewBrain(OpponentArchetype.Aggressor, target);
+            var serialized = new SerializedObject(brain);
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            var hiddenTicks = Mathf.CeilToInt(5f / Time.fixedDeltaTime / 10f) * 10;
+            for (var i = 0; i < hiddenTicks; i++) brain.Decide(ctx);
+            Assert.AreEqual(Tactic.Ambush, brain.CurrentTactic, "hidden longer than the hold");
+
+            self.Lock.Reveal();
+            var shown = brain.Decide(ctx);
+
+            Assert.AreEqual(Tactic.Ambush, brain.CurrentTactic, "a long hidden run still leaves the whole strike");
+            Assert.IsTrue(shown.HasValue);
+            Assert.IsTrue(shown.Value.engagePrimary, "shown, the ship fires");
+        }
+
+        [Test]
         public void HoldLine_SteersTowardThePlace_OnTheMinusPerpendicularSide()
         {
             var temper = ScriptableObject.CreateInstance<TacticsSettings>();

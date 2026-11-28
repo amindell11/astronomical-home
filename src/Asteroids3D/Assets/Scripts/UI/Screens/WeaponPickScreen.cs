@@ -36,6 +36,7 @@ namespace UI.Screens
 
         private readonly List<InputAction> actions = new();
         private ScreenFonts fonts;
+        private ScreenLayers layers;
         private IReadOnlyList<WeaponComponent> offers;
         private WeaponComponent primary;
         private WeaponComponent secondary;
@@ -45,14 +46,15 @@ namespace UI.Screens
         public int? Choice { get; private set; }
 
         public static WeaponPickScreen Create(Transform parent, IReadOnlyList<WeaponComponent> offers,
-            WeaponComponent primary, WeaponComponent secondary, LullModStack mods)
+            WeaponComponent primary, WeaponComponent secondary, LullModStack mods, ScreenCameras cameras)
         {
             if (offers == null || offers.Count == 0 || offers.Count > MaxOffers)
                 throw new ArgumentException($"A weapon pick offers one to {MaxOffers} weapons.", nameof(offers));
             var go = new GameObject("WeaponPickScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            ScreenKit.Canvas(go);
+            var layers = ScreenLayers.Create(go, cameras);
             var screen = go.AddComponent<WeaponPickScreen>();
+            screen.layers = layers;
             screen.offers = offers;
             screen.primary = primary;
             screen.secondary = secondary;
@@ -81,7 +83,7 @@ namespace UI.Screens
 
         private void Build()
         {
-            WindowKit.Fade(transform, WindowKit.StrongFade);
+            WindowKit.Fade(layers.Under, WindowKit.StrongFade);
             ScreenKit.Label(ScreenKit.Centered(transform, "Title", 800f, 44f, 227f), "WEAPON PICK", 32,
                 WindowKit.Ink, fonts.Title, TextAnchor.MiddleCenter);
             ScreenKit.Label(ScreenKit.Centered(transform, "Hint", 800f, 20f, 189f), "CHOOSE A NEW WEAPON TO EQUIP", 15,
@@ -93,7 +95,7 @@ namespace UI.Screens
                 CardsY);
             for (var i = 0; i < count; i++)
                 BuildOfferCard(cards, i, offers[i]);
-            WindowKit.KeyButton(ScreenKit.Centered(offerRow, "Skip", 200f, 36f, CardsY - CardHeight / 2f - 41f),
+            WindowKit.KeyButton(layers, ScreenKit.Centered(offerRow, "Skip", 200f, 36f, CardsY - CardHeight / 2f - 41f),
                 "SKIP", "ESC", fonts.Label, ChooseSkip);
         }
 
@@ -102,8 +104,8 @@ namespace UI.Screens
             var fillsWeaponSlot = WeaponsController.SlotFor(weapon) == WeaponSlot.Primary;
             var replaced = fillsWeaponSlot ? primary : secondary;
             var kept = fillsWeaponSlot ? secondary : primary;
-            var window = ScreenWindow.Create(cards, $"Card{index + 1}", index * (CardWidth + CardGap), 0f, CardWidth,
-                CardHeight, $"WEAPON {index + 1:00}", fonts.Label);
+            var window = ScreenWindow.Create(cards, layers, $"Card{index + 1}", index * (CardWidth + CardGap), 0f,
+                CardWidth, CardHeight, $"WEAPON {index + 1:00}", fonts.Label);
             var body = window.Body;
             var width = CardWidth - 2f * Inset;
 
@@ -124,7 +126,8 @@ namespace UI.Screens
             WindowKit.Label(body, "IdleLabel", "GOES IDLE", Inset, idleY, width, 20f, 14, WindowKit.Dim, fonts.Label);
             Chips(body, "Idles", idleY + 23f, width, mods.IdledBy(replaced, weapon, kept), "−", "NOTHING", false);
 
-            ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index));
+            ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index),
+                WindowKit.Lit(layers, ScreenKit.Hover));
             window.Play();
         }
 
@@ -154,7 +157,7 @@ namespace UI.Screens
                 }
                 chip.anchoredPosition = new Vector2(x, -line);
                 chip.sizeDelta = new Vector2(chipWidth, ChipHeight);
-                if (lit) ScreenKit.Fill(ScreenKit.Box(chip, "Fill", 0f, 0f, chipWidth, ChipHeight), ChipFill);
+                if (lit) ScreenKit.Fill(ScreenKit.Box(chip, "Fill", 0f, 0f, chipWidth, ChipHeight), WindowKit.Lit(layers, ChipFill));
                 WindowKit.Shape(ScreenKit.Box(chip, "Frame", 0f, 0f, chipWidth, ChipHeight),
                     lit ? WindowKit.Ink : WindowKit.Line, 0f, 1.5f);
                 label.transform.SetAsLastSibling();

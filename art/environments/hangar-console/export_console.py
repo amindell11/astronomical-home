@@ -146,6 +146,12 @@ part_names = {
     'ProjectorLens': ['09 | Projector lens'],
     'LaunchLampLeft': ['Deck | Left Launch armed red lens'],
     'LaunchLampRight': ['Deck | Right Launch armed red lens'],
+    'StatusLamp1': ['Deck | Left status 1 green lens'],
+    'StatusLamp2': ['Deck | Left status 2 green lens'],
+    'StatusLamp3': ['Deck | Left status 3 amber lens'],
+    'StatusLamp4': ['Deck | Right status 1 green lens'],
+    'StatusLamp5': ['Deck | Right status 2 green lens'],
+    'StatusLamp6': ['Deck | Right status 3 amber lens'],
 }
 # Terminal parts are authored in their frame's space, so each pivots on its own centre.
 terminal_names = {}

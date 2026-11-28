@@ -16,7 +16,7 @@ set -euo pipefail
 #        drain_pick.sh owed <pr>
 #        drain_pick.sh result <pr>@<sha> <n> passed|failed|not-run "<evidence>"
 #        drain_pick.sh verify-queue | merge-queue [--no-class] | digest [--no-class]
-#        drain_pick.sh instruct <pr>@<sha> [<pr>@<sha>…]
+#        drain_pick.sh instruct <pr>[@<sha>] [<pr>[@<sha>]…]
 #        drain_pick.sh land-facts <pr>
 #        drain_pick.sh decision <n>
 #   pick    read-only. Queue = open `ready-for-agent` issues; an issue is admitted only when it
@@ -94,7 +94,8 @@ set -euo pipefail
 #           batch can build) and what waits on a session the user starts (build, verify). No
 #           machine contract: relay it as printed.
 #   instruct  the only writer of a *recorded instruction*: the user's merge instruction for a PR at
-#           commit <sha>, 7 to 40 hex characters naming exactly one of the PR's commits. Posts one
+#           commit <sha>, 7 to 40 hex characters naming exactly one of the PR's commits, or at the
+#           PR's head when <sha> is left out (the user never has to name a commit). Posts one
 #           comment per PR whose first line is exactly
 #             Merge instruction <YYYY-MM-DD>: `<40-hex sha>`
 #           Every argument is checked before anything is written: a PR not open against main, or a
@@ -167,7 +168,7 @@ set -euo pipefail
 #            behind head) · draft · scripts (a changed path under scripts/, or more than 100
 #            changed files) · github (a changed path under .github/) · instructed (a recorded
 #            instruction names one of its commits, as land-facts reads it) · class (never under
-#            --no-class; the auto-merge class as GitHub shows it: owed:none or discharged, neither scripts nor
+#            --no-class; the auto-merge class as GitHub shows it: owed:none, neither scripts nor
 #            github, merge-proof/headless and merge-proof/resharper SUCCESS on the head, Codex's
 #            completed review on the head, no unresolved review thread).
 #            scripts and github come from GitHub's changed-file list and only set landing order.
@@ -200,7 +201,7 @@ set -euo pipefail
 
 PROPOSAL_AUTHOR="amindell11"
 
-usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | result <pr>@<sha> <n> passed|failed|not-run \"<evidence>\" | verify-queue | merge-queue [--no-class] | digest [--no-class] | instruct <pr>@<sha> [<pr>@<sha>…] | land-facts <pr> | decision <n>" >&2; exit 2; }
+usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | result <pr>@<sha> <n> passed|failed|not-run \"<evidence>\" | verify-queue | merge-queue [--no-class] | digest [--no-class] | instruct <pr>[@<sha>] [<pr>[@<sha>]…] | land-facts <pr> | decision <n>" >&2; exit 2; }
 infra() { echo "drain_pick: $1" >&2; exit 1; }
 say() { echo "drain_pick: $1" >&2; }
 
@@ -581,7 +582,7 @@ def merge_queue():
         paths, states = pr["paths"], pr["states"]
         scripts = len(paths) > 100 or any(p.startswith("scripts/") for p in paths)
         github = any(p.startswith(".github/") for p in paths)
-        in_class = ("reviewThreads" in pr and pr["verdict"] in ("none", "discharged") and not scripts and not github
+        in_class = ("reviewThreads" in pr and pr["verdict"] == "none" and not scripts and not github
                     and all(states.get(c) == "SUCCESS" for c in PROOF)
                     and review(pr) == ("completed", pr["headRefOid"]) and not unresolved(pr))
         facts[n] = [fact for fact, holds in (
@@ -820,11 +821,12 @@ cmd_land_facts() {
 }
 
 # target <owner/repo> <pr> <sha>: sets TARGET to the full commit when <sha> names exactly one of
-# the commits of <pr>, open against main; otherwise prints the REFUSED line and returns 3.
+# the commits of <pr>, or to its head when <sha> is empty, for a PR open against main; otherwise
+# prints the REFUSED line and returns 3.
 target() {
-  local state base
+  local state base head
   TARGET=""
-  IFS=$'\t' read -r state base < <(gh api "repos/$1/pulls/$2" --jq '[.state, .base.ref] | @tsv') \
+  IFS=$'\t' read -r state base head < <(gh api "repos/$1/pulls/$2" --jq '[.state, .base.ref, .head.sha] | @tsv') \
     || infra "gh api (PR #$2) failed"
   if [[ "$state" != open ]]; then
     say "#$2 is $state, not open"; echo "REFUSED=$2 not-open"; return 3
@@ -832,6 +834,7 @@ target() {
   if [[ "$base" != main ]]; then
     say "#$2 is against $base, not main"; echo "REFUSED=$2 base:$base"; return 3
   fi
+  if [[ -z "$3" ]]; then TARGET="$head"; return 0; fi
   TARGET="$(rest_list "repos/$1/pulls/$2/commits" .sha)" || infra "gh api (#$2 commits) failed"
   TARGET="$(grep "^${3,,}" <<<"$TARGET" || true)"
   if [[ -z "$TARGET" || "$TARGET" == *$'\n'* ]]; then
@@ -859,11 +862,11 @@ cmd_result() {
 cmd_instruct() {
   [[ $# -ge 1 ]] || usage
   local arg pr r refused=0 records=() record
-  for arg in "$@"; do [[ "$arg" =~ ^[0-9]+@[0-9a-fA-F]{7,40}$ ]] || usage; done
+  for arg in "$@"; do [[ "$arg" =~ ^[0-9]+(@[0-9a-fA-F]{7,40})?$ ]] || usage; done
   r="$(repo)" || infra "gh api (repository) failed"
   for arg in "$@"; do
     pr="${arg%@*}"
-    if target "$r" "$pr" "${arg#*@}"; then records+=("$pr $TARGET"); else refused=1; fi
+    if target "$r" "$pr" "$([[ "$arg" == *@* ]] && echo "${arg#*@}")"; then records+=("$pr $TARGET"); else refused=1; fi
   done
   [[ "$refused" -eq 0 ]] || exit 3
   for record in "${records[@]}"; do

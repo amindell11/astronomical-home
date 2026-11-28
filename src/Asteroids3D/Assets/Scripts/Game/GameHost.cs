@@ -463,9 +463,14 @@ namespace Game
                         quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, runLocales, quitRun);
                     if (!quitRun)
                     {
-                        SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
+                        // Victory has no cue of its own in Studio, so the sector's cue plays on under it.
+                        if (playerDied) SetMusic(GameMusic.State.Defeat);
                         if (presentation)
+                        {
+                            if (!playerDied) StandDown(true);
                             yield return RunRecap(OutcomeContext(board, index));
+                            if (!playerDied) StandDown(false);
+                        }
                     }
                 }
                 if (shutdownRequested) yield break;
@@ -514,6 +519,7 @@ namespace Game
                 {
                     stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        rigInstance.Screens,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
                         onContinue: () => continued = true));
@@ -707,7 +713,8 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods);
+            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods,
+                rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -746,7 +753,7 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player), rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -1031,7 +1038,7 @@ namespace Game
                 observer);
             try
             {
-                yield return RecapPlayback.RunScreen(sequence, ui, state =>
+                yield return RecapPlayback.RunScreen(sequence, ui, rigInstance.Screens, state =>
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);
@@ -1043,6 +1050,13 @@ namespace Game
                 recapStop = null;
                 presenter.Restore();
             }
+        }
+
+        // The world plays on behind the victory recap: the winner can't fly out of the held view or be shot down.
+        private void StandDown(bool down)
+        {
+            rigInstance.SetInputEnabled(!down);
+            rigInstance.Player.Damage.SetInvulnerability(down ? float.PositiveInfinity : 0f);
         }
 
         private void SetRecapClock(bool frozen)

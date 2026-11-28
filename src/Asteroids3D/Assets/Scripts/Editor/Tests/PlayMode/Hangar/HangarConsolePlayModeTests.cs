@@ -198,6 +198,45 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
+        public IEnumerator StatusLamps_EachBlinkOnItsOwn()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            var data = new SerializedObject(console);
+            var lamps = data.FindProperty("statusLamps");
+            var glows = data.FindProperty("statusLampGlows");
+            Assert.AreEqual(6, lamps.arraySize, "six status lamps");
+            Assert.AreEqual(6, glows.arraySize, "one glow per status lamp");
+
+            for (var i = 0; i < glows.arraySize; i++)
+                Assert.IsTrue(glows.GetArrayElementAtIndex(i).FindPropertyRelative("card").objectReferenceValue,
+                    $"status lamp {i + 1} has a glow card");
+
+            // Noise can hold a lamp steady for a while, so sample until each has changed, within a bound.
+            var seen = new HashSet<Color>[lamps.arraySize];
+            for (var i = 0; i < seen.Length; i++) seen[i] = new HashSet<Color>();
+            var differed = false;
+            var start = Time.unscaledTime;
+            while (Time.unscaledTime - start < 1.5f ||
+                   (Time.unscaledTime - start < 6f && (!differed || System.Array.Exists(seen, values => values.Count < 2))))
+            {
+                yield return null;
+                var levels = new float[seen.Length];
+                for (var i = 0; i < seen.Length; i++)
+                {
+                    var color = LampColor(lamps, i);
+                    seen[i].Add(color);
+                    levels[i] = color.maxColorComponent /
+                                glows.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue.maxColorComponent;
+                    if (Mathf.Abs(levels[i] - levels[0]) > .01f) differed = true;
+                }
+            }
+            for (var i = 0; i < seen.Length; i++)
+                Assert.That(seen[i].Count, Is.GreaterThan(1), $"status lamp {i + 1} blinks");
+            Assert.IsTrue(differed, "the status lamps are not all alike in some frame");
+        }
+
+        [UnityTest]
         public IEnumerator Launch_DoesNothing_WhileTheShipIsLocked()
         {
             Open(ship => ship.name == "Vanguard", out _);
@@ -340,6 +379,14 @@ namespace Tests.PlayMode.Hangar
         }
 
         private static void Press(Transform part) => part.GetComponent<HangarControl>().Press();
+
+        private static Color LampColor(SerializedProperty lamps, int index)
+        {
+            var lamp = (MeshRenderer)lamps.GetArrayElementAtIndex(index).objectReferenceValue;
+            var block = new MaterialPropertyBlock();
+            lamp.GetPropertyBlock(block);
+            return block.GetColor(Shader.PropertyToID("_ConstantEmission"));
+        }
 
         private static WeaponComponent[] Kind(ItemSubset catalog, bool ordnance)
         {

@@ -276,7 +276,7 @@ land 6 WORKTREE_POOL_AUTO_MERGE_CLASS=0
 expect_refused unauthorized "a code delta since the instruction, the class in shadow"
 [[ "$(attempts)" -eq 1 && "$(merges)" == "$merges_before" ]] || { show; fail "unauthorized is refused once, with no merge"; }
 [[ -z "$(class)" ]] || fail "a refusal at authorize prints no class verdict"
-grep -q "drain_pick.sh instruct 6@<head>" "$TMP/err" || { show; fail "the refusal names how to record a new instruction"; }
+grep -q "drain_pick.sh instruct 6'" "$TMP/err" || { show; fail "the refusal names how to record a new instruction"; }
 ! locked agent-1 || fail "a refused land releases its slot"
 [[ "$(git -C "$TMP/agent-1" rev-parse HEAD)" == "$(git -C "$TMP/agent-1" rev-parse origin/main)" ]] || fail "a refused land resets its slot to origin/main"
 # With the class on, it decides once the proofs are in: outside it, refused unlabelled.

@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93aa49ddc91188b44b97c86c7da9c59c, type: 3}
   m_Name: HangarLightProfile
   m_EditorClassIdentifier: 
-  ambient: {r: 0.05, g: 0.06, b: 0.09, a: 1}
+  ambient: {r: 0.3, g: 0.32, b: 0.38, a: 1}
   emissionStrength: 1.2
   lightResponse: 4
   lensTint: {r: 0.8, g: 0.95, b: 1.5, a: 1}
-  hologramSpillColor: {r: 0.55, g: 0.8, b: 1, a: 1}
+  hologramSpillColor: {r: 1, g: 0.78, b: 0.55, a: 1}
   hologramSpill: 60
   launchSpillColor: {r: 1, g: 0.72, b: 0.45, a: 1}
   launchSpill: 45
   launchGlow: {r: 1.25, g: 1, b: 0.8, a: 1}
+  launchPressedColor: {r: 0.25, g: 0.55, b: 1, a: 1}
+  lampSelectedColor: {r: 0.85, g: 0.92, b: 1, a: 1}
+  lampAvailableColor: {r: 0.05, g: 0.75, b: 0.1, a: 1}
   mainScreenSpill: 26
   detailScreenSpill: 14
   weaponScreenSpill: 20
@@ -30,5 +33,5 @@ MonoBehaviour:
   overheadGlow: 0.2
   overheadGlowSize: 0.25
   overheadLight: 8
-  lensGlow: 0.8
+  lensGlow: 0.4
   lensGlowSize: 2

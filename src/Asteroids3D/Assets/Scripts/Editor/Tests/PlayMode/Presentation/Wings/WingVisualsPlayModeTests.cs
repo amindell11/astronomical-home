@@ -80,6 +80,29 @@ namespace Tests.PlayMode.Presentation.Wings
             Assert.That(hull.GetComponent<Renderer>().sharedMaterials, Has.Length.EqualTo(8));
         }
 
+        [UnityTest]
+        public IEnumerator LiveKeystone_SweepsWingsPastTheThrustPose_AndReturnsWhenItEnds()
+        {
+            var serialized = new SerializedObject(wings);
+            serialized.FindProperty("liveSweepDegrees").floatValue = 8f;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var live = false;
+            var rest = main.localRotation;
+            wings.Bind(new ShipView(rig.transform, null, () => command, null, false, null, () => live));
+
+            live = true;
+            yield return new WaitForSeconds(.6f);
+            AssertAngle(main, 8f);
+            AssertAngle(lower, 8f);
+            Assert.That(Quaternion.Angle(rest, main.localRotation), Is.EqualTo(28f).Within(.04f),
+                "the sweep carries on past the thrust pose, away from rest");
+
+            live = false;
+            yield return new WaitForSeconds(.6f);
+            AssertAngle(main, 20f);
+            AssertAngle(lower, 20f);
+        }
+
         private static void AssertAngle(Transform bone, float degrees) =>
             Assert.That(Quaternion.Angle(Quaternion.identity, bone.localRotation), Is.EqualTo(degrees).Within(.04f));
     }

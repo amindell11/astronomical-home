@@ -236,9 +236,8 @@ Format: **term** — definition. *(authority)*
   `.claude/worktrees/` in the primary tree, on a `claude/<name>` branch. No agent
   work happens in one; `scripts/app_worktree_guard.py` refuses session starts
   that would make one. *(#1058)*
-- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
-  the only sanctioned merge path besides GitHub auto-merge on a green
-  `land-check`.
+- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`,
+  the pool's fallback beside GitHub auto-merge on a green `land-check`.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
   on the hosted path, in a borrowed slot, on a *recorded instruction* or the
   *auto-merge class*. Always
@@ -248,9 +247,11 @@ Format: **term** — definition. *(authority)*
   assets or prefabs with no merge gate: no tests, review or recorded
   instruction, only the user's merge instruction. A change that adds a file
   or edits a test is not one. *(agent_worktree_pool.sh `land-balance`)*
-- **`land-check`** — the commit status GitHub auto-merge waits on: `land`'s
-  preflight and authorize rules applied to a PR head that contains main, posted
-  by `.github/workflows/land-check.yml` from main's copy. Always in code font:
+- **`land-check`** — the commit status GitHub auto-merge waits on: green
+  hosted proof on the PR head, no unresolved thread or open merge-order PR,
+  and nothing owed unless the user's instruction is recorded. Posted by
+  `.github/workflows/land-check.yml` from main's copy; the head need not
+  contain main. Always in code font:
   the plain phrase means checking anything before landing.
   *(agent_worktree_pool.sh `land-check`)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
@@ -301,9 +302,10 @@ Format: **term** — definition. *(authority)*
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
   commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
-  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
-  user may type it on the PR, naming the commit by a prefix
-  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  `merge-queue`, `decision`). Sessions write it through `instruct`, which
+  takes the PR's head when no commit is named, or post the same comment from
+  a cloud thread. The user never types it; the parser still accepts a typed
+  prefix (`Merge instruction: abc1234`). It
   *covers* the landing tree when merging its commit with base gives that tree,
   or one an inert diff away; `land` needs a covering one unless the PR is in
   the *auto-merge class*. Every session is the same GitHub account, so policy
@@ -403,15 +405,9 @@ Format: **term** — definition. *(authority)*
 - **auto-merge class** — the PRs `land` merges with no *recorded
   instruction*; its conditions are in `land`'s `--help`. Each such merge is
   labelled `auto-merged`, and the *pipeline digest* lists it until the user
-  removes the label on review: the user's review comes after the merge. Its
-  owed verdict is none or discharged (#1713: an unticked eyes item holds a
-  PR until the user ticks it); it widens only on a ruling.
-  *(agent_worktree_pool.sh `class_verdict`; #830)*
-- **landing queue** — the open task/* PRs with GitHub auto-merge on. A
-  GitHub Action updates the behind ones from main one at a time, so a main
-  move re-runs the hosted suite on one PR, not all of them; it never merges or
-  decides who may. Not the pipeline's merge queue or GitHub's merge-queue
-  feature. *(scripts/landing_queue.sh; #1713)*
+  removes the label on review: the user's review comes after the merge. It
+  means "nothing owed", so discharged PRs stay out; it widens only on
+  evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
 - **merge task** — the desktop scheduled task `merge`, started by hand: one
   pass over the pipeline's merge queue, landing each instructed or class PR
   through `land`. *(agent-worktree-pr-loop → Merge task)*

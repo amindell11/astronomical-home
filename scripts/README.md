@@ -11,7 +11,6 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | `remote_gate.sh` | Ship a branch to the remote lane box over SSH and run the Unity gate there. | `./scripts/remote_gate.sh [branch]` | header comment |
 | `remote_lane.sh` | Remote lane front door: one availability verdict for the remote box, and the switch that turns the lane off. | `./scripts/remote_lane.sh status\|disable [reason]\|enable` | header comment |
 | `install_hooks.sh` | Point `core.hooksPath` at `.githooks/`. | `./scripts/install_hooks.sh` | header comment |
-| `landing_queue.sh` | Brings auto-merge PRs up to date with main one at a time (run by `.github/workflows/landing-queue.yml`). | `scripts/landing_queue.sh step\|reset <pr>` | header comment |
 
 ## Unity access & tests
 

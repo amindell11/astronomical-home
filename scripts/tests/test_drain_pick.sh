@@ -9,7 +9,7 @@ set -euo pipefail
 # the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists
 # (PRs merged without an instruction among them),
 # merge-queue and digest without GraphQL (--no-class, and the exit 1 without it), instruct's
-# checks and record, land-facts' readings of the record, Codex's review, threads and merge
+# checks and record (a bare PR at its head), land-facts' readings of the record, Codex's review, threads and merge
 # order, the typeable record, and decision's question, tried, eyes and merge parts, their join
 # and cap. gh is a stub serving REST lists 100 rows a page; every call it does not model fails
 # closed, and every GraphQL call fails while $FIX/no-graphql exists.
@@ -47,7 +47,7 @@ case "$args" in
   "api repos/owner/repo/pulls?"*) page "$FIX/pulls.jsonl" ;;
   "api repos/owner/repo/pulls/"*"/files?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/files-${n%%/*}.txt" ;;
   "api repos/owner/repo/pulls/"*"/commits?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/commits-${n%%/*}.txt" ;;
-  "api repos/owner/repo/pulls/"*"[.state, .base.ref]"*) n="${args#api repos/owner/repo/pulls/}"; cat "$FIX/pull-${n%% *}.tsv" ;;
+  "api repos/owner/repo/pulls/"*"[.state, .base.ref, .head.sha]"*) n="${args#api repos/owner/repo/pulls/}"; cat "$FIX/pull-${n%% *}.tsv" ;;
   "api repos/owner/repo/pulls/"*"isDraft"*) n="${args#api repos/owner/repo/pulls/}"; grep "^${n%% *} " "$FIX/open.txt" ;;
   "api repos/owner/repo/pulls/"*) cat "$FIX/pr.json" ;;
   "api graphql "*"pullRequest(number"*) cat "$FIX/pr-graphql.json" ;;
@@ -174,7 +174,7 @@ skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
 # --- usage -----------------------------------------------------------------------------------
 reset
 for bad in "" "frob" "pick --force" "claim" "claim abc" "claim 12 lease" "release" "release abc" "owed" "owed abc" \
-    "verify-queue 12" "verify-queue --no-class" "merge-queue 12" "merge-queue --no-class 12" "digest 12" "digest --class"     "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123"     "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed"     "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x"     "result 12@abc1234 1 passed x y" \
+    "verify-queue 12" "verify-queue --no-class" "merge-queue 12" "merge-queue --no-class 12" "digest 12" "digest --class"     "instruct" "instruct 12@" "instruct 12@xyz1234" "instruct 12@abc123"     "instruct 12@abc1234 13x" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed"     "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x"     "result 12@abc1234 1 passed x y" \
     "decision" "decision abc" "decision 12 13"; do
   rc=0; bash "$DRAIN" $bad > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 2 ]] || fail "'$bad' should exit 2 (got $rc)"
@@ -455,7 +455,7 @@ C1=aaaa1110123456789abcdef0123456789abcdef0
 C2=aaaa1111123456789abcdef0123456789abcdef0
 C3=bbbb0000123456789abcdef0123456789abcdef0
 # pull_of <number> <state> <base> <commit>…: the REST PR read and its commit list
-pull_of() { printf '%s\t%s\n' "$2" "$3" > "$FIX/pull-$1.tsv"; printf '%s\n' "${@:4}" > "$FIX/commits-$1.txt"; }
+pull_of() { printf '%s\t%s\t%s\n' "$2" "$3" "${@: -1}" > "$FIX/pull-$1.tsv"; printf '%s\n' "${@:4}" > "$FIX/commits-$1.txt"; }
 instruct() { rc=0; out="$(bash "$DRAIN" instruct "$@" 2>"$TMP/err")" || rc=$?; }
 reset
 pull_of 12 open main "$C1" "$C2"
@@ -473,6 +473,11 @@ instruct 12@AAAA1110 15@bbbb0000
 today="$(date -u +%F)"
 [[ "$(cat "$GH_WRITE_LOG")" == "api -X POST repos/owner/repo/issues/12/comments -f body=Merge instruction $today: \`$C1\` --silent"$'\n'"api -X POST repos/owner/repo/issues/15/comments -f body=Merge instruction $today: \`$C3\` --silent" ]] \
   || fail "one comment per PR, its first line the record (got: $(cat "$GH_WRITE_LOG"))"
+: > "$GH_WRITE_LOG"
+instruct 12 13
+[[ "$rc" -eq 3 && "$out" == "REFUSED=13 not-open" && ! -s "$GH_WRITE_LOG" ]] || fail "a bare PR still refuses a closed one and writes nothing (rc=$rc: $out)"
+instruct 12 15@bbbb0000
+[[ "$rc" -eq 0 && "$out" == "INSTRUCTED=12 $C2"$'\n'"INSTRUCTED=15 $C3" ]] || fail "a bare PR is recorded at its head (rc=$rc: $out)"
 
 # --- result: the only writer of result lines and ticks ----------------------------------------------------
 # result <body> <args…>: PR 77 (OLD then SHA) carries <body>; runs result into $out and $rc.
@@ -577,15 +582,15 @@ want="MERGE=501 @ owed:none,instructed,class
 MERGE=502 @ owed:none
 MERGE=503 @ owed:none
 MERGE=504 @ owed:none
-MERGE=506 @ owed:discharged,class
+MERGE=506 @ owed:discharged
 MERGE=507 @ owed:none
 MERGE=505 @ owed:none,scripts"
-[[ "$out" == "$(heads "$want")" ]] || fail "instructed names a record on any commit; class needs nothing owed or a discharged checklist, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
+[[ "$out" == "$(heads "$want")" ]] || fail "instructed names a record on any commit; class needs nothing owed, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
 
 # --- merge-queue and digest without GraphQL: --no-class, else exit 1 ------------------------------------
 touch "$FIX/no-graphql"
 view merge-queue --no-class
-[[ "$out" == "$(heads "${want//,class/}")" ]] || fail "--no-class prints every fact but class, with no GraphQL call (got: $out)"
+[[ "$out" == "$(heads "${want/,class/}")" ]] || fail "--no-class prints every fact but class, with no GraphQL call (got: $out)"
 for verb in merge-queue digest; do
   rc=0; bash "$DRAIN" "$verb" > /dev/null 2>"$TMP/err" || rc=$?
   [[ "$rc" -eq 1 ]] && grep -q -- --no-class "$TMP/err" || fail "$verb without --no-class exits 1 when GraphQL is refused (rc=$rc: $(cat "$TMP/err"))"
@@ -596,7 +601,7 @@ classed="$out"
 grep -q "owed:none, instructed, class$" <<<"$classed" || fail "digest lists the class fact (got: $classed)"
 touch "$FIX/no-graphql"
 view digest --no-class
-[[ "$out" == "${classed//, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
+[[ "$out" == "${classed/, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
 
 # --- the typeable record: instruction() through merge-queue's instructed fact ----------------------
 reset

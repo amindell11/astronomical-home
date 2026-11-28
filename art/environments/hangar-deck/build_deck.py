@@ -90,18 +90,18 @@ shoulder = material('Deck | slate chamfers', srgb((28, 34, 43)))
 top = material('Deck | cool upper planes', srgb((30, 35, 44)))
 well = material('Deck | charcoal wells and bezels', srgb((8, 12, 18)))
 keymat = material('Deck | cool grey controls', srgb((88, 98, 112)))
-launchmat = material('Deck | near-black launch resin', (.006, .008, .012))
+orange = material('Deck | orange launch resin', (.95, .20, .018), 1)
 cyan = material('Deck | emissive cyan accents', (.035, .48, .72), 1.65)
 cold_accent = material('Deck | cold blue-white structural accents', (.45, .72, 1.0), 1.65)
 screenmat = material('Deck | placeholder emissive blue', (.023, .105, .222), .8)
 legendmat = material('Deck | ivory inlaid legends', (.49, .65, .72), .3)
-for emissive in (cyan, screenmat, cold_accent):
+for emissive in (orange, cyan, screenmat, cold_accent):
     emissive.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
-PALETTE = [paint, face, shoulder, top, well, keymat, launchmat, cyan, screenmat, legendmat, cold_accent]
+PALETTE = [paint, face, shoulder, top, well, keymat, orange, cyan, screenmat, legendmat, cold_accent]
 old_palette = {
     D['body']: paint, D['face']: face, D['shoulder']: shoulder, D['side']: face,
     D['top_mat']: top, D['dark']: well, D['cyan']: cyan, D['keytop']: keymat,
-    D['key_mat']: keymat, D['orange']: launchmat, D['screen_mat']: screenmat,
+    D['key_mat']: keymat, D['orange']: orange, D['screen_mat']: screenmat,
 }
 chamfer = D['chamfer']
 point = D['point']
@@ -514,7 +514,7 @@ knob_outline = [(math.cos(i * math.pi / 6) * .34, math.sin(i * math.pi / 6) * .3
 subtract(collar, local_mesh('Construction | selector travel bore', knob_outline, .30, -.15, knob_basis, well))
 AFTER_WELLS.append(collar)
 
-launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, launchmat)
+launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, orange)
 letters = [
     [(0,0),(.1,0),(.1,.018),(.018,.018),(.018,.14),(0,.14)],
     [(0,0),(.018,0),(.031,.05),(.069,.05),(.082,0),(.1,0),(.062,.14),(.038,.14)],
@@ -537,14 +537,7 @@ for letter in letter_objects[1:]:
     combine(text_obj, letter)
 text_obj.name = '19 | Launch legend'
 subtract(launch, text_obj, True)
-for poly in launch.data.polygons:
-    poly.material_index = PALETTE.index(launchmat)
-launchlegendmat = material('Deck | warm yellow launch legend emission', (1.0, .72, .18), 1.2)
-launchlegendmat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
-text_obj.data.materials[text_obj.data.materials.find(legendmat.name)] = launchlegendmat
 register(text_obj, 'LaunchLegend', True)
-legend_ink_collection.objects.unlink(text_obj)
-ink_collection.objects.unlink(launch)
 
 right_basis = D['pod_bases']['Right'][0]
 for screen_name, centre in [('Primary', 1.35), ('Ordnance', 0)]:
@@ -894,8 +887,11 @@ for hand, label, basis in ((-1, 'Left', ship_basis), (1, 'Right', selector_basis
     finish_solid(label + ' status strip seat', status_basis, .92, .23, .010, -.060, inset)
     for index, (x, mat, colour) in enumerate(((-.27, lamp_green, 'green'),
                                              (0, lamp_green, 'green'), (.27, lamp_amber, 'amber')), 1):
-        lamp(label + ' status ' + str(index) + ' ' + colour,
-             shifted(status_basis, x=x), .06, .0475, mat, socket_scale=.5)
+        status_lamp = lamp(label + ' status ' + str(index) + ' ' + colour,
+                           shifted(status_basis, x=x), .06, .0475, mat, socket_scale=.5)
+        role = 'StatusLamp' + str(index + (0 if hand < 0 else 3))
+        PARTS[role] = status_lamp
+        status_lamp['export_role'] = role
     for x in (-.73, .73):
         fastener(label + ' ramp upper screw', shifted(basis, x=x, y=.61), .041, .017)
     for x, y, width in ((-.52, -.62, .23), (-.21, -.65, .10), (.47, -.63, .17)):
@@ -1147,6 +1143,33 @@ for index, x in enumerate((-3.20, 3.20), 1):
     light_obj.location = point(basis, d=.03)
     light_obj.rotation_euler = basis[3].to_track_quat('-Z', 'Y').to_euler()
     light_obj['preview_only'] = True
+
+corner_cold = material('Deck | corner cold strip emission', (.28, .36, .48), .65)
+pip_cold = material('Deck | corner indicator emission', (.45, .72, 1.0), .9)
+pip_green = material('Deck | corner indicator green emission', (.025, .70, .055), .9)
+for mat in (corner_cold, pip_cold, pip_green):
+    mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+PALETTE.extend([corner_cold, pip_cold, pip_green])
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    x = hand * 11.19
+    strip_basis = shifted(header_basis, x=x, y=D['brow_z'](x) + .53 + .16, d=.032)
+    finish_ring(label + ' header corner strip bezel', strip_basis,
+                chamfer(1.70, .13, .03), chamfer(1.58, .07, .02), .022, -.004, well)
+    finish_solid(label + ' header corner strip floor', strip_basis, 1.58, .07, .004, -.004, well, .02)
+    lamp(label + ' header corner cold strip', shifted(strip_basis, d=-.030), 1.56, .055, corner_cold,
+         socket=False, cap=.040)
+    cluster = shifted(header_basis, x=hand * 9.75, y=(D['brow_z'](hand * 9.75) + .53 + 10.59) / 2, d=.032)
+    finish_solid(label + ' header corner indicator seat', cluster, .14, .42, .012, -.004, inset, .03)
+    for index, (y, mat) in enumerate(((.12, pip_green), (0, pip_cold), (-.12, pip_cold)), 1):
+        finish_solid(label + ' header corner indicator ' + str(index), shifted(cluster, y=y),
+                     .055, .045, .026, .010, mat, .012)
+
+corner_warm = material('Deck | gusset warm white lamp emission', (1.0, .82, .62), .7)
+corner_warm.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+PALETTE.append(corner_warm)
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    lamp(label + ' header gusset warm', shifted(header_basis, x=hand * 6.54, y=10.24, d=.025),
+         .30, .075, corner_warm, socket_scale=.7)
 
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     for x0, x1, y0, y1, z0, z1, top0, top1 in (
