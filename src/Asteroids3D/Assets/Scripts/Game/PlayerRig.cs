@@ -344,7 +344,7 @@ namespace Game
         {
             var commander = Player.Commander as PlayerCommander;
             return new HudBinding(Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally,
-                Mods, commander ? commander.playerInput : null, Player.Keystone.DisplayName, Player.Keystone.Icon);
+                Mods, Player, commander ? commander.playerInput : null, Player.Keystone.DisplayName, Player.Keystone.Icon);
         }
 
         private void WirePlayerDeath()

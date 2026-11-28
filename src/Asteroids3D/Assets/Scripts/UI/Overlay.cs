@@ -50,6 +50,7 @@ namespace UI
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
         private ChargeTargetMarkers chargeMarkers;
+        private ModRockRings rockRings;
         private Camera gameplayCamera;
         private bool visible = true;
         private ShipStatusOverlay shipStatus;
@@ -81,6 +82,7 @@ namespace UI
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             objectiveMarkers = GetComponentInChildren<ObjectiveMarkers>(true);
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
+            rockRings = GetComponentInChildren<ModRockRings>(true);
             CommLine = CommLine.Create(transform, labelFont, textMaterial);
         }
 
@@ -107,6 +109,8 @@ namespace UI
                 c.enabled = visible;
             if (chargeMarkers)
                 chargeMarkers.SetVisible(visible);
+            if (rockRings)
+                rockRings.gameObject.SetActive(visible && visibility.alpha > 0f);
             crosshair.gameObject.SetActive(visible && visibility.alpha > 0f);
             weaponResources.gameObject.SetActive(visible && visibility.alpha > 0f);
         }
@@ -115,6 +119,7 @@ namespace UI
         {
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+            if (rockRings) rockRings.gameObject.SetActive(visible && opacity > 0f);
             crosshair.gameObject.SetActive(visible && opacity > 0f);
             weaponResources.gameObject.SetActive(visible && opacity > 0f);
             if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
@@ -157,6 +162,9 @@ namespace UI
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
+
+            if (rockRings)
+                rockRings.Initialize(binding.Rocks, binding.Status.Transform);
 
             // Overheat and lock audio are single overlay-level channels; each follows the
             // first weapon (in slot order) that exposes the matching readout.
