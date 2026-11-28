@@ -112,8 +112,6 @@ MonoBehaviour:
     stillSpeed: 1.5
     heavyMassRatio: 4
     contactGap: 2
-  cleanKill:
-    key: {fileID: 11400000, guid: 1ada1adba77e41b1a5f29e44241bfb1e, type: 2}
   duckAndLoad:
     key: {fileID: 11400000, guid: b5b0f81c5de24320bff1e9109ecd5021, type: 2}
     recoveryScale: 3
@@ -131,7 +129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89e447451c442f443abdbc78d400bca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  suppressedSpeedScale: 0.6
+  suppressedTurnScale: 0.5
 --- !u!114 &8323755265108850685
 MonoBehaviour:
   m_ObjectHideFlags: 0

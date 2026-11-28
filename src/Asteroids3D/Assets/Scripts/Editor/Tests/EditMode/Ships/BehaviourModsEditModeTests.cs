@@ -161,7 +161,7 @@ namespace Tests.EditMode.Ships
                 "Bank shot", "Stopping power", "Deep strike", "Shrapnel rocks", "Wire guided", "Implosion",
                 "Battering ram", "Ambush", "Recall", "Orbit", "Riposte", "Backstab",
                 "Point defence", "Suppression", "EMP warhead", "Limpet",
-                "Headstrong", "Turret", "Lie in wait", "Clean kill", "Duck and load",
+                "Headstrong", "Turret", "Lie in wait", "Duck and load",
                 "Chain ram", "Double dash", "Shield bash", "Relentless", "Silent running", "Quiet ordnance",
             }, pool.mods.Select(mod => mod.DisplayName));
 

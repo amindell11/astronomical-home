@@ -25,6 +25,9 @@ namespace Ships.Keystones
         [Tooltip("Seconds from one activation until the next is ready.")]
         [Stat, SerializeField] private float cooldown = 5f;
 
+        [Tooltip("Seconds an AI pilot waits after first engaging a target before it may fire this kit.")]
+        [Stat, SerializeField, Min(0f)] private float firstEngageHold;
+
         [Tooltip("Glyph shown in the keystone instrument.")]
         [SerializeField] private Sprite icon;
 
@@ -36,6 +39,7 @@ namespace Ships.Keystones
         public abstract string DisplayName { get; }
         public Sprite Icon => icon;
         public float Cooldown => cooldown;
+        public float FirstEngageHold => firstEngageHold;
         public bool Ready => clock >= readyAt;
 
         /// <summary>Whether a press now does something: the kit is ready, or it takes one on cooldown.</summary>

@@ -31,7 +31,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. The alarm limits each live patrol to sight and hands it the hero. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt. With Clean kill, killing a patrol that never saw the hero adds nothing, and the patrol that finds the wreck searches there for the drain time.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. The alarm limits each live patrol to sight and hands it the hero. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
@@ -286,47 +286,6 @@ namespace Tests.PlayMode.Sectors
             other.Damage.TakeDamage(new DamageInfo(1f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, other.transform.position));
             Assert.IsTrue(full.Alarmed, "A full share alarms on one hit.");
             Assert.AreEqual(new[] { $"alarm {SectorIndex} Patrol {other.name}" }, _beats);
-        }
-
-        [UnityTest]
-        [Timeout(180000)]
-        public IEnumerator ACleanKill_OnAPatrolThatNeverSawTheHero_AddsNothing_AndTheWreckDrawsASearch()
-        {
-            var hero = SpawnHero();
-            var key = TestAssets.Load<PassiveMod>("Assets/Settings/Ships/Passives/CleanKill.asset");
-            var held = new HeldBehaviours();
-            held.Set(new BehaviourMod[] { key });
-            hero.CleanKill.Configure(key);
-            hero.CleanKill.Read(held);
-            var hunt = NewHunt(sightRadius: 5f, searchSeconds: 60f, patrols: 2, hitFill: 1f, spotDrainSeconds: 1.5f,
-                routeSpeed: 0f, searchRadius: 5f);
-            yield return Build(hunt, hero);
-            yield return null;
-            Assert.AreEqual(2, hunt.Spawned.Count);
-            var victim = hunt.Spawned[0];
-            var finder = hunt.Spawned[1];
-            var wreck = PlaneOf(victim);
-            var away = (wreck - PlaneOf(hero)).normalized;
-            MoveShip(finder, GamePlane.PlanePointToWorld(PlaneOf(hero) - away * SpawnDistance));
-
-            victim.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, victim.transform.position));
-            Assert.AreEqual(0f, hunt.SpottedFill, "a clean kill adds nothing to the meter");
-            Assert.IsFalse(hunt.Alarmed);
-            yield return null;
-            Assert.AreEqual(new[] { $"silenced {SectorIndex} {victim.name}" }, _beats);
-            Assert.Less(WedgeColor(finder).a, .25f, "a patrol that has not found the wreck keeps its route");
-
-            MoveShip(finder, GamePlane.PlanePointToWorld(wreck + away * 4f));
-            yield return null;
-            yield return null;
-            Assert.Greater(WedgeColor(finder).a, .4f, "the patrol that sees the wreck goes to search it");
-            yield return new WaitForSeconds(.6f);
-            Assert.Greater(WedgeColor(finder).a, .4f, "it keeps searching though the meter is empty");
-            Assert.AreEqual(0f, hunt.SpottedFill);
-
-            yield return new WaitForSeconds(1.5f);
-            Assert.Less(WedgeColor(finder).a, .25f, "after the drain time it returns to its route");
-            Assert.IsFalse(hunt.Alarmed, "the kill never raised the alarm");
         }
 
         [UnityTest]

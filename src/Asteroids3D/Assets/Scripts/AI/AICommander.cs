@@ -59,6 +59,8 @@ namespace AI
         // The ability lane, latched beside the triggers.
         private bool boost;
         private bool hasAnchor;
+        private bool hasEngaged;
+        private float engagedFor;
         private ShipId anchorId;
         private EnemyTarget anchorTarget;
         // The owner's route overrides the brain's nav lane, guns cold, whatever brain is installed.
@@ -176,6 +178,8 @@ namespace AI
             boost = false;
             jumpRequested = false;
             hasAnchor = false;
+            hasEngaged = false;
+            engagedFor = 0f;
             steerPoint = null;
             context = new AIContext(limpingShip, Scout, PrimaryHoldRange(), combatExitDelay);
             if (Brain) Brain.ResetState();
@@ -203,7 +207,11 @@ namespace AI
                 : Gunner.PrimaryAimReference());
             if (seeking) command.thrust = 1f;
             command.abilityTarget = Navigator.PlanEnd;
-            command.boost = !suppressKeystone && (boost || SightFires(keystone)) ? 1f : 0f;
+            hasEngaged |= Engaged;
+            if (hasEngaged) engagedFor += Time.fixedDeltaTime;
+            // An arriving enemy fights a moment before its kit strikes, so the player can read it.
+            var held = keystone && engagedFor < keystone.FirstEngageHold;
+            command.boost = !suppressKeystone && !held && (boost || SightFires(keystone)) ? 1f : 0f;
             if (limpingShip.Limping)
             {
                 if (command.thrust > 0f) command.thrust *= limpScale;
@@ -290,9 +298,11 @@ namespace AI
             if (Gunner) Gunner.HoldFire();
         }
 
+        private bool Engaged => hasAnchor && (engagePrimary || engageSecondary);
+
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
-            keystone && hasAnchor && (engagePrimary || engageSecondary)
+            keystone && Engaged
             && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
                 Desired(Navigator.CostVelocityReference), Navigator.PlanEnd, control.Ship.ShieldPct,
                 anchorTarget.dynamics.shipRadius));

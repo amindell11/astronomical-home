@@ -14,8 +14,8 @@ namespace Ships.Movement
     [DefaultExecutionOrder(50)]
     public class MovementController : MonoBehaviour, IPilot
     {
-        [Tooltip("Multiplier on the speed cap while the ship is suppressed.")]
-        [Stat, SerializeField, Range(0f, 1f)] private float suppressedSpeedScale = 0.6f;
+        [Tooltip("Multiplier on turn rate and turn torque while the ship is suppressed.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float suppressedTurnScale = 0.5f;
 
         private Rigidbody  rb;
         private Keystone keystone;
@@ -113,8 +113,9 @@ namespace Ships.Movement
             var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
             var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
             var maneuverability = keystone.ManeuverabilityScale;
-            rb.maxAngularVelocity = settings.maxYawRate * maneuverability * Mathf.Deg2Rad;
-            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank,
+            var turn = maneuverability * (status.Slowed ? suppressedTurnScale : 1f);
+            rb.maxAngularVelocity = settings.maxYawRate * turn * Mathf.Deg2Rad;
+            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * turn, outs.bank,
                 effect.Acceleration);
             ConstrainRotation();
         }
@@ -135,7 +136,7 @@ namespace Ships.Movement
         // A raised cap takes effect at once; a lowered one bleeds down at the rate drag alone sheds the base cap.
         private void ApplySpeedCap(float dt)
         {
-            var target = settings.maxSpeed * keystone.SpeedScale * (status.Slowed ? suppressedSpeedScale : 1f);
+            var target = settings.maxSpeed * keystone.SpeedScale;
             speedCap = target >= speedCap ? target : Mathf.Max(target, speedCap - settings.maxSpeed * settings.linearDrag * dt);
             rb.maxLinearVelocity = speedCap;
         }

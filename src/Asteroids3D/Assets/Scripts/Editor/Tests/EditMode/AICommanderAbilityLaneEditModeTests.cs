@@ -127,6 +127,33 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void FirstEngageHold_KeepsTheKitCold_UntilItHasPassed()
+        {
+            SetFirstEngageHold(Time.fixedDeltaTime * 4.5f);
+            kit.sight = true;
+            for (var i = 1; i <= 4; i++)
+                Assert.AreEqual(0f, StepBoost(Anchored(engage: true, boost: true)), $"engaged step {i} is inside the hold");
+            Assert.AreEqual(1f, StepBoost(Anchored(engage: true, boost: true)), "the hold has passed");
+        }
+
+        [Test]
+        public void FirstEngageHold_CountsFromTheFirstEngagement_NotFromSpawn()
+        {
+            SetFirstEngageHold(Time.fixedDeltaTime * 1.5f);
+            for (var i = 0; i < 10; i++)
+                Assert.AreEqual(0f, StepBoost(Drifting(boost: true)), "flying in, the kit stays cold");
+            Assert.AreEqual(0f, StepBoost(Anchored(engage: true, boost: true)), "the first engaged step is inside the hold");
+            Assert.AreEqual(1f, StepBoost(Anchored(engage: true, boost: true)));
+        }
+
+        private void SetFirstEngageHold(float seconds)
+        {
+            var so = new SerializedObject(kit);
+            so.FindProperty("firstEngageHold").floatValue = seconds;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
         public void SeekingContact_ExemptsTheAnchorFromAvoidance_OnlyWhileItLasts()
         {
             kit.seeks = true;
