@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Combat;
 using Combat.Projectiles;
+using Combat.Targeting;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Mods;
@@ -236,6 +237,8 @@ namespace Tests.PlayMode.Weapons.Mods
             var launcher = Mount<Grenades>(GrenadesPath, Vector3.zero, GamePlane.Rotation, "Limpet");
             var target = SpawnTarget(launcher.FireOrigin + launcher.FireDirection * 8f);
             var across = Vector3.Cross(GamePlane.Normal, launcher.FireDirection).normalized;
+            ICarriedCharge carried = null;
+            target.Lock.Carried += stuck => carried = stuck;
 
             var charge = (Grenade)launcher.Fire(target.transform.position + launcher.FireDirection * 6f, Projectiles);
             yield return StepWhile(() => true, 15);
@@ -251,7 +254,8 @@ namespace Tests.PlayMode.Weapons.Mods
             }
 
             Assert.IsTrue(charge.gameObject.activeSelf, "its fuse is still running");
-            Assert.AreSame(target, charge.Carrier, "it names the ship it rides, whose hull blinks");
+            Assert.AreSame(target, charge.Carrier, "it names the ship it rides");
+            Assert.AreSame(charge, carried, "and tells that ship, whose hull blinks while it rides");
             Assert.That(charge.FuseProgress, Is.InRange(0.01f, 0.99f), "the fuse is part spent");
             Assert.Less(Vector3.Distance(charge.transform.position - target.transform.position, offset), 0.1f,
                 "the ship carries the charge");

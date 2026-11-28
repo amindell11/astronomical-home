@@ -27,9 +27,6 @@ namespace Ships.Presentation
 
         public IReadOnlyList<Renderer> Silhouette => silhouette;
 
-        /// <summary>Null on a rig that never woke, which shows nothing.</summary>
-        public HullVisuals Hull { get; private set; }
-
         private void Awake()
         {
             visuals = GetComponentsInChildren<IShipVisual>(true);
@@ -37,7 +34,6 @@ namespace Ships.Presentation
             ship = GetComponentInParent<Ship>();
             hud = gameObject.AddComponent<CanvasGroup>();
             minimapMarker = GetComponentInChildren<MinimapShipMarker>(true);
-            Hull = GetComponentInChildren<HullVisuals>(true);
         }
 
         public void SetHudOpacity(float opacity) => hud.alpha = opacity;

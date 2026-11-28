@@ -33,10 +33,19 @@ namespace Combat.Targeting
         Kinematics Kinematics { get; }
     }
 
+    public interface ICarriedCharge
+    {
+        /// <summary>0 when the charge sticks, 1 as its fuse runs out.</summary>
+        float FuseProgress { get; }
+
+        event Action Ended;
+    }
+
     /// <summary>
     /// One target's missile-lock events, raised by whoever locks it, the missiles tracking it,
-    /// kept by those missiles, its concealment, held by the target's own hiding parts, and when
-    /// it was last sighted, stamped by whoever sees it. It lives as long as the target.
+    /// kept by those missiles, the charges that stick to it, announced by each charge, its
+    /// concealment, held by the target's own hiding parts, and when it was last sighted, stamped
+    /// by whoever sees it. It lives as long as the target.
     /// </summary>
     public sealed class LockChannel
     {
@@ -77,6 +86,11 @@ namespace Combat.Targeting
         }
 
         public void NoteSighted(float time) => LastSightedAt = time;
+
+        /// <summary>Raised when a charge sticks to the target; it rides until its <see cref="ICarriedCharge.Ended"/>.</summary>
+        public event Action<ICarriedCharge> Carried;
+
+        public void Carry(ICarriedCharge charge) => Carried?.Invoke(charge);
 
         public void RaiseProgress(float value)
         {

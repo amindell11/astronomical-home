@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using Combat.Targeting;
 using Damage;
 using Ships.Damage;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Combat.Projectiles
     /// proximity fuse: the first ship it touches, armed or not, carries it until the limpet fuse
     /// runs out. Design: arc #950.
     /// </summary>
-    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
+    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight, ICarriedCharge
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
@@ -100,6 +101,12 @@ namespace Combat.Projectiles
         public void Limpet(float fuse) => limpetFuse = fuse;
 
         event Action IChargeFlight.Ended
+        {
+            add => ReturnedToPool += value;
+            remove => ReturnedToPool -= value;
+        }
+
+        event Action ICarriedCharge.Ended
         {
             add => ReturnedToPool += value;
             remove => ReturnedToPool -= value;
@@ -194,6 +201,7 @@ namespace Combat.Projectiles
             carriedAt = carrier.InverseTransformPoint(transform.position);
             Burning = false;
             rb.linearVelocity = Vector3.zero;
+            Carrier.Lock.Carry(this);
         }
 
         private void Ride()

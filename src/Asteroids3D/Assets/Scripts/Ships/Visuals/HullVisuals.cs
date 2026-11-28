@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Combat.Targeting;
 using Damage;
 using Ships.Damage;
 using Ships.Presentation;
@@ -11,7 +12,8 @@ namespace Ships.Visuals
     /// Owns hull hit flashes, held keystone colors and status tints across the authored hull surfaces,
     /// and re-reads its colors on every wear. A held color takes priority over a status tint, and a
     /// status tint over damage, including on hulls whose other damage effects are disabled.
-    /// Each holder owns its own request; the most recently started one still held shows.
+    /// Each holder owns its own request; the most recently started one still held shows. While a
+    /// limpet charge rides the ship, the hull blinks, faster as its fuse runs out.
     /// </summary>
     public sealed class HullVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
@@ -19,6 +21,13 @@ namespace Ships.Visuals
         [SerializeField, Min(0.07f)] private float flashTime = 0.36f;
         [Tooltip("How far a status effect's tint pulls the hull toward its colour, 0 to 1.")]
         [SerializeField, Range(0f, 1f)] private float statusTintStrength = 0.6f;
+
+        [Header("Limpet")]
+        [SerializeField] private Color limpetBlink = Color.red;
+        [Tooltip("Hull blinks per second when a limpet charge sticks.")]
+        [SerializeField, Min(0.1f)] private float blinkRateAtStick = 3f;
+        [Tooltip("Hull blinks per second as its fuse runs out.")]
+        [SerializeField, Min(0.1f)] private float blinkRateAtFuse = 12f;
 
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
@@ -28,11 +37,16 @@ namespace Ships.Visuals
         private readonly List<Renderer> contours = new();
         private readonly List<Color> contourColors = new();
         private readonly List<(object owner, Color color, float strength)> holds = new();
+        private readonly List<ICarriedCharge> riders = new();
+        private readonly object limpetOwner = new();
         private MaterialPropertyBlock block;
         private ShipVisualRig rig;
         private Renderer[] renderers;
         private IDamageEvents source;
         private StatusEffects status;
+        private LockChannel carried;
+        private float blinkPhase;
+        private bool blinkLit;
         private Color? shownTint;
         private bool subscribed;
         private bool flashHeld;
@@ -79,6 +93,7 @@ namespace Ships.Visuals
             Unsubscribe();
             source = view.Damage;
             status = view.Status;
+            carried = view.Lock;
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -91,6 +106,7 @@ namespace Ships.Visuals
         private void OnDisable()
         {
             Unsubscribe();
+            StopBlink();
             shownTint = null;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
@@ -98,18 +114,65 @@ namespace Ships.Visuals
 
         private void Subscribe()
         {
-            if (subscribed || source == null) return;
-            source.OnDamaged += TriggerFlash;
-            source.Health.OnValueChanged += OnHealthChanged;
+            if (subscribed || (source == null && carried == null)) return;
+            if (source != null)
+            {
+                source.OnDamaged += TriggerFlash;
+                source.Health.OnValueChanged += OnHealthChanged;
+            }
+            if (carried != null) carried.Carried += Carry;
             subscribed = true;
         }
 
         private void Unsubscribe()
         {
             if (!subscribed) return;
-            source.OnDamaged -= TriggerFlash;
-            source.Health.OnValueChanged -= OnHealthChanged;
+            if (source != null)
+            {
+                source.OnDamaged -= TriggerFlash;
+                source.Health.OnValueChanged -= OnHealthChanged;
+            }
+            if (carried != null) carried.Carried -= Carry;
             subscribed = false;
+        }
+
+        private void Carry(ICarriedCharge charge)
+        {
+            void End()
+            {
+                charge.Ended -= End;
+                riders.Remove(charge);
+            }
+
+            charge.Ended += End;
+            riders.Add(charge);
+        }
+
+        private void LateUpdate()
+        {
+            if (riders.Count == 0)
+            {
+                StopBlink();
+                return;
+            }
+
+            var fuse = 0f;
+            foreach (var rider in riders)
+                fuse = Mathf.Max(fuse, rider.FuseProgress);
+            blinkPhase += Mathf.Lerp(blinkRateAtStick, blinkRateAtFuse, fuse) * Time.deltaTime;
+            var lit = Mathf.Repeat(blinkPhase, 1f) < 0.5f;
+            if (lit == blinkLit) return;
+            blinkLit = lit;
+            if (lit) HoldFlash(limpetOwner, limpetBlink);
+            else ReleaseFlash(limpetOwner);
+        }
+
+        private void StopBlink()
+        {
+            blinkPhase = 0f;
+            if (!blinkLit) return;
+            blinkLit = false;
+            ReleaseFlash(limpetOwner);
         }
 
         private void OnHealthChanged(float current, float previous, float max)
