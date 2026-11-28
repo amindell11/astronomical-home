@@ -9,7 +9,8 @@ namespace Ships.Visuals
     /// <summary>
     /// Drives the main exhaust and the RCS jets from the thrust the movement system applied.
     /// A jet lights when its push and its torque about the ship help the applied thrust, its
-    /// size and opacity grow with that share up to full, and it stays on for a minimum time.
+    /// size and opacity grow with that share up to full, and it stays on for a minimum time. The main
+    /// exhaust grows past its authored size with forward thrust above full, as a keystone's thrust scale gives.
     /// </summary>
     public class ThrusterVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
@@ -30,6 +31,9 @@ namespace Ships.Visuals
         [Tooltip("Jet opacity at the faintest demand that lights it. Full demand is fully opaque.")]
         [SerializeField, Range(0f, 1f)] private float faintestOpacity = 0.35f;
 
+        [Tooltip("Largest main exhaust size, as a multiple of its authored size, that forward thrust above full grows it to.")]
+        [SerializeField, Min(1f)] private float largestExhaust = 2f;
+
         private readonly List<(ParticleSystem system, ParticleSystemRenderer renderer)> flames = new();
         private Func<AppliedThrust> thrust;
         private Vector3[] push;
@@ -38,10 +42,14 @@ namespace Ships.Visuals
         private float[] litUntil;
         private float[] litStrength;
         private Vector3[] fullScale;
+        private Vector3[] exhaustScale;
 
         // Each listed main thrust and the systems beside it in its exhaust, the small thrust among them.
         private void Awake()
         {
+            exhaustScale = new Vector3[thrustParticles.Length];
+            for (var i = 0; i < thrustParticles.Length; i++)
+                if (thrustParticles[i]) exhaustScale[i] = thrustParticles[i].transform.localScale;
             foreach (var particle in thrustParticles)
             {
                 if (!particle) continue;
@@ -102,7 +110,7 @@ namespace Ships.Visuals
             if (thrust == null) return;
 
             var applied = thrust();
-            UpdateThrustAnimations(applied.Force.y > 0.05f);
+            UpdateThrustAnimations(applied.Force.y > 0.05f, Mathf.Clamp(applied.Force.y, 1f, largestExhaust));
 
             for (var i = 0; i < rcsJets.Length; i++)
             {
@@ -129,11 +137,13 @@ namespace Ships.Visuals
             }
         }
 
-        private void UpdateThrustAnimations(bool shouldPlay)
+        private void UpdateThrustAnimations(bool shouldPlay, float size)
         {
-            foreach (var ps in thrustParticles)
+            for (var i = 0; i < thrustParticles.Length; i++)
             {
+                var ps = thrustParticles[i];
                 if (!ps) continue;
+                ps.transform.localScale = exhaustScale[i] * size;
                 if (shouldPlay && !ps.isPlaying)
                     ps.Play(true);
                 else if (!shouldPlay && ps.isPlaying)
