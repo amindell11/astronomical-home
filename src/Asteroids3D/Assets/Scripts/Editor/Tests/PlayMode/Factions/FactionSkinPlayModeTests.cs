@@ -30,6 +30,9 @@ namespace Tests.PlayMode.Factions
     [Category("Sectors")]
     public class FactionSkinPlayModeTests : PlayModeWorldFixture
     {
+        private const string ShoalFlamePath = "Assets/Visuals/Ships/_Shared/ThrusFlame_Shoal.mat";
+        private const string EliteFlamePath = "Assets/Visuals/Ships/_Shared/ThrusFlame_Elite.mat";
+
         private static readonly int RingColor = Shader.PropertyToID("_Color");
 
         private UnitService _unitService;
@@ -256,8 +259,8 @@ namespace Tests.PlayMode.Factions
                 ship = chassis,
                 hull = slots.Select(slot => Track(new Material(slot))).ToArray(),
             };
-            faction.flame = Track(new Material(slots[0]));
-            faction.eliteFlame = Track(new Material(slots[0]));
+            faction.flame = Track(new Material(AssetDatabase.LoadAssetAtPath<Material>(ShoalFlamePath)));
+            faction.eliteFlame = Track(new Material(AssetDatabase.LoadAssetAtPath<Material>(EliteFlamePath)));
             faction.shieldRing = Color.magenta;
             return (faction, chassis);
         }

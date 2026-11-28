@@ -49,7 +49,9 @@ Shader "Astronomical/Vfx/Engine Flame"
                 float row = floor(_Frame / _Columns);
                 float2 uv = float2((col + i.uv.x) / _Columns, 1 - (row + 1 - i.uv.y) / _Rows);
                 float3 m = SAMPLE_TEXTURE2D(_BandsMap, sampler_BandsMap, uv).rgb;
-                float g = SAMPLE_TEXTURE2D(_GlowMap, sampler_GlowMap, uv).r;
+                // The baked blur is clipped at the cell's sides and tail; fade it out before the quad edge.
+                float edge = smoothstep(0.0, 0.2, i.uv.x) * smoothstep(0.0, 0.2, 1.0 - i.uv.x) * smoothstep(0.0, 0.15, i.uv.y);
+                float g = SAMPLE_TEXTURE2D(_GlowMap, sampler_GlowMap, uv).r * edge;
                 float3 b = _BaseColor.rgb;
                 float3 rim = b * _RimShade;
                 float3 mid = min(b * 1.05 + 0.12, float3(1.0, 1.0, 1.0));

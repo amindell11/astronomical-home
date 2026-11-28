@@ -355,6 +355,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: BulwarkRival
       objectReference: {fileID: 0}
+    - target: {fileID: 1196597127738465982, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: length
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -451,6 +456,11 @@ PrefabInstance:
       propertyPath: 'silhouette.Array.data[2]'
       value: 
       objectReference: {fileID: 5672750677440222542}
+    - target: {fileID: 4298063913098200138, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: length
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4363662220755235597, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x

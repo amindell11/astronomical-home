@@ -93,6 +93,9 @@ namespace Ships.Visuals
             if (!flame)
                 throw new ArgumentNullException(nameof(flame));
 
+            if (!flame.HasProperty(EmissionColorId))
+                throw new ArgumentException($"Flame material '{flame.name}' has no emission colour to take the flame's colour from.", nameof(flame));
+
             var emission = flame.GetColor(EmissionColorId);
             var largest = Mathf.Max(emission.r, Mathf.Max(emission.g, emission.b));
             if (largest > 1f)
