@@ -97,7 +97,7 @@ namespace Ships.Keystones.Kits
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
             if (!concealed) return default;
-            if (Host.Ship.Status.Has(StatusEffect.Exposed))
+            if (Host.Ship && Host.Ship.Status.Has(StatusEffect.Exposed))
             {
                 Reveal();
                 return default;

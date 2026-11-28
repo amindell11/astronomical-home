@@ -408,7 +408,7 @@ namespace Tests.PlayMode.Weapons
             var late = Ship(1, axis * 240f);
             var hull = HullAlong(source, axis);
             var inside = blast.MaxRadius - hull - Pad;
-            var outside = BlastReach(blast) + hull + Pad;
+            var outside = BlastReach(blast) + hull + 1f;
             Assert.That(inside - hull, Is.GreaterThan(spec.ProximityRadius));
             Assert.That(outside - inside - hull, Is.LessThan(virus.SpreadRadius),
                 "test premise: an ally sits where the virus would pass the stall");
