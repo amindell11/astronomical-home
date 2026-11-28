@@ -19,7 +19,6 @@ namespace Asteroids.Fields.FarField
         public Material Material => material;
         public IReadOnlyList<float> HalfSizes => halfSizes;
         public float HandOffSeconds => handOffSeconds;
-        public int Views => FarFieldViews.Count;
 
         internal void Bind(Material bakedMaterial, float[] bakedHalfSizes)
         {

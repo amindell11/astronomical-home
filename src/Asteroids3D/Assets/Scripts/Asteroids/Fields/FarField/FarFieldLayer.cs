@@ -190,7 +190,7 @@ namespace Asteroids.Fields.FarField
                         Position = GamePlane.PlanePointToWorld(spec.PlanePosition + fieldOriginPlane),
                         HalfSize = halfSizes[spec.MeshIndex] * spec.Scale,
                         Spin = pick.Spin,
-                        Cell = spec.MeshIndex * atlas.Views + pick.View,
+                        Cell = spec.MeshIndex * FarFieldViews.Count + pick.View,
                         Alpha = 1f
                     });
                 }

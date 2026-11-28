@@ -10,8 +10,7 @@ Shader "Hidden/Astronomical/FarFieldBake"
     {
         ZWrite On
         ZTest LEqual
-        // Off rather than Back: the render-texture projection flips Y (and so winding) on some APIs;
-        // the depth test alone resolves a closed mesh.
+        // Not Back: render-texture projection flips winding on some APIs; depth resolves a closed mesh.
         Cull Off
 
         HLSLINCLUDE
