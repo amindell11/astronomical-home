@@ -6,6 +6,7 @@ using Substrate;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils;
+using UI.PlayerState.Alerts;
 using UI.Popups;
 using UI.Projection;
 using UI.Weapons;
@@ -15,12 +16,13 @@ namespace UI.PlayerState
     /// <summary>
     /// Session-owned ship indicators and lock reticles share a recap fade independently of the main HUD.
     /// Each frame it picks the player's one target (the missile lock, else the enemy nearest the cursor)
-    /// and tells each indicator whether it is targeted.
+    /// and tells each indicator whether it is targeted. The player's own reticle is bound as the threat
+    /// reticle, rebound whenever the player ship changes, and the edge arcs warn of off-screen threats to it.
     /// </summary>
     public sealed class ShipStatusOverlay : MonoBehaviour
     {
         private readonly Dictionary<Ship, ShipStatusIndicator> indicators = new();
-        private readonly Dictionary<Ship, InstrumentAppear> reticles = new();
+        private readonly Dictionary<Ship, (InstrumentAppear appearance, LockOnIndicator reticle)> reticles = new();
         private SubscribedSet<Ship> ships;
         private Camera worldCamera;
         private Canvas canvas;
@@ -29,6 +31,8 @@ namespace UI.PlayerState
         private LockOnIndicator reticlePrefab;
         private CanopyProjection projection;
         private PlayerControls controls;
+        private ThreatEdgeArcs edgeArcs;
+        private Ship threatened;
 
         public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera,
             LockOnIndicator reticlePrefab, CanopyProjection projection)
@@ -53,6 +57,7 @@ namespace UI.PlayerState
             overlay.worldVisibility = new GameObject("Ship lock overlay").AddComponent<CanvasGroup>();
             overlay.worldVisibility.gameObject.layer = hud.gameObject.layer;
             overlay.ships = ships;
+            overlay.edgeArcs = ThreatEdgeArcs.Create(root.transform, worldCamera, ships);
             ships.OnAdd += overlay.Add;
             ships.OnRemove += overlay.Remove;
             foreach (var ship in ships) overlay.Add(ship);
@@ -95,9 +100,23 @@ namespace UI.PlayerState
             var sensor = player ? player.Targeting : null;
             var locked = sensor ? sensor.CurrentTarget as Ship : null;
             var target = locked ? locked : pointed;
+            if (player != threatened) BindThreatReticle(player);
+            edgeArcs.Present(player);
             foreach (var (ship, indicator) in indicators)
                 indicator.Present(player, ship == target, profile);
         }
+
+        private void BindThreatReticle(Ship player)
+        {
+            if (threatened && reticles.ContainsKey(threatened)) BindReticle(threatened, threat: false);
+            threatened = player;
+            if (player) BindReticle(player, threat: true);
+        }
+
+        private void BindReticle(Ship ship, bool threat) =>
+            reticles[ship].reticle.Initialize(ship.Lock, Pose(ship), threat);
+
+        private static Transform Pose(Ship ship) => ship.VisualRig ? ship.VisualRig.transform : ship.transform;
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
 
@@ -111,18 +130,18 @@ namespace UI.PlayerState
             LockOnIndicator reticle = null;
             var appearance = InstrumentAppear.Create(worldVisibility.transform, projection,
                 () => worldVisibility.alpha > 0f && reticle.Visible);
-            var pose = ship.VisualRig ? ship.VisualRig.transform : ship.transform;
-            appearance.transform.localScale = pose.lossyScale;
+            appearance.transform.localScale = Pose(ship).lossyScale;
             reticle = Instantiate(reticlePrefab, appearance.transform);
-            reticle.Initialize(ship.Lock, pose);
-            reticles.Add(ship, appearance);
+            reticles.Add(ship, (appearance, reticle));
+            BindReticle(ship, threat: false);
         }
 
         private void Remove(Ship ship)
         {
             Destroy(indicators[ship].gameObject);
             indicators.Remove(ship);
-            if (reticles.Remove(ship, out var reticle)) Destroy(reticle.gameObject);
+            if (reticles.Remove(ship, out var reticle)) Destroy(reticle.appearance.gameObject);
+            if (ship == threatened) threatened = null;
         }
 
         private void OnDestroy()

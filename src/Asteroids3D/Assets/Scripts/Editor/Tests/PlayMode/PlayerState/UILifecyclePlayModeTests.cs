@@ -60,7 +60,7 @@ namespace Tests.PlayMode.PlayerState
 
             yield return null; // Awake/Start (Hide)
 
-            indicator.Initialize(channel, parent.transform);
+            indicator.Initialize(channel, parent.transform, threat: false);
             yield return null;
 
             channel.RaiseProgress(0.4f);

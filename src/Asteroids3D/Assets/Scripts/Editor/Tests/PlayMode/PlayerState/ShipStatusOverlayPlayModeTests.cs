@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Combat.Targeting;
 using Damage;
+using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
@@ -10,6 +11,7 @@ using Ships.Registry;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI.PlayerState;
+using UI.PlayerState.Alerts;
 using UI.Projection;
 using UI.Weapons;
 using UnityEngine;
@@ -352,6 +354,95 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(LockState.Locking, player.Targeting.State, "test premise: the player locks the enemy ahead");
             yield return Pick();
             Assert.AreEqual(1f, Alpha(ahead), "The missile lock's target shows its bars");
+        }
+
+        [UnityTest]
+        public IEnumerator PlayerReticle_IsTheThreatReticle_AndOffScreenTrackersDrawEdgeArcs()
+        {
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            camera.transform.SetParent(root.transform);
+            camera.transform.position = new Vector3(0f, 0f, -50f);
+            camera.orthographic = true;
+            camera.orthographicSize = 17f;
+            registry = new ShipRegistry();
+            var ships = registry.ActiveShips;
+            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            player = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 0);
+            player.tag = "Player";
+            ahead = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 1, position: new Vector3(0f, 8f, 0f));
+            ships.Add(player);
+            ships.Add(ahead);
+            var hud = new GameObject("HUD").AddComponent<Canvas>();
+            hud.transform.SetParent(root.transform);
+            hud.gameObject.layer = LayerMask.NameToLayer("UIBloom");
+            hud.worldCamera = camera;
+            var overlay = ShipStatusOverlay.Create(hud, ships, camera,
+                TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"),
+                Projection(pickRadius: .1f, hitBarsSeconds: .3f));
+            var reticles = (Dictionary<Ship, (InstrumentAppear appearance, LockOnIndicator reticle)>)typeof(ShipStatusOverlay)
+                .GetField("reticles", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(overlay);
+            var own = reticles[player].reticle;
+            var enemy = reticles[ahead].reticle;
+            yield return Pick();
+
+            Assert.IsTrue(own.IsThreat, "The player's own reticle is the threat reticle");
+            Assert.IsFalse(enemy.IsThreat, "Reticles on enemies keep the targeting look");
+            Assert.IsFalse(own.GetComponent<Animator>().enabled, "The threat look replaces the reticle's animator");
+            Assert.IsTrue(enemy.GetComponent<Animator>().enabled);
+            player.Lock.RaiseProgress(.5f);
+            ahead.Lock.RaiseProgress(.5f);
+            yield return null;
+            var tint = own.GetComponent<Image>().color;
+            Assert.AreEqual(LockOnIndicator.ThreatTint.g, tint.g, .001f, "The threat reticle is enemy red");
+            Assert.That(tint.a, Is.InRange(.55f, 1f));
+            Assert.AreEqual(Color.red, enemy.GetComponent<Image>().color, "The targeting reticle keeps its colour");
+
+            player.Lock.RaiseAcquired();
+            yield return null;
+            Assert.Greater(own.GetComponent<Image>().color.g, .8f, "A completed lock flashes white");
+            Assert.Greater(own.transform.localScale.x, .6f, "The flash pops the reticle open");
+            yield return new WaitForSeconds(.5f);
+            Assert.AreEqual(LockOnIndicator.ThreatTint.g, own.GetComponent<Image>().color.g, .001f, "The flash settles to red");
+            player.Lock.RaiseReleased();
+
+            var arcs = overlay.GetComponentInChildren<ThreatEdgeArcs>();
+            var offScreen = new GameObject("Off-screen missile").AddComponent<FakeTracker>();
+            offScreen.At = new Vector2(80f, 0f);
+            var onScreen = new GameObject("On-screen missile").AddComponent<FakeTracker>();
+            onScreen.At = new Vector2(2f, 2f);
+            offScreen.transform.SetParent(root.transform);
+            onScreen.transform.SetParent(root.transform);
+            player.Lock.AddTracker(offScreen);
+            player.Lock.AddTracker(onScreen);
+            yield return null;
+            Assert.AreEqual(1, arcs.Placed.Count, "Only the off-screen missile draws an edge arc");
+            Assert.AreEqual(0f, arcs.Placed[0].degrees, .5f, "The arc points right, toward the missile");
+            Assert.Greater(arcs.Placed[0].point.x, 0f);
+            var ink = arcs.GetComponentInChildren<AlertInk>();
+            using (var mesh = new VertexHelper())
+            {
+                typeof(AlertInk).GetMethod("OnPopulateMesh", BindingFlags.Instance | BindingFlags.NonPublic,
+                        null, new[] { typeof(VertexHelper) }, null)
+                    .Invoke(ink, new object[] { mesh });
+                Assert.AreEqual(12 * 4, mesh.currentVertCount, "Ten arc strokes and a two-stroke chevron");
+            }
+
+            Object.Destroy(offScreen.gameObject);
+            yield return Pick();
+            Assert.AreEqual(0, arcs.Placed.Count, "A destroyed missile drops out");
+
+            player.tag = "Untagged";
+            ahead.tag = "Player";
+            yield return Pick();
+            Assert.IsTrue(enemy.IsThreat, "A new player ship gets the threat reticle");
+            Assert.IsFalse(own.IsThreat, "The old player ship's reticle goes back to the targeting look");
+            Assert.IsTrue(own.GetComponent<Animator>().enabled);
+        }
+
+        private sealed class FakeTracker : MonoBehaviour, ITrackingMissile
+        {
+            public Vector2 At;
+            public Kinematics Kinematics => new(At, Vector2.zero, 0f, 0f, 0f);
         }
 
         // Tests resume after Update, so the overlay's pick sees a change one frame later.

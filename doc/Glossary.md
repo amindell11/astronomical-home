@@ -77,7 +77,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) · missile lock (`LockOnSensor`) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | matrix harness (`Harness`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = matrix harness; qualify the others. |
-| **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
+| **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) · edge arc (§2 → *edge arc*, the HUD warning) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage*, *sector phase* — six schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. Bare "phase" = sector phase inside `WaveDirector` and `Substrate/Sectors/Elements/Phases/` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope · shake envelope (§2) | Bare "envelope" = firing envelope; qualify the others. |
@@ -800,6 +800,14 @@ Format: **term** — definition. *(authority)*
   shown for the HUD ship's own charges only: it binds to that ship's launch readout
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
+- **threat reticle** — the lock-on reticle on the player's own ship, shown while an
+  enemy locks the player: enemy red, pulsing faster as the lock builds, with a white
+  flash when it completes. It drives its own scale and colour, so the reticle's
+  Animator is off. The player's targeting reticle on enemies keeps the Animator look.
+  *(`LockOnIndicator.IsThreat`, bound by `ShipStatusOverlay`)*
+- **edge arc** — the red arc and chevron on the screen edge pointing at an off-screen
+  tracking missile, or at an off-screen enemy whose lock-on sensor is locking the
+  player, until it comes on screen or leaves play. *(`ThreatEdgeArcs`)*
 - **spent charge** — the charge-up fraction the last shot consumed, announced by
   `ChargeTime` before its charge-up zeroes, so the sound's release holds the
   shot's charge. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
