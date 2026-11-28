@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3369024874320002730}
   - component: {fileID: 6559629893559198941}
   - component: {fileID: 8417305566120938471}
+  - component: {fileID: 7088764214754663719}
   m_Layer: 0
   m_Name: Bulwark_Dash
   m_TagString: Untagged
@@ -162,3 +163,17 @@ MonoBehaviour:
   depth: -0.5
   unfold: 0.08
   fadeOut: 0.12
+--- !u!114 &7088764214754663719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f7646fae7b3496abbee5e7aaeafdcec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ram: {fileID: 5512903418735166201}
+  profile: {fileID: 11400000, guid: 1a0514bd93c3d2744a19ea28a02e7924, type: 2}
