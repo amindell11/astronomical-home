@@ -17,6 +17,7 @@ namespace Combat.Targeting
         public ITargetable CurrentTarget { get; private set; }
         public float LockProgress => State == LockState.Locking && lockOnTime > 0f ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
         public bool IsLocked => State == LockState.Locked;
+        public float LockedFor => State == LockState.Locked ? lockDuration : 0f;
 
         public TargetLock(float lockOnTime, float lockExpiry, Func<bool> canFireCheck)
         {

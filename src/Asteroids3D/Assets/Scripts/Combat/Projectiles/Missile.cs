@@ -17,7 +17,7 @@ namespace Combat.Projectiles
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
-        [Tooltip("Full width (degrees) of the cone around the nose. A target outside it, or behind an asteroid, is lost until it comes back into view.")]
+        [Tooltip("Full width (degrees) of the cone around the nose; a target outside it or behind an asteroid is lost until it returns, except while a launch hold remains.")]
         [Stat, SerializeField] internal float seekerConeAngle = 140f;
         [Tooltip("Radius of the hitbox capsule in world units: how far off the missile's centreline a shot or ship still hits it.")]
         [Stat, SerializeField] internal float hitboxRadius = 0.3f;
@@ -39,6 +39,7 @@ namespace Combat.Projectiles
         private Func<Vector3> wire;
         private float jamSeconds;
         private LockChannel lockedChannel;
+        private float holdLeft;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
         private bool hasLos;
@@ -50,8 +51,9 @@ namespace Combat.Projectiles
 
         public event Action TrackingChanged;
 
-        public void SetTarget(ITargetable tgt)
+        public void SetTarget(ITargetable tgt, float holdFor)
         {
+            holdLeft = holdFor;
             lockedPoint = tgt.TargetPoint;
             lockedChannel = tgt.Lock;
             lockedChannel.Concealed += Forget;
@@ -148,8 +150,9 @@ namespace Combat.Projectiles
                 return;
             }
 
+            holdLeft = Mathf.Max(0f, holdLeft - Time.fixedDeltaTime);
             var kin = kinematicsPoller.Kinematics;
-            if (target && !CanSee(kin, target)) LoseTrack();
+            if (target && holdLeft <= 0f && !CanSee(kin, target)) LoseTrack();
             else if (!target && lockedPoint && CanSee(kin, lockedPoint)) Track();
             var desiredDir = GetDesiredDirection(kin);
 
@@ -283,6 +286,7 @@ namespace Combat.Projectiles
             wire = null;
             jamSeconds = 0f;
             target = null;
+            holdLeft = 0f;
             hasLos = false;
             aliveTime = 0f;
         }

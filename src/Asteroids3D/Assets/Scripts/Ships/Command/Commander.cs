@@ -10,5 +10,7 @@ namespace Ships.Command
 
         /// <summary>Restores the commander to its just-initialized state ("as if freshly spawned"); paired with <c>Ship.ResetShip</c> on respawn.</summary>
         public virtual void ResetState() { }
+
+        public virtual bool IsPlayer => false;
     }
 }

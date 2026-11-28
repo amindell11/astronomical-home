@@ -80,7 +80,7 @@ namespace Tests.PlayMode.Tactics
             missile.Configure(maxDistance: 200f, maxLifetime: 10f);
             missile.Initialize(enemy);
             missile.Launch(launchDir, go.transform.position + launchDir);
-            missile.SetTarget(self);
+            missile.SetTarget(self, holdFor: 0f);
         }
 
         private BrainDecision Decide()

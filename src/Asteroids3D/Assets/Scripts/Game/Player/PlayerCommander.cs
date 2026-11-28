@@ -30,6 +30,8 @@ namespace Game.Player
 
         public bool HasScreenProjectorConfigured => hasScreenProjector;
 
+        public override bool IsPlayer => true;
+
         private void Awake()
         {
             if (!assist) throw new InvalidOperationException($"{name} has no {nameof(FlightAssistProfile)} assigned.");

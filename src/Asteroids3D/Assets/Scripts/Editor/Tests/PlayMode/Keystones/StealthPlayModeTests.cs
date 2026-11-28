@@ -289,7 +289,7 @@ namespace Tests.PlayMode.Keystones
             spawned.Add(missile.gameObject);
             missile.Initialize(shooter);
             missile.Launch(heading, nightshade.transform.position);
-            missile.SetTarget(nightshade);
+            missile.SetTarget(nightshade, holdFor: 0f);
             return missile;
         }
     }

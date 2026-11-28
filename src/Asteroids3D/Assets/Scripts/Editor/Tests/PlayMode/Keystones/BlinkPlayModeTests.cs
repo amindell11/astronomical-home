@@ -287,7 +287,7 @@ namespace Tests.PlayMode.Keystones
             spawned.Add(missile.gameObject);
             missile.Initialize(shooter);
             missile.Launch(heading, crimson.transform.position);
-            missile.SetTarget(crimson);
+            missile.SetTarget(crimson, holdFor: 0f);
             return missile;
         }
 

@@ -123,7 +123,7 @@ namespace Tests.PlayMode.Preview
                 crossing - Vector3.right * 8f, Quaternion.LookRotation(GamePlane.Normal, Vector3.right));
             extras.Add(missile.gameObject);
             missile.Initialize(enemy);
-            missile.SetTarget(player);
+            missile.SetTarget(player, holdFor: 0f);
             missile.Launch(Vector3.right, crossing);
             var missileHitPlayer = false;
             missile.Hit += (_, target) => missileHitPlayer |= ReferenceEquals(target, player.Damage);
