@@ -3,6 +3,7 @@ using Combat.Targeting;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
+using Ships.Status;
 using UnityEngine;
 
 namespace Ships.Presentation
@@ -13,8 +14,8 @@ namespace Ships.Presentation
     /// the rig; visual components read it instead of discovering the ship via GetComponentInParent.
     /// Carries only what visuals consume: the follow anchor, the damage push-surface, the live pilot
     /// command (engine and wings), the applied thrust (thruster jets), the lock channel (lock
-    /// indicator), the body (engine audio), and whether the keystone kit is live (wing sweep). A
-    /// binder with no ship leaves the body and the kit read null.
+    /// indicator), the body (engine audio), whether the keystone kit is live (wing sweep), and the
+    /// status effects (hull tint). A binder with no ship leaves the body, the kit and the status null.
     /// </summary>
     public readonly struct ShipView
     {
@@ -41,8 +42,12 @@ namespace Ships.Presentation
         /// <summary>Thrust the movement system applied on the last step (thruster jets).</summary>
         public readonly Func<AppliedThrust> Thrust;
 
+        /// <summary>The timed effects on the ship, which tint its hull. Null reads as none.</summary>
+        public readonly StatusEffects Status;
+
         public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock, bool isPlayer,
-            Rigidbody body = null, Func<bool> keystoneLive = null, Func<AppliedThrust> thrust = null)
+            Rigidbody body = null, Func<bool> keystoneLive = null, Func<AppliedThrust> thrust = null,
+            StatusEffects status = null)
         {
             Root = root;
             Damage = damage;
@@ -52,6 +57,7 @@ namespace Ships.Presentation
             Body = body;
             KeystoneLive = keystoneLive;
             Thrust = thrust;
+            Status = status;
         }
     }
 }

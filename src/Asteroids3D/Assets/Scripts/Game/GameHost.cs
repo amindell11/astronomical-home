@@ -405,8 +405,11 @@ namespace Game
                     var cachesClaimed = 0;
                     var closeCalls = rigInstance
                         ? new CloseCallWatch(rigInstance.Player.Damage.Health, moments, index + 1) : null;
-                    Action<StationKind> onStationArrived =
-                        kind => moments.Raise(new StationArrived(kind, index + 1));
+                    Action<StationKind> onStationArrived = kind =>
+                    {
+                        var arrived = StationArrived.On(kind, index + 1, rigInstance.Player.Damage.Health.Pct);
+                        if (arrived != null) moments.Raise(arrived);
+                    };
                     var findStations = new FindStation[]
                     {
                         session.ActiveSector.Module<RepairStation>(),

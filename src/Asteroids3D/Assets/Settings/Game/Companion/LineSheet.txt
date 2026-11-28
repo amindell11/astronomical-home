@@ -118,6 +118,14 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | CC1b | cache-claimed |  | Companion |  | {bonus}, on the clock. Go make it count. | In game | Template |
 | RP3 | station-arrived-repair | shoal | Repair crew |  | We'll patch her up proper, friend. Shame to see good parts flying around damaged. | Draft | Faction crew flavour: needs a faction fact on StationArrived (carries sector only today) |
 | RP4 | station-arrived-repair | veil | Repair crew |  | Hull integrity substandard. Restoration will proceed. Remain within the cradle. | Draft | Faction crew flavour: needs faction fact |
+| RP5a | station-arrived-repair-full |  | Repair crew |  | You've given us nothing to fix, pilot. Come back when you're hurt, and we'll open the supply then. | In game | Full-hull set: plays only when the hull is untouched on arrival |
+| RP5b | station-arrived-repair-full |  | Repair crew |  | Did you stop by just to let us admire her? She's untouched, and our supply stays sealed until you need it. | In game |  |
+| RP5c | station-arrived-repair-full |  | Companion | any | The supply light hasn't come on at all. We have to be the easiest visitors they'll get today. | In game |  |
+| RP5d | station-arrived-repair-full |  | Companion | any | Let's keep this station in mind for when the hull gauge finally gives us bad news. | In game |  |
+| RP6a | station-arrived-repair-critical |  | Repair crew |  | Get in the cradle now and hold still, because we can hear that hull complaining from here. | In game | Critical set: hull under 30% on arrival |
+| RP6b | station-arrived-repair-critical |  | Repair crew |  | We're already carrying plates to the cradle, so stay there until the supply light says we're done. | In game |  |
+| RP6c | station-arrived-repair-critical |  | Companion | any | I drafted a farewell message on the way in, so sit still and let me delete it. | In game |  |
+| RP6d | station-arrived-repair-critical |  | Companion | any | The hull alarm is panicking enough for both of us, so let's stay put until it stops. | In game |  |
 | AM3 | station-arrived-armory | bastion | Armory crew |  | One weapon, outsider. And keep your clink away from the racks. | Draft | Faction crew flavour: needs faction fact |
 | AM4 | station-arrived-armory | bastion | Companion | any | Charming service. Five stars. | Draft | Needs faction fact |
 | S7c | elite-announced | shoal | Companion |  | That's the skipper. Every piece of that ship used to be somebody else's. | In game |  |

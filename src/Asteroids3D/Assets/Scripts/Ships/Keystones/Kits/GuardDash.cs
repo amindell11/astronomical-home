@@ -7,6 +7,7 @@ using Ships.Mods;
 using Substrate;
 using UnityEngine;
 using Utils;
+using Ships.Presentation;
 
 namespace Ships.Keystones.Kits
 {
@@ -18,6 +19,8 @@ namespace Ships.Keystones.Kits
     /// </summary>
     public sealed class GuardDash : Dash
     {
+        private static readonly Word RiposteWord = new("RIPOSTE", new Color(1f, .85f, .5f));
+
         [Tooltip("Seconds after activation during which every hit on the ship is dropped.")]
         [Stat, SerializeField] private float window = 0.4f;
 
@@ -105,6 +108,7 @@ namespace Ships.Keystones.Kits
             shot.Initialize(Host.Shooter);
             shot.SetDamageScale(hit.Amount / shot.Damage);
             shot.Paint(riposteTint);
+            shot.PopOnHit(RiposteWord);
             Host.Projectiles.Register(shot, shot.ReturnToPoolImmediate);
             shot.Launch(back, from + back);
             Ripostes++;

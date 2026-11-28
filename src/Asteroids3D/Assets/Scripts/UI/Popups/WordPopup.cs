@@ -1,15 +1,15 @@
 using UI.Placement;
-using UI.PlayerState;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI.Popups
 {
     /// <summary>
-    /// "+N HULL" over a kill: pinned to where the ship died, starting above its fireball and
-    /// rising while it fades, then destroyed. The dark edge keeps it legible over fire. Each kill shows its own.
+    /// A short word in its own colour over a world point, such as "+N HULL" where a kill died: it starts
+    /// above the point, clear of any fireball, and rises while it fades, then is destroyed. The dark edge
+    /// keeps it legible over fire. Each word shows its own.
     /// </summary>
-    public sealed class HullGainPopup : MonoBehaviour
+    public sealed class WordPopup : MonoBehaviour
     {
         public const float Seconds = 1.5f;
         private const float FadeSeconds = .6f;
@@ -24,26 +24,26 @@ namespace UI.Popups
         private Vector3 origin;
         private float bornAt;
 
-        public static HullGainPopup Show(Canvas canvas, Camera worldCamera, Font font, Material material,
-            float amount, Vector3 worldPoint)
+        public static WordPopup Show(Canvas canvas, Camera worldCamera, Font font, Material material,
+            string word, Color color, Vector3 worldPoint)
         {
-            var go = new GameObject("Hull gain", typeof(RectTransform));
+            var go = new GameObject(word, typeof(RectTransform));
             go.layer = canvas.gameObject.layer;
             go.transform.SetParent(canvas.transform, false);
             var text = go.AddComponent<Text>();
             text.font = font;
             text.material = material;
             text.fontSize = 30;
-            text.color = StatusBarUI.HullTint;
+            text.color = color;
             text.alignment = TextAnchor.MiddleCenter;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             text.raycastTarget = false;
-            text.text = $"+{Mathf.Max(1, Mathf.RoundToInt(amount))} HULL";
+            text.text = word;
             var edge = go.AddComponent<Outline>();
             edge.effectColor = Edge;
             edge.effectDistance = new Vector2(2f, -2f);
-            var popup = go.AddComponent<HullGainPopup>();
+            var popup = go.AddComponent<WordPopup>();
             popup.canvas = canvas;
             popup.worldCamera = worldCamera;
             popup.rect = (RectTransform)go.transform;

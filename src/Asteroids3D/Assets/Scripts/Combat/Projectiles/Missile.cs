@@ -8,12 +8,15 @@ using Ships.Status;
 using UnityEngine;
 using Utils;
 using Substrate;
+using Ships.Presentation;
 
 namespace Combat.Projectiles
 {
     [RequireComponent(typeof(KinematicsPoller))]
     public class Missile : Projectile<Missile>, IDamageable, ITrackingMissile
     {
+        private static readonly Word JammedWord = new("JAMMED", StatusTint.Jammed);
+
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
@@ -246,7 +249,10 @@ namespace Combat.Projectiles
         protected override void OnHit(IDamageable other)
         {
             if (jamSeconds > 0f && other is DamageController hull && hull.Ship)
+            {
                 hull.Ship.Status.Apply(StatusEffect.WeaponsJammed, jamSeconds);
+                if (AttackerShip) AttackerShip.Words.Raise(JammedWord, hull.Ship.transform.position);
+            }
             Explode(other);
             base.OnHit(other);
         }

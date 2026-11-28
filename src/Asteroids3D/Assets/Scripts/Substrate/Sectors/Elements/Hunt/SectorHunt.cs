@@ -32,8 +32,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// blind. The wave director holds its opening lull until <see cref="Released"/> and counts
     /// <see cref="LivePatrols"/> as enemies alive. A held hunt keeps its patrols waiting and its clock full until it
     /// resumes, so the guided first sector can teach before anything hunts. A patrol's sight stamps the hero's
-    /// sighting. With Clean kill held, the hero's kill on a patrol that never saw it adds nothing and leaves a
-    /// wreck; the first patrol to see the wreck searches there for the drain time. The events are plain C#, for listeners outside the sector.
+    /// sighting. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
@@ -59,7 +58,6 @@ namespace Substrate.Sectors.Elements.Hunt
 
         private readonly List<Ship> products = new();
         private readonly List<Patrol> patrols = new();
-        private readonly List<Vector2> wrecks = new();
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -104,7 +102,6 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             products.Clear();
             patrols.Clear();
-            wrecks.Clear();
             Spawned = products;
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
@@ -151,7 +148,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 DestroyWedge(patrol);
             }
             patrols.Clear();
-            wrecks.Clear();
             hero = null;
             sector = null;
             var teardown = base.OnTeardown(ctx);
@@ -212,7 +208,6 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 Watch(patrol);
                 if (patrol.Seeing) seen = true;
-                else FindWreck(patrol, now);
             }
 
             if (seen)
@@ -234,8 +229,7 @@ namespace Substrate.Sectors.Elements.Hunt
             }
 
             if (SpottedFill <= 0f)
-                foreach (var patrol in patrols)
-                    if (!patrol.SearchingWreck(now)) patrol.ReturnToRoute();
+                foreach (var patrol in patrols) patrol.ReturnToRoute();
 
             foreach (var patrol in patrols) patrol.Fly(feel, hero);
 
@@ -256,17 +250,6 @@ namespace Substrate.Sectors.Elements.Hunt
             return inSight && LineOfSight.IsClear(from, to, target, asteroidMask);
         }
 
-        private void FindWreck(Patrol patrol, float now)
-        {
-            for (var i = 0; i < wrecks.Count; i++)
-            {
-                if (!Sees(patrol.Ship, GamePlane.PlanePointToWorld(wrecks[i]), null)) continue;
-                patrol.SearchWreck(wrecks[i], now + feel.spotDrainSeconds);
-                wrecks.RemoveAt(i);
-                return;
-            }
-        }
-
         private void Watch(Patrol patrol)
         {
             var sees = Sees(patrol.Ship);
@@ -274,7 +257,6 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 patrol.NoteSeen(GamePlane.WorldPointToPlane(hero.transform.position));
                 hero.Lock.NoteSighted(lastNow);
-                patrol.EverSaw = true;
             }
             else if (patrol.Seeing)
                 patrol.NoteHeading(PlanarVelocity(hero));
@@ -327,11 +309,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrol.OnDamaged = hit =>
                 {
                     if (Alarmed || Held || !hero || hit.Info.AttackerId != hero.Id) return;
-                    if (hero.CleanKill.Held && !patrol.EverSaw && patrol.Ship.Damage.Health.CurrentValue <= 0f)
-                    {
-                        wrecks.Add(GamePlane.WorldPointToPlane(patrol.Ship.transform.position));
-                        return;
-                    }
                     SpottedFill = Mathf.Min(1f, SpottedFill + feel.hitFill);
                     if (!patrol.Seeing)
                         patrol.ChaseBlind(GamePlane.WorldPointToPlane(hero.transform.position), PlanarVelocity(hero));
@@ -404,9 +381,7 @@ namespace Substrate.Sectors.Elements.Hunt
             public PatrolSightWedge Wedge;
             public Action OnJumpRequested;
             public bool Seeing;
-            public bool EverSaw;
             public bool Jumped;
-            private float wreckSearchUntil = float.NegativeInfinity;
 
             public bool Live => Ship && Ship.gameObject.activeInHierarchy && !Jumped;
 
@@ -432,16 +407,7 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 mode = PatrolMode.Chase;
                 circling = false;
-                wreckSearchUntil = float.NegativeInfinity;
             }
-
-            public void SearchWreck(Vector2 wreck, float until)
-            {
-                ChaseBlind(wreck, Vector2.zero);
-                wreckSearchUntil = until;
-            }
-
-            public bool SearchingWreck(float now) => now < wreckSearchUntil;
 
             public void ChaseBlind(Vector2 planePoint, Vector2 planarVelocity)
             {

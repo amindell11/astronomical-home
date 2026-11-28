@@ -121,10 +121,11 @@ namespace UI
         }
 
         public void ShowHullGain(float amount, Vector3 worldPoint) =>
-            shipStatus.ShowHullGain(amount, worldPoint, labelFont, textMaterial);
+            shipStatus.ShowHullGain(amount, worldPoint);
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, lockReticle, projection);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, lockReticle, projection,
+                labelFont, textMaterial);
 
         private void OnDestroy()
         {
