@@ -109,7 +109,10 @@ namespace Substrate.Services.Projectiles
             switch (instance)
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool += onReturned; break;
-                case IBlastFront blast: blast.Released += onReturned; break;
+                default:
+                    var blast = instance as IBlastFront;
+                    if (blast != null) blast.Released += onReturned;
+                    break;
             }
         }
 
@@ -118,7 +121,10 @@ namespace Substrate.Services.Projectiles
             switch (instance)
             {
                 case ProjectileBase projectile: projectile.ReturnedToPool -= onReturned; break;
-                case IBlastFront blast: blast.Released -= onReturned; break;
+                default:
+                    var blast = instance as IBlastFront;
+                    if (blast != null) blast.Released -= onReturned;
+                    break;
             }
         }
 
