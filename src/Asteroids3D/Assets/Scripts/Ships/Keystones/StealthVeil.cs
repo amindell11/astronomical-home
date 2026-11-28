@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using FMODUnity;
 using Ships.Keystones.Kits;
+using Ships.Visuals;
 using Substrate;
 using Substrate.Presentation;
 using UnityEngine;
@@ -12,7 +13,8 @@ namespace Ships.Keystones
     /// Stealth's tell: while the kit is active the hull dithers out through the hull shader's dissolve,
     /// to half for the pilot's own ship and nearly gone for an enemy. Over the kit's tell the hull
     /// shimmers between that concealed value and a brighter one, and a one-shot plays as the shimmer
-    /// starts, unless the sound is unset. An enemy's minimap marker and
+    /// starts, unless the sound is unset. With Ambush, the hull holds a tint through the window after
+    /// the ship shows. An enemy's minimap marker and
     /// status bars hide themselves off the same concealment flag.
     /// </summary>
     public sealed class StealthVeil : MonoBehaviour, IPresentationPart
@@ -36,11 +38,19 @@ namespace Ships.Keystones
         [Tooltip("Plays once as the tell starts. Empty until authored.")]
         [SerializeField] private EventReference tellSound;
 
+        [Tooltip("Hull colour held through the Ambush window after the ship shows.")]
+        [SerializeField] private Color ambushTint = new(0.75f, 0.3f, 1f);
+
+        [Tooltip("How far the hull shades toward the Ambush tint, 0 to 1.")]
+        [SerializeField, Range(0f, 1f)] private float ambushTintStrength = 0.6f;
+
         private Ship ship;
         private IReadOnlyList<Renderer> hull = Array.Empty<Renderer>();
         private MaterialPropertyBlock block;
         private bool telling;
         private float drawn = 1f;
+        private HullVisuals hullVisuals;
+        private bool tinted;
 
         private void Awake()
         {
@@ -48,6 +58,7 @@ namespace Ships.Keystones
             ship = GetComponentInParent<Ship>();
             if (!ship || !ship.VisualRig) return;
             hull = ship.VisualRig.Silhouette;
+            hullVisuals = ship.VisualRig.GetComponentInChildren<HullVisuals>(true);
         }
 
         public void ApplyPresentation(bool visible) => enabled = visible;
@@ -56,6 +67,7 @@ namespace Ships.Keystones
         {
             telling = false;
             Draw(1f);
+            Tint(false);
         }
 
         private void LateUpdate()
@@ -65,6 +77,7 @@ namespace Ships.Keystones
             if (now && !telling) PlayTell();
             telling = now;
             Draw(HullVisibility(now));
+            Tint(keystone.AmbushLingering);
         }
 
         private float HullVisibility(bool tellingNow)
@@ -87,6 +100,14 @@ namespace Ships.Keystones
                 block.SetFloat(Visibility, visibility);
                 renderer.SetPropertyBlock(block);
             }
+        }
+
+        private void Tint(bool on)
+        {
+            if (on == tinted || !hullVisuals) return;
+            tinted = on;
+            if (on) hullVisuals.HoldFlash(ambushTint, ambushTintStrength);
+            else hullVisuals.ReleaseFlash();
         }
 
         private void PlayTell()

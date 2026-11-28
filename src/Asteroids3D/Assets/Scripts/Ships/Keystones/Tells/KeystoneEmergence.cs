@@ -33,7 +33,7 @@ namespace Ships.Keystones.Tells
         private Transform rig;
         private Vector3 authoredScale;
         private HullVisuals hull;
-        private int seenActivations;
+        private int seenPresses;
         private float startedAt;
         private bool playing;
 
@@ -41,7 +41,7 @@ namespace Ships.Keystones.Tells
         {
             if (!keystone)
                 throw new InvalidOperationException($"KeystoneEmergence on '{name}' needs its keystone.");
-            seenActivations = keystone.Activations;
+            seenPresses = keystone.TelledPresses;
 
             var ship = GetComponentInParent<Ship>();
             if (!ship || !ship.VisualRig) return;
@@ -64,13 +64,13 @@ namespace Ships.Keystones.Tells
         {
             if (!hull) return;
 
-            if (keystone.Activations > seenActivations)
+            if (keystone.TelledPresses > seenPresses)
             {
                 startedAt = Time.time;
                 playing = true;
             }
 
-            seenActivations = keystone.Activations;
+            seenPresses = keystone.TelledPresses;
             if (!playing) return;
 
             var t = Time.time - startedAt;

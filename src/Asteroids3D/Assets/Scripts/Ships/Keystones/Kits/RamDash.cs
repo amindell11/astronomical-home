@@ -175,7 +175,7 @@ namespace Ships.Keystones.Kits
                     shipDamage * aim * Mathf.Clamp(contact.RelativeSpeed / damageReferenceSpeed, 1f, maxSpeedBonus),
                     in contact));
                 if (Behaviours.Holds(chainRam) && target is DamageController victim && victim.Health.CurrentValue <= 0f)
-                    ShortenCooldown(0f);
+                    RefundCooldown();
             }
             CreditActivation();
         }

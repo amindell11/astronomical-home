@@ -7,13 +7,14 @@ namespace Ships.Keystones
     /// <summary>
     /// A keystone's tell: the hull holds a flash in the kit's colour while the kit is active, then
     /// fades it over the release. A kit that holds the throttle first blinks the flash through the
-    /// hold. Rides the kit prefab, so the ship's presentation policy reaches it like any other part of
-    /// the ship; the flash itself belongs to <see cref="HullVisuals"/>, the hull flash's single owner.
+    /// hold, and a kit that refunds its whole cooldown blinks it briefly. Rides the kit prefab, so the
+    /// ship's presentation policy reaches it like any other part of the ship; the flash itself belongs to <see cref="HullVisuals"/>, the hull flash's single owner.
     /// </summary>
     public sealed class KeystoneFlash : MonoBehaviour, IPresentationPart
     {
         private const float BlinkRateStart = 4f;
         private const float BlinkRateEnd = 14f;
+        private const float RefundBlinkSeconds = 0.3f;
 
         [SerializeField] private Keystone keystone;
         [SerializeField] private Color color = Color.white;
@@ -28,6 +29,8 @@ namespace Ships.Keystones
         private bool held;
         private float phase;
         private float releasedFor;
+        private int seenRefunds;
+        private float sinceRefund = float.PositiveInfinity;
 
         public float Release => release;
 
@@ -35,6 +38,7 @@ namespace Ships.Keystones
         {
             var ship = GetComponentInParent<Ship>();
             if (ship && ship.VisualRig) hull = ship.VisualRig.GetComponentInChildren<HullVisuals>(true);
+            seenRefunds = keystone.Refunds;
         }
 
         public void ApplyPresentation(bool visible) => enabled = visible;
@@ -42,6 +46,7 @@ namespace Ships.Keystones
         private void OnDisable()
         {
             phase = 0f;
+            sinceRefund = float.PositiveInfinity;
             if (hull) Hold(false);
         }
 
@@ -58,6 +63,15 @@ namespace Ships.Keystones
             }
 
             phase = 0f;
+            if (keystone.Refunds > seenRefunds) sinceRefund = 0f;
+            seenRefunds = keystone.Refunds;
+            if (sinceRefund < RefundBlinkSeconds)
+            {
+                sinceRefund += Time.deltaTime;
+                Hold(Mathf.Repeat(sinceRefund * BlinkRateEnd, 1f) < 0.5f);
+                return;
+            }
+
             if (keystone.Active)
             {
                 Hold(true);

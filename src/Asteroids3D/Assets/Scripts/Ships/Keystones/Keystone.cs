@@ -44,6 +44,15 @@ namespace Ships.Keystones
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
 
+        /// <summary>Presses the kit's press tell plays for: its activations, and any follow-up it takes on cooldown.</summary>
+        public virtual int TelledPresses => Activations;
+
+        /// <summary>Whether the kit is holding open a window for a follow-up press, which the keystone gauge shows.</summary>
+        public virtual bool FollowUpOpen => false;
+
+        /// <summary>Times the kit has refunded its whole cooldown, which its tell shows.</summary>
+        public int Refunds { get; private set; }
+
         /// <summary>The held keystone mods that land on this kit.</summary>
         public HeldBehaviours Behaviours { get; } = new();
         public int PaidActivations { get; private set; }
@@ -141,6 +150,7 @@ namespace Ships.Keystones
             Activations = 0;
             PaidActivations = 0;
             Hits = 0;
+            Refunds = 0;
             creditedActivation = 0;
             OnReset();
         }
@@ -172,6 +182,12 @@ namespace Ships.Keystones
 
         protected void ShortenCooldown(float secondsFromActivation) =>
             readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
+
+        protected void RefundCooldown()
+        {
+            ShortenCooldown(0f);
+            Refunds++;
+        }
 
         protected void RestartCooldown() => readyAt = clock + cooldown;
 

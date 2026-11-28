@@ -14,6 +14,9 @@ namespace UI.PlayerState
         [Tooltip("Fill tint once boost is ready.")]
         [SerializeField] private Color readyColor = new Color(0.1f, 0.9f, 1f, 0.9f);
 
+        [Tooltip("Pulses per second between the cooling and ready tints while the keystone waits for a follow-up press.")]
+        [SerializeField, Min(0.1f)] private float followUpPulseHz = 4f;
+
         private Image fill;
         private IShipStatus status;
 
@@ -45,7 +48,9 @@ namespace UI.PlayerState
             }
 
             fill.fillAmount = 1f - status.BoostCooldownPct;
-            fill.color = status.BoostAvailable ? readyColor : coolingColor;
+            fill.color = status.KeystoneFollowUpOpen
+                ? Color.Lerp(coolingColor, readyColor, 0.5f + 0.5f * Mathf.Cos(Time.unscaledTime * followUpPulseHz * Mathf.PI * 2f))
+                : status.BoostAvailable ? readyColor : coolingColor;
         }
     }
 }

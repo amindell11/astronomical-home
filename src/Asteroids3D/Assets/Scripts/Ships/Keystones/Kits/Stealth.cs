@@ -68,6 +68,7 @@ namespace Ships.Keystones.Kits
         // Concealment counts too: the shot that breaks stealth leaves before the reveal it causes.
         public bool Ambushing => Behaviours.Holds(ambush) && (concealed || SinceActivation - revealedAt < ambushWindow);
         public override float ShotDamageScale => Ambushing ? ambushDamageScale : 1f;
+        public bool AmbushLingering => Ambushing && !concealed;
 
         public override bool ShouldActivate(in KeystoneContext context) => context.SelfShieldPct < sightShield;
 

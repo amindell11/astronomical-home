@@ -489,6 +489,7 @@ namespace Tests.EditMode.Ships
                 ShipId.Invalid, 1f, Vector3.zero, collider, null, Vector3.zero, 1f, 0f));
 
             Assert.That(damage.Health.CurrentValue <= 0f, Is.EqualTo(kills), "test premise: the ram kills or not");
+            Assert.That(ram.Refunds, Is.EqualTo(held && kills ? 1 : 0), "only a whole refund counts for the tell");
             if (held && kills)
             {
                 Assert.That(ram.Ready, Is.True, "a kill refunds the whole cooldown");
@@ -509,6 +510,7 @@ namespace Tests.EditMode.Ships
             guard.Step(in kin, 1f, Dt, out var heldOn);
             Assert.That(heldOn, Is.False, "the press that dashed, still held, fires nothing");
             guard.Step(in kin, 0f, Dt, out _);
+            Assert.That(guard.FollowUpOpen, Is.EqualTo(held), "the gauge shows the second dash's window");
             var impulse = guard.Step(in kin, 1f, Dt, out var second).Impulse;
 
             Assert.That(second, Is.EqualTo(held), held ? "a fresh press fires the second dash" : "without Double dash the kit cools");
@@ -516,6 +518,7 @@ namespace Tests.EditMode.Ships
             Assert.That(impulse.magnitude, Is.EqualTo(Impulse).Within(1e-3f), "the second is a full dash");
             Assert.That(guard.Guarding, Is.True, "with its own guard");
             Assert.That(guard.CooldownRemaining, Is.EqualTo(Cooldown).Within(1e-4f), "the cooldown starts from the second");
+            Assert.That(guard.FollowUpOpen, Is.False, "the window closes with the second");
             guard.Step(in kin, 0f, Dt, out _);
             guard.Step(in kin, 1f, Dt, out var third);
             Assert.That(third, Is.False, "two dashes, not three");

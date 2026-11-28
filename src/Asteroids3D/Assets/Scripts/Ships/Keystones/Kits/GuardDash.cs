@@ -43,6 +43,7 @@ namespace Ships.Keystones.Kits
         public int Ripostes { get; private set; }
 
         public override bool Active => Guarding;
+        public override bool FollowUpOpen => secondPending || secondArmed;
 
         public override bool Blocks(in DamageInfo hit) => Guarding;
 
