@@ -161,7 +161,7 @@ namespace UI.Markers
         private static float PlaneRadius(Bounds bounds)
         {
             var extents = GamePlane.WorldDirToPlane(bounds.extents);
-            return (Mathf.Abs(extents.x) + Mathf.Abs(extents.y)) * 0.5f;
+            return Mathf.Max(Mathf.Abs(extents.x), Mathf.Abs(extents.y));
         }
     }
 }
