@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8712d185a684ef8ba4d050d81a3f1b3, type: 3}
+  m_Name: NightshadeRivalPalettes
+  m_EditorClassIdentifier: 
+  palettes:
+  - name: dusk-violet
+    regions:
+    - {fileID: 2100000, guid: 6aa3f8476c0752e6b7f618f586dc677e, type: 2}
+    - {fileID: 2100000, guid: 2335bfcab2565c64adc312a17cfd3868, type: 2}
+    - {fileID: 2100000, guid: efd60979b35851938ad8ac93c5220437, type: 2}
+    - {fileID: 2100000, guid: aff342f089d7599c8a8840fab0fc86d3, type: 2}
+    - {fileID: 2100000, guid: 2986744cbcb455b8955115ffc779ef10, type: 2}
+    - {fileID: 2100000, guid: 2975e5c1d9dc5fd98eb0d3c20d7db73f, type: 2}
+  - name: veil-ash
+    regions:
+    - {fileID: 2100000, guid: 405ddded1b06539d8ca30505e4b29a17, type: 2}
+    - {fileID: 2100000, guid: b2010b2cec055df0957309bd977ee7d5, type: 2}
+    - {fileID: 2100000, guid: b082c77614d0547f8319e32fe0f6152b, type: 2}
+    - {fileID: 2100000, guid: b4c73d6e1e525daca36b6ce09c884a6c, type: 2}
+    - {fileID: 2100000, guid: 7bf490b54d6d582d8fa7b4bd0f74c07c, type: 2}
+    - {fileID: 2100000, guid: b95fc9b9c7c55d8282a35d1ad8f9d9fa, type: 2}
