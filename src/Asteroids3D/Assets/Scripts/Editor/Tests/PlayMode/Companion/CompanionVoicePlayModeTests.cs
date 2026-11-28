@@ -67,8 +67,7 @@ namespace Tests.PlayMode.Companion
         private void BuildVoice(bool debugLabels, params (string moment, bool mustSay, string[] lines)[] slots)
         {
             sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
-            var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
-            markdown.Append("| --- | --- | --- | --- | --- | --- | --- |");
+            var csv = new StringBuilder("ID,Moment,Faction,Speaker,After,Line,Status");
             var id = 1;
             using (var serialized = new SerializedObject(sheet))
             {
@@ -81,13 +80,13 @@ namespace Tests.PlayMode.Companion
                     slot.FindPropertyRelative("mustSay").boolValue = slots[i].mustSay;
                     foreach (var line in slots[i].lines)
                     {
-                        markdown.Append(
-                            $"\n| T{id} | {slots[i].moment} |  | {LineTable.CompanionSpeaker} |  | {line} | In game |");
+                        csv.Append(
+                            $"\nT{id},{slots[i].moment},,{LineTable.CompanionSpeaker},,{line},In game");
                         id++;
                     }
                 }
 
-                lineFile = new TextAsset(markdown.ToString());
+                lineFile = new TextAsset(csv.ToString());
                 serialized.FindProperty("lineFile").objectReferenceValue = lineFile;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }

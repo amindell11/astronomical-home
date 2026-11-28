@@ -205,13 +205,15 @@ namespace UI
             shipUnlock.Show(ship);
         }
 
+        public bool PromptsWaiting => CommLine.Speaking;
+
         public IReadOnlyList<FirstRunPrompt> ShowMovementPrompts(Func<bool> dismissed) =>
             FirstRunPrompt.ShowMovement(transform, readoutFont, labelFont, textMaterial, flightInput, dismissed,
-                () => CommLine.Speaking);
+                () => PromptsWaiting);
 
         public IReadOnlyList<FirstRunPrompt> ShowFirstRunPrompts(Func<bool> dismissed) =>
             FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
-                dismissed, () => CommLine.Speaking);
+                dismissed, () => PromptsWaiting);
 
         public WorldLabel ShowWorldLabel(string text, Color tint, Vector3 worldPoint, Func<bool> ended) =>
             WorldLabel.Show(canvases[0], gameplayCamera, labelFont, textMaterial, text, tint, worldPoint, ended);

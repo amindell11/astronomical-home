@@ -390,7 +390,8 @@ namespace Game
                     var spine = session.ActiveSector.Module<PhaseSpineModule>();
                     if (rigInstance) rigInstance.EnterSector(spine);
                     var tutorial = Teaches(index, presentation, spine)
-                        ? new FirstSectorTutorial(rigInstance.Overlay, spine.Hunt, tutorialFeel.wavesCardSeconds)
+                        ? new FirstSectorTutorial(rigInstance.Overlay, spine.Hunt, tutorialFeel.wavesCardSeconds,
+                            tutorialFeel.promptStepSeconds)
                         : null;
                     if (tutorial != null) spine.Hunt.Hold();
                     var sectorStartTime = Time.time;

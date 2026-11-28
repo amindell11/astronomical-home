@@ -14,8 +14,7 @@ namespace Tests.EditMode.Companion
     [Category("UI")]
     public class LineTableEditModeTests
     {
-        private const string Header = "| ID | Moment | Faction | Speaker | After | Line | Status |";
-        private const string Separator = "| --- | --- | --- | --- | --- | --- | --- |";
+        private const string Header = "ID,Moment,Faction,Speaker,After,Line,Status";
         private const string SheetPath = "Assets/Settings/Game/Companion/CompanionLines.asset";
 
         private CompanionLineSheet sheet;
@@ -111,38 +110,35 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
-        public void Parse_IgnoresProseAroundTheTableAndExtraColumns()
+        public void Parse_IgnoresExtraColumns()
         {
-            var markdown = "The line sheet\n\n"
-                + "| ID | Moment | Faction | Speaker | After | Line | Status | Notes |\n"
-                + "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
-                + $"| N1 | {SectorEntered.SectorSlot} | veil | {LineTable.CompanionSpeaker} |  | noted | In game | a note |\n"
-                + "\nEdit here, then export.\n";
-            var table = LineTable.Parse(markdown, LineSlots((SectorEntered.SectorSlot, "")));
+            var csv = "ID,Category,Moment,Faction,Speaker,After,Line,Status,Notes\n"
+                + $"N1,Sector entry,{SectorEntered.SectorSlot},veil,{LineTable.CompanionSpeaker},,noted,In game,a note";
+            var table = LineTable.Parse(csv, LineSlots((SectorEntered.SectorSlot, "")));
 
             Assert.AreEqual("noted", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
-        public void Parse_UnescapesExportedCells()
+        public void Parse_ReadsQuotedCells()
         {
             var table = LineTable.Parse(Table(
                 Row("U1", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "",
-                    "\\*shudders\\* a \\| b&#32;", "In game")),
+                    "Hold on, \"friend\".", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("*shudders* a | b ",
+            Assert.AreEqual("Hold on, \"friend\".",
                 table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
         public void Parse_MissingColumn_NamesTheColumn() =>
-            AssertFormat("| ID | Moment | Faction | Speaker | After | Line |\n| --- | --- | --- | --- | --- | --- |",
+            AssertFormat("ID,Moment,Faction,Speaker,After,Line",
                 LineSlots((SectorEntered.SectorSlot, "")), "Status");
 
         [Test]
         public void Parse_WrongCellCount_NamesTheRow() =>
-            AssertFormat(Table($"| T1 | {SectorEntered.SectorSlot} | Companion | hi | In game |"),
+            AssertFormat(Table($"T1,{SectorEntered.SectorSlot},Companion,hi,In game"),
                 LineSlots((SectorEntered.SectorSlot, "")), "row 1");
 
         [Test]
@@ -176,8 +172,12 @@ namespace Tests.EditMode.Companion
                 LineSlots((SectorEntered.SectorSlot, "")), "Txt");
 
         [Test]
-        public void Parse_NoTable_Fails() =>
-            AssertFormat("The line sheet\n\nEdit here, then export.\n", LineSlots(), "no table");
+        public void Parse_NoHeader_Fails() =>
+            AssertFormat("", LineSlots(), "header row");
+
+        [Test]
+        public void Parse_UnclosedQuote_Fails() =>
+            AssertFormat(Header + "\n\"unterminated", LineSlots(), "unclosed quote");
 
         [Test]
         public void Parse_EmptySpeaker_NamesTheId() =>
@@ -425,15 +425,15 @@ namespace Tests.EditMode.Companion
                 Assert.That(ids, Does.Contain(faction));
         }
 
-        private static void AssertFormat(string markdown, IReadOnlyList<LineSlot> slots, string fragment)
+        private static void AssertFormat(string csv, IReadOnlyList<LineSlot> slots, string fragment)
         {
-            var error = Assert.Throws<FormatException>(() => LineTable.Parse(markdown, slots));
+            var error = Assert.Throws<FormatException>(() => LineTable.Parse(csv, slots));
             Assert.That(error.Message, Does.Contain(fragment));
         }
 
         private static string Table(params string[] rows)
         {
-            var text = new StringBuilder(Header).Append('\n').Append(Separator);
+            var text = new StringBuilder(Header);
             foreach (var row in rows)
                 text.Append('\n').Append(row);
             return text.ToString();
@@ -441,7 +441,14 @@ namespace Tests.EditMode.Companion
 
         private static string Row(string id, string moment, string faction, string speaker, string after, string line,
             string status) =>
-            $"| {id} | {moment} | {faction} | {speaker} | {after} | {line} | {status} |";
+            string.Join(",", Field(id), Field(moment), Field(faction), Field(speaker), Field(after), Field(line),
+                Field(status));
+
+        private static string Field(string value)
+        {
+            if (value.IndexOf(',') < 0 && value.IndexOf('"') < 0) return value;
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
 
         private static IReadOnlyDictionary<string, string> WithFaction(string faction) =>
             new Dictionary<string, string> { ["faction"] = faction };

@@ -40,6 +40,9 @@ namespace Game.Tutorial
         [Tooltip("Real seconds before a fire press can skip each hunt intro shot, so a player still firing from the weapon prompts can't skip it by accident.")]
         [Min(0f)] public float introSkipDelaySeconds = .6f;
 
+        [Tooltip("Real seconds a tutorial prompt step stays up before its unused lines fade and the tutorial moves on. The clock pauses while the companion speaks.")]
+        [Min(0f)] public float promptStepSeconds = 10f;
+
         [Tooltip("Real seconds the waves card shows after the first alarm.")]
         [Min(0f)] public float wavesCardSeconds = 7f;
     }

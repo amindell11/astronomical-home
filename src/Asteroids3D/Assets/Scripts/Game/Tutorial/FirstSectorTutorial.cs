@@ -11,8 +11,9 @@ namespace Game.Tutorial
 {
     /// <summary>
     /// The guided first sector, one step at a time: movement prompts, then the weapon and keystone prompts, then the
-    /// hunt intro (the stations, then a patrol), then the waves card at the first alarm. Each prompt step ends when the player has used every key it
-    /// shows. The host holds the hunt from the start, runs the intro's camera move when <see cref="IntroDue"/>, and
+    /// hunt intro (the stations, then a patrol), then the waves card at the first alarm. Each prompt step ends when the
+    /// player has used every key it shows, or when its lines have been up for the feel's step time, which pauses while
+    /// the companion speaks. The host holds the hunt from the start, runs the intro's camera move when <see cref="IntroDue"/>, and
     /// resumes the hunt after it. The design and rulings: https://github.com/amindell11/astronomical-home/issues/1761
     /// </summary>
     internal sealed class FirstSectorTutorial
@@ -37,16 +38,20 @@ namespace Game.Tutorial
         private readonly Overlay overlay;
         private readonly SectorHunt hunt;
         private readonly float wavesCardSeconds;
+        private readonly float promptStepSeconds;
         private IReadOnlyList<FirstRunPrompt> lines;
         private Step step;
         private bool ended;
+        private float stepShownSeconds;
+        private bool stepTimedOut;
 
-        public FirstSectorTutorial(Overlay overlay, SectorHunt hunt, float wavesCardSeconds)
+        public FirstSectorTutorial(Overlay overlay, SectorHunt hunt, float wavesCardSeconds, float promptStepSeconds)
         {
             this.overlay = overlay;
             this.hunt = hunt;
             this.wavesCardSeconds = wavesCardSeconds;
-            lines = overlay.ShowMovementPrompts(() => ended);
+            this.promptStepSeconds = promptStepSeconds;
+            lines = overlay.ShowMovementPrompts(() => ended || stepTimedOut);
         }
 
         public bool IntroDue => step == Step.Intro;
@@ -63,10 +68,20 @@ namespace Game.Tutorial
 
         public void Tick()
         {
+            if (!stepTimedOut && (step == Step.Movement || step == Step.Weapons))
+            {
+                if (!overlay.PromptsWaiting)
+                    stepShownSeconds += Time.unscaledDeltaTime;
+                if (stepShownSeconds >= promptStepSeconds)
+                    stepTimedOut = true;
+            }
+
             switch (step)
             {
                 case Step.Movement when Gone(lines):
-                    lines = overlay.ShowFirstRunPrompts(() => ended);
+                    stepShownSeconds = 0f;
+                    stepTimedOut = false;
+                    lines = overlay.ShowFirstRunPrompts(() => ended || stepTimedOut);
                     step = Step.Weapons;
                     break;
                 case Step.Weapons when Gone(lines):

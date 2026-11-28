@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text;
 
 namespace Game.Companion
 {
     /// <summary>
-    /// The parsed line file, the export of the lines doc's Line sheet tab.
+    /// The parsed line file, the canonical CSV in the repo.
     /// Only In game rows are kept. A bad row fails the parse by name.
     /// A pick is an exchange: an opening line and sometimes a reply.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1321
@@ -29,13 +28,13 @@ namespace Game.Companion
 
         public IReadOnlyCollection<string> Factions => factions;
 
-        public static LineTable Parse(string markdown, IReadOnlyList<LineSlot> slots)
+        public static LineTable Parse(string csv, IReadOnlyList<LineSlot> slots)
         {
-            if (markdown == null) throw new ArgumentNullException(nameof(markdown));
+            if (csv == null) throw new ArgumentNullException(nameof(csv));
             if (slots == null) throw new ArgumentNullException(nameof(slots));
 
-            var table = TableLines(markdown);
-            var header = Cells(table[0]);
+            var records = Records(csv);
+            var header = records[0];
             var idColumn = Column(header, "ID");
             var momentColumn = Column(header, "Moment");
             var factionColumn = Column(header, "Faction");
@@ -46,10 +45,10 @@ namespace Game.Companion
 
             var kept = new List<Row>();
             var seen = new HashSet<string>();
-            for (var i = 2; i < table.Count; i++)
+            for (var i = 1; i < records.Count; i++)
             {
-                var number = i - 1;
-                var cells = Cells(table[i]);
+                var number = i;
+                var cells = records[i];
                 if (cells.Count != header.Count)
                     throw new FormatException(
                         $"Line file row {number} has {cells.Count} cells; the header has {header.Count}.");
@@ -172,69 +171,91 @@ namespace Game.Companion
 
         private static SpokenLine Spoken(Row row) => new SpokenLine(row.Speaker, row.Text);
 
-        private static List<string> TableLines(string markdown)
+        private static List<List<string>> Records(string csv)
         {
-            var split = markdown.Split('\n');
-            var lines = new string[split.Length];
-            for (var i = 0; i < split.Length; i++)
-                lines[i] = split[i].Trim();
+            var records = new List<List<string>>();
+            var record = new List<string>();
+            var field = new StringBuilder();
+            var quoted = false;
+            var fieldQuoted = false;
 
-            var start = -1;
-            for (var i = 0; i < lines.Length; i++)
+            void AddField()
             {
-                if (!lines[i].StartsWith("|", StringComparison.Ordinal)) continue;
-                start = i;
-                break;
+                record.Add(fieldQuoted ? field.ToString() : field.ToString().Trim());
+                field.Clear();
+                fieldQuoted = false;
             }
 
-            if (start < 0) throw new FormatException("The line file has no table.");
-
-            var table = new List<string>();
-            for (var i = start; i < lines.Length; i++)
+            void EndRecord()
             {
-                if (!lines[i].StartsWith("|", StringComparison.Ordinal)) break;
-                table.Add(lines[i]);
-            }
-
-            return table;
-        }
-
-        private static List<string> Cells(string line)
-        {
-            var parts = new List<string>();
-            var start = 0;
-            for (var i = 0; i < line.Length; i++)
-            {
-                if (line[i] != '|' || (i > 0 && line[i - 1] == '\\')) continue;
-                parts.Add(line.Substring(start, i - start));
-                start = i + 1;
-            }
-
-            parts.Add(line.Substring(start));
-            parts.RemoveAt(parts.Count - 1);
-            parts.RemoveAt(0);
-
-            for (var i = 0; i < parts.Count; i++)
-                parts[i] = Unescape(parts[i].Trim());
-            return parts;
-        }
-
-        private static string Unescape(string cell)
-        {
-            var builder = new StringBuilder(cell.Length);
-            for (var i = 0; i < cell.Length; i++)
-            {
-                if (cell[i] == '\\' && i + 1 < cell.Length)
+                if (record.Count == 0 && !fieldQuoted && field.ToString().Trim().Length == 0)
                 {
-                    builder.Append(cell[i + 1]);
+                    field.Clear();
+                    return;
+                }
+
+                AddField();
+                records.Add(record);
+                record = new List<string>();
+            }
+
+            var i = 0;
+            while (i < csv.Length)
+            {
+                var c = csv[i];
+                if (quoted)
+                {
+                    if (c == '"')
+                    {
+                        if (i + 1 < csv.Length && csv[i + 1] == '"')
+                        {
+                            field.Append('"');
+                            i += 2;
+                            continue;
+                        }
+
+                        quoted = false;
+                        i++;
+                        continue;
+                    }
+
+                    field.Append(c);
                     i++;
                     continue;
                 }
 
-                builder.Append(cell[i]);
+                if (c == ',')
+                {
+                    AddField();
+                    i++;
+                    continue;
+                }
+
+                if (c == '\r' || c == '\n')
+                {
+                    if (c == '\r' && i + 1 < csv.Length && csv[i + 1] == '\n') i++;
+                    i++;
+                    EndRecord();
+                    continue;
+                }
+
+                if (c == '"' && field.Length == 0)
+                {
+                    quoted = true;
+                    fieldQuoted = true;
+                    i++;
+                    continue;
+                }
+
+                field.Append(c);
+                i++;
             }
 
-            return WebUtility.HtmlDecode(builder.ToString());
+            if (quoted) throw new FormatException("The line file has an unclosed quote.");
+
+            EndRecord();
+            if (records.Count == 0) throw new FormatException("The line file has no header row.");
+            return records;
         }
 
         private static int Column(List<string> header, string name)
