@@ -81,11 +81,11 @@ namespace Combat.Weapons.Conditions
             Reset();
         }
 
-        private void Update() => Tick(Time.deltaTime);
+        private void Update() => Tick(Time.deltaTime * weapon.RecoveryScale);
 
         /// <summary>
         /// Advances the reload timer by <paramref name="dt"/> seconds. Production drives this each
-        /// frame with <c>Time.deltaTime</c> (via <see cref="Update"/>); tests can drive it directly
+        /// frame with <c>Time.deltaTime</c> times the weapon's recovery scale (via <see cref="Update"/>); tests can drive it directly
         /// for deterministic, zero-wall-time coverage.
         /// </summary>
         public void Tick(float dt)

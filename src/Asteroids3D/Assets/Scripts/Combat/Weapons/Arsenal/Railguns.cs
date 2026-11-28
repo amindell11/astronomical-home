@@ -13,9 +13,10 @@ namespace Combat.Weapons.Arsenal
 {
     /// <summary>
     /// Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).
-    /// The beam is a capsule swept along the game plane that pierces: it strikes targets nearest-first,
-    /// and each kill's overkill (the return of <see cref="IDamageable.TakeDamage"/>) carries on to the
-    /// next target until a survivor, or a collider that takes no damage, stops it. While it holds any
+    /// The beam is a capsule swept along the game plane that pierces: it strikes targets nearest-first
+    /// (farthest-first with Deep strike held), and each kill's overkill (the return of
+    /// <see cref="IDamageable.TakeDamage"/>) carries on to the next target until a survivor, or a
+    /// collider that takes no damage, stops it. While it holds any
     /// charge it cuts its ship's engines (<see cref="CutsEngines"/>), so a shot costs the shooter its mobility.
     /// Its cooldown is a recovery: no charge builds until it ends, and its end is the railgun's
     /// <see cref="IRecoveryReadout.Recovered"/>.
@@ -35,6 +36,9 @@ namespace Combat.Weapons.Arsenal
         [SerializeField, Min(0f)] private float impactMass = 0.05f;
         [Tooltip("Layers the beam can hit. -1 = Ship | Asteroid.")]
         [SerializeField] private LayerMask hitMask = -1;
+
+        [Header("Deep Strike")]
+        [SerializeField] private WeaponBehaviourMod deepStrike;
 
         [Header("AI Firing")]
         [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
@@ -120,6 +124,8 @@ namespace Combat.Weapons.Arsenal
         private static RaycastHit[] beamHits = new RaycastHit[32];
         private static readonly IComparer<RaycastHit> nearestFirst =
             Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
+        private static readonly IComparer<RaycastHit> farthestFirst =
+            Comparer<RaycastHit>.Create((a, b) => b.distance.CompareTo(a.distance));
         private static readonly HashSet<IDamageable> struck = new();
 
         /// <summary>Projected onto the beam's line; the full-range end on a clear path.</summary>
@@ -143,7 +149,7 @@ namespace Combat.Weapons.Arsenal
             int count;
             while ((count = Physics.SphereCastNonAlloc(origin, beamRadius, direction, beamHits, range, hitMask)) == beamHits.Length)
                 beamHits = new RaycastHit[beamHits.Length * 2];
-            Array.Sort(beamHits, 0, count, nearestFirst);
+            Array.Sort(beamHits, 0, count, Behaviours.Holds(deepStrike) ? farthestFirst : nearestFirst);
             return count;
         }
 
@@ -158,13 +164,14 @@ namespace Combat.Weapons.Arsenal
         {
             var origin = FireOrigin;
             var direction = FireDirection;
-            var end = origin + direction * range;
+            var deep = Behaviours.Holds(deepStrike);
+            Vector3? end = null;
             var count = CastBeam(origin, direction);
 
             // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
             var attackerId = shooter?.Id ?? Ships.Registry.ShipId.Invalid;
-            var remaining = Mods.Apply(WeaponModField.Damage, damage);
+            var remaining = damage * ShotDamageFactor;
             struck.Clear();
             for (var i = 0; i < count; i++)
             {
@@ -174,16 +181,18 @@ namespace Combat.Weapons.Arsenal
                 if (damageable != null && !struck.Add(damageable)) continue;
 
                 var point = StrikePoint(hit, origin);
+                // Farthest-first, the beam reaches its first strike whatever stops it after.
+                if (deep) end ??= OnBeamLine(origin, direction, point);
                 remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
-                    impactMass, direction * impactSpeed, point)) ?? 0f;
+                    impactMass, direction * impactSpeed, point, attacker: shooter as Ships.Ship)) ?? 0f;
                 Hit?.Invoke(point, damageable);
                 if (remaining > 0f) continue;
 
-                end = OnBeamLine(origin, direction, point);
+                end ??= OnBeamLine(origin, direction, point);
                 break;
             }
 
-            OnBeamFired?.Invoke(origin, end);
+            OnBeamFired?.Invoke(origin, end ?? origin + direction * range);
         }
     }
 }

@@ -6,8 +6,10 @@ using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Presentation;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +17,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly each rank's chassis on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve their own chassis with that rank's kit, pilot, scale and hull, and each throws naming the faction when its kit or pilot is missing. Each shipped livery is empty or paints every hull slot of its chassis.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly each rank's chassis on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve their own chassis with that rank's kit, pilot, scale and hull, and each throws naming the faction when its kit or pilot is missing. Each shipped livery is empty or paints every hull slot of its chassis. Each faction's locale palettes name a set every rank holds and that paints every region its chassis wears; Shoal paints Blue Crescent in rust and Coral Sunset in shoal, and a palette a rank lacks, or a set missing a region, throws naming faction, locale, palette and ship.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -173,6 +175,79 @@ namespace Tests.EditMode.Factions
                 AssertPaints(faction.minion.ship, faction.minion.hull, $"{name} minion");
                 AssertPaints(faction.elite.ship, faction.elite.hull, $"{name} elite");
             }
+        }
+
+        [Test]
+        public void EachFactionsLocalePalettes_NameASetEveryRankHolds_PaintingEveryRegion()
+        {
+            foreach (var name in new[] { "Shoal", "Bastion", "Veil" })
+                Assert.DoesNotThrow(() => LoadFaction(name).CheckPalettes(), name);
+        }
+
+        [Test]
+        public void Shoal_PaintsBlueCrescentInRust_AndCoralSunsetInShoal()
+        {
+            var palettes = LoadFaction("Shoal").localePalettes.ToDictionary(entry => entry.locale, entry => entry.palette);
+
+            Assert.AreEqual("shoal-rust", palettes[LoadLocale("BlueCrescent")]);
+            Assert.AreEqual("shoal", palettes[LoadLocale("CoralSunset")]);
+        }
+
+        [Test]
+        public void CheckPalettes_ThrowsNamingFactionLocalePaletteAndShip_WhenARankHasNoSetForIt()
+        {
+            var faction = Track(Object.Instantiate(LoadFaction("Shoal")));
+            faction.localePalettes = new[] { new LocalePalette { locale = LoadLocale("BlueCrescent"), palette = "veil" } };
+
+            var thrown = Assert.Throws<InvalidOperationException>(faction.CheckPalettes);
+            foreach (var named in new[] { "Shoal", "BlueCrescent", "'veil'", "ValisRival" })
+                StringAssert.Contains(named, thrown.Message);
+        }
+
+        [Test]
+        public void CheckPalettes_ThrowsNamingTheRegion_WhenASetMissesOneTheShipWears()
+        {
+            var faction = Track(Object.Instantiate(LoadFaction("Shoal")));
+            var rust = faction.signature.palettes.Regions("shoal-rust").ToArray();
+            faction.signature.palettes = Palettes(("shoal-rust", rust), ("thin", rust.Where(region => region.name != "Canopy").ToArray()));
+            faction.localePalettes = new[] { new LocalePalette { locale = LoadLocale("CoralSunset"), palette = "thin" } };
+
+            var thrown = Assert.Throws<InvalidOperationException>(faction.CheckPalettes);
+            foreach (var named in new[] { "Shoal", "CoralSunset", "'thin'", "ValisRival", "'Canopy'" })
+                StringAssert.Contains(named, thrown.Message);
+        }
+
+        private ShipPalettes Palettes(params (string name, Material[] regions)[] sets)
+        {
+            var palettes = Track(ScriptableObject.CreateInstance<ShipPalettes>());
+            using var serialized = new SerializedObject(palettes);
+            var list = serialized.FindProperty("palettes");
+            list.arraySize = sets.Length;
+            for (var i = 0; i < sets.Length; i++)
+            {
+                var set = list.GetArrayElementAtIndex(i);
+                set.FindPropertyRelative("name").stringValue = sets[i].name;
+                var regions = set.FindPropertyRelative("regions");
+                regions.arraySize = sets[i].regions.Length;
+                for (var r = 0; r < sets[i].regions.Length; r++)
+                    regions.GetArrayElementAtIndex(r).objectReferenceValue = sets[i].regions[r];
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return palettes;
+        }
+
+        private static Faction LoadFaction(string name)
+        {
+            var faction = AssetDatabase.LoadAssetAtPath<Faction>($"Assets/Settings/Factions/{name}.asset");
+            Assert.IsNotNull(faction, $"{name} faction loads");
+            return faction;
+        }
+
+        private static LocaleSky LoadLocale(string name)
+        {
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab");
+            Assert.IsNotNull(locale, $"{name} locale loads");
+            return locale;
         }
 
         private static void AssertPaints(Ship chassis, Material[] hull, string rank)

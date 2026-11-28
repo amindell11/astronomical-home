@@ -93,6 +93,8 @@ MonoBehaviour:
   fireDistance: 12
   fireAngleTolerance: 10
   holdRange: 8
+  stoppingPower: {fileID: 11400000, guid: 4460a27d14144b7caa19ea7f13a59420, type: 2}
+  stoppingShove: 150
   rounds: {fileID: 7617100545363093338}
   cooldown: {fileID: 528377684098802016}
 --- !u!114 &8394956787872104069

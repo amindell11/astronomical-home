@@ -5,6 +5,7 @@ using UnityEngine;
 using Missile = Combat.Projectiles.Missile;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 
 namespace Combat.Weapons.Arsenal
 {
@@ -12,6 +13,14 @@ namespace Combat.Weapons.Arsenal
     {
         [Header("Targeting")]
         [Stat, SerializeField] private LockOnSensor targetingComputer;
+
+        [Header("Wire Guided")]
+        [SerializeField] private WeaponBehaviourMod wireGuided;
+
+        [Header("EMP Warhead")]
+        [SerializeField] private WeaponBehaviourMod empWarhead;
+        [Tooltip("With EMP warhead held: seconds a direct hit jams the target's weapons and locks.")]
+        [Stat, SerializeField, Min(0.01f)] private float empJam = 2f;
 
         [Header("Conditions")]
         [Stat, SerializeField] private Rounds rounds;
@@ -26,6 +35,8 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Min(0f)] private float fallbackRange = 7f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
         [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
+
+        private Vector3 aimPoint;
 
         public Rounds Rounds => rounds;
         protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
@@ -48,11 +59,28 @@ namespace Combat.Weapons.Arsenal
                 targetingComputer = GetComponent<LockOnSensor>();
         }
 
+        protected override void Prime(Missile missile)
+        {
+            if (Behaviours.Holds(empWarhead)) missile.Jam(empJam);
+        }
+
+        public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
+        {
+            aimPoint = cmd.targetPoint;
+            base.HandleTrigger(in cmd, projectiles);
+        }
+
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
             var proj = base.Fire(targetPoint, projectiles) as Missile;
             if (!proj)
                 return null;
+
+            if (Behaviours.Holds(wireGuided))
+            {
+                proj.Wire(() => aimPoint);
+                return proj;
+            }
 
             if (targetingComputer)
             {

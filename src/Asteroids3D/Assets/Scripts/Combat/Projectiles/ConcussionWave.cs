@@ -31,8 +31,10 @@ namespace Combat.Projectiles
         private float radius;
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
+        private Ships.Ship attacker;
         private float damageScale = 1f;
         private float radiusScale = 1f;
+        private float pushScale = 1f;
 
         public float Radius => radius;
 
@@ -53,12 +55,15 @@ namespace Combat.Projectiles
         /// <summary>Raised just before every pool return (spent frontier or flush), so trackers never hold a stale registration for an alive-but-pooled wave.</summary>
         public event Action Released;
 
-        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage and reach multipliers.</summary>
-        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f)
+        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage, reach and push multipliers; a negative push pulls toward the centre.</summary>
+        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f, float pushScale = 1f,
+            Ships.Ship attacker = null)
         {
             this.attackerId = attackerId;
+            this.attacker = attacker;
             this.damageScale = Mathf.Max(0f, damageScale);
             this.radiusScale = Mathf.Max(0f, radiusScale);
+            this.pushScale = pushScale;
             radius = 0f;
             resolved.Clear();
             swept.Clear();
@@ -105,10 +110,10 @@ namespace Combat.Projectiles
                 if (!DamageableColliders.TryGet(buffer[i], out var target) || !swept.Add(target)) continue;
 
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
-                var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
-                Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
+                var along = OutwardDirection(hitPoint, target.gameObject.transform.position) * Mathf.Sign(pushScale);
+                Push(buffer[i].attachedRigidbody, along, hitPoint, impulseFalloff * Mathf.Abs(pushScale));
                 target.TakeDamage(new DamageInfo(MaxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
-                    waveMass, outward * expandSpeed, hitPoint));
+                    waveMass, along * expandSpeed, hitPoint, attacker: attacker));
             }
         }
 
@@ -123,10 +128,10 @@ namespace Combat.Projectiles
                 : GamePlane.PlaneDirToWorld(planar.normalized);
         }
 
-        private void Push(Rigidbody body, Vector3 outward, Vector3 hitPoint, float falloff)
+        private void Push(Rigidbody body, Vector3 along, Vector3 hitPoint, float falloff)
         {
             if (body && !body.isKinematic)
-                body.AddForceAtPosition(outward * (impulse * falloff), hitPoint, ForceMode.Impulse);
+                body.AddForceAtPosition(along * (impulse * falloff), hitPoint, ForceMode.Impulse);
         }
 
         /// <summary>Damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius, shaped by <paramref name="power"/>.</summary>

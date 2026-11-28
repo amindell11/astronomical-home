@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using AI;
 using AI.Pilots;
+using AI.Plays;
 using AI.Scanning;
 using AI.Tactics;
 using Combat.Weapons;
@@ -28,6 +29,7 @@ namespace Substrate.Sectors.Elements
     /// rival. Minions are trimmed to the minion cap, which counts the hunt's live patrols. The rival takes
     /// the arc's centre slot, or arrives concealed ahead of the hero when its temper ambushes and that point
     /// is clear, and the minions take the slots either side, each following the rival at its place.
+    /// A rival whose temper lists plays gets a play call its wave joins.
     /// Every wave ship hunts the hero by sight. A beat with no room is dropped. A phase opens with one.
     /// A rival that dies with its minions still flying raises RivalFell. When the faction's minion temper
     /// regroups, each minion that jumps out is held and arrives with the next rival's wave, on top of its
@@ -75,6 +77,8 @@ namespace Substrate.Sectors.Elements
 
         private readonly List<Ship> products = new();
         private readonly HashSet<Ship> rivals = new();
+        private readonly Dictionary<Ship, PlayCall> calls = new();
+        private readonly System.Random playDraw = new();
         private readonly HashSet<Ship> jumped = new();
         private readonly List<Action> jumpHandlers = new();
         private readonly List<Ship> leaders = new();
@@ -174,6 +178,7 @@ namespace Substrate.Sectors.Elements
             leaders.Clear();
             places.Clear();
             rivals.Clear();
+            calls.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
             rivalCap = ctx.Row.rivalCap;
@@ -209,6 +214,7 @@ namespace Substrate.Sectors.Elements
             while (teardown.MoveNext()) yield return teardown.Current;
             products.Clear();
             rivals.Clear();
+            calls.Clear();
             units = null;
             field = null;
         }
@@ -412,7 +418,7 @@ namespace Substrate.Sectors.Elements
                 leaders.RemoveAt(i);
                 places.RemoveAt(i);
                 jumped.Remove(ship);
-                rivals.Remove(ship);
+                if (rivals.Remove(ship)) calls.Remove(ship);
                 if (ship) units.DespawnShip(ship);
                 products.RemoveAt(i);
             }
@@ -475,6 +481,31 @@ namespace Substrate.Sectors.Elements
                     Follow(spawned[i], rival, i - centreIndex);
                 ((AICommander)spawned[i].Commander).HuntBySight(hero);
             }
+
+            var temper = Temper(rivalRank.pilot);
+            if (temper && temper.plays.Length > 0)
+            {
+                var call = new PlayCall(rival, temper.plays, playDraw);
+                calls.Add(rival, call);
+                ((AICommander)rival.Commander).JoinCall(call);
+                var joining = new List<int>(count - 1);
+                for (var i = 0; i < count; i++)
+                    if (i != centreIndex) joining.Add(i);
+                joining.Sort((a, b) =>
+                {
+                    var placeA = a - centreIndex;
+                    var placeB = b - centreIndex;
+                    var byDistance = Math.Abs(placeA).CompareTo(Math.Abs(placeB));
+                    return byDistance != 0 ? byDistance : placeA.CompareTo(placeB);
+                });
+                foreach (var i in joining)
+                {
+                    var minion = spawned[i];
+                    ((AICommander)minion.Commander).JoinCall(call);
+                    call.Join(minion);
+                }
+            }
+
             return rival;
         }
 
@@ -486,11 +517,16 @@ namespace Substrate.Sectors.Elements
             if (slots == null) return false;
 
             var leader = leaderFor(slots[(minions - 1) / 2]);
+            PlayCall call = null;
+            if (leader) calls.TryGetValue(leader, out call);
             foreach (var slot in slots)
             {
                 var minion = Spawn(faction.Faction.Minion, slot, center);
                 Follow(minion, leader, FreePlace(PlacesAround(leader)));
                 ((AICommander)minion.Commander).HuntBySight(hero);
+                if (call == null) continue;
+                ((AICommander)minion.Commander).JoinCall(call);
+                call.Join(minion);
             }
             return true;
         }
@@ -548,7 +584,7 @@ namespace Substrate.Sectors.Elements
             // Counted before dressing, so a dressing throw cannot leave a live ship outside the caps.
             Track(ship);
             if (asRival) rivals.Add(ship);
-            faction.Faction.Dress(ship, rank);
+            faction.Faction.Dress(ship, rank, faction.Locale);
             return ship;
         }
 

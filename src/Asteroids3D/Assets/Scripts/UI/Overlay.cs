@@ -15,6 +15,7 @@ using Ships;
 using Ships.Command;
 using Utils;
 using System;
+using System.Collections.Generic;
 using UI.Objectives;
 using UI.Projection;
 using UI.Prompts;
@@ -58,6 +59,7 @@ namespace UI
         private string keystoneName;
         private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
+        private ShipUnlockBanner shipUnlock;
         private HeldModsReadout heldMods;
         private HullShieldReadout hullShield;
         private HullCriticalAlert hullCritical;
@@ -195,8 +197,26 @@ namespace UI
             eliteReadout.Bind(elite);
         }
 
-        public void ShowFirstRunPrompts(Func<bool> dismissed) =>
+        public void ShowShipUnlocked(string ship)
+        {
+            if (!shipUnlock)
+                shipUnlock = ShipUnlockBanner.Create(transform, labelFont, headingFont, textMaterial, projection, () => IsVisible);
+            shipUnlock.Show(ship);
+        }
+
+        public IReadOnlyList<FirstRunPrompt> ShowMovementPrompts(Func<bool> dismissed) =>
+            FirstRunPrompt.ShowMovement(transform, readoutFont, labelFont, textMaterial, flightInput, dismissed,
+                () => CommLine.Speaking);
+
+        public IReadOnlyList<FirstRunPrompt> ShowFirstRunPrompts(Func<bool> dismissed) =>
             FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
                 dismissed, () => CommLine.Speaking);
+
+        public WorldLabel ShowWorldLabel(string text, Color tint, Vector3 worldPoint, Func<bool> ended) =>
+            WorldLabel.Show(canvases[0], gameplayCamera, labelFont, textMaterial, text, tint, worldPoint, ended);
+
+        public TutorialCard ShowTutorialCard(string text, TutorialCard.Spot spot, Func<bool> ended,
+            Func<bool> skippable = null) =>
+            TutorialCard.Show(transform, readoutFont, labelFont, textMaterial, text, spot, ended, skippable);
     }
 }

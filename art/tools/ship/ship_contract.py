@@ -55,7 +55,7 @@ ACCENT_TARGETS = ("light", "ink", "emission")
 MATERIAL_FIELDS = ("shadow_strength", "light_strength", "ink_strength", "light_lift", "ink_color",
                    "emission_blend", "lighting")
 LIGHTING_FLOATS = ("_ShadowThreshold", "_ShadowSoftness", "_CastShadowStrength", "_AmbientStrength",
-                   "_PaletteLighting", "_SpecularStrength", "_PaintSaturation")
+                   "_PaletteLighting", "_SpecularStrength", "_PaintSaturation", "_EmissionStrength")
 LIGHTING_COLORS = ("_ShadowColor",)
 
 

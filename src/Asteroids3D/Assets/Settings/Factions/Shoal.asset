@@ -19,45 +19,14 @@ MonoBehaviour:
     ship: {fileID: 1448741880885153620, guid: 06ae81facd0f7cc4a8a8ce8382ff5b01, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 3234410074676049561, guid: 3549c19ca7708484591a4c6854b7f83a, type: 3}
-    hull:
-    - {fileID: 2100000, guid: 6e2a92a35b8a401788f88af0303ca99f, type: 2}
-    - {fileID: 2100000, guid: 4185c4dc92ca64f42b536453f090da55, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 894d9c4818484f56bb39b0793782c1ba, type: 2}
-    - {fileID: 2100000, guid: 6c7c5e17251a49e1b786648e263f6460, type: 2}
-    - {fileID: 2100000, guid: 7888eaa9d1ab412588d731f8cb705d21, type: 2}
-    - {fileID: 2100000, guid: 04ac7273be784ef5a33710f27f193e4d, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 894d9c4818484f56bb39b0793782c1ba, type: 2}
-    - {fileID: 2100000, guid: 6c7c5e17251a49e1b786648e263f6460, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 6e2a92a35b8a401788f88af0303ca99f, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 894d9c4818484f56bb39b0793782c1ba, type: 2}
-    - {fileID: 2100000, guid: 6c7c5e17251a49e1b786648e263f6460, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 6e2a92a35b8a401788f88af0303ca99f, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 6c7c5e17251a49e1b786648e263f6460, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 04ac7273be784ef5a33710f27f193e4d, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 6c7c5e17251a49e1b786648e263f6460, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 04ac7273be784ef5a33710f27f193e4d, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
+    hull: []
+    palettes: {fileID: 11400000, guid: bcc4fc96e91d4bd8881a3e1d9efa473c, type: 2}
   minion:
     ship: {fileID: 1448741880885153620, guid: 3a5643abf7f444a4f8ea9920728f754c, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 5737641424197988005, guid: b5ae53d770a6de344858eb56eeeca029, type: 3}
-    hull:
-    - {fileID: 2100000, guid: 6e2a92a35b8a401788f88af0303ca99f, type: 2}
-    - {fileID: 2100000, guid: 4185c4dc92ca64f42b536453f090da55, type: 2}
-    - {fileID: 2100000, guid: 5577e1b523de4cd7a1b400497083ec64, type: 2}
-    - {fileID: 2100000, guid: 894d9c4818484f56bb39b0793782c1ba, type: 2}
-    - {fileID: 2100000, guid: 7888eaa9d1ab412588d731f8cb705d21, type: 2}
-    - {fileID: 2100000, guid: 04ac7273be784ef5a33710f27f193e4d, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
+    hull: []
+    palettes: {fileID: 11400000, guid: 474b2b45167640529abd0ad40ab6e46c, type: 2}
     scale:
       size: 1
       mass: 1
@@ -67,43 +36,18 @@ MonoBehaviour:
       shield: 0
   elite:
     ship: {fileID: 1448741880885153620, guid: ccdc8116fc7abea469cd33f5f8a8059a, type: 3}
-    hull:
-    - {fileID: 2100000, guid: 152b88eb03484e088c60378a7e6d8c72, type: 2}
-    - {fileID: 2100000, guid: 4185c4dc92ca64f42b536453f090da55, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: b309edc8fc7b4084a176a7e81a6ee015, type: 2}
-    - {fileID: 2100000, guid: 5fb1db5ba9884aafa80d07270b7428ae, type: 2}
-    - {fileID: 2100000, guid: b309edc8fc7b4084a176a7e81a6ee015, type: 2}
-    - {fileID: 2100000, guid: 1a56c0e5aaca496da9fd66c4bc9f0c12, type: 2}
-    - {fileID: 2100000, guid: 6397d2da28e948018b60749fda79c6ef, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: b309edc8fc7b4084a176a7e81a6ee015, type: 2}
-    - {fileID: 2100000, guid: 5fb1db5ba9884aafa80d07270b7428ae, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: 152b88eb03484e088c60378a7e6d8c72, type: 2}
-    - {fileID: 2100000, guid: 152b88eb03484e088c60378a7e6d8c72, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: b309edc8fc7b4084a176a7e81a6ee015, type: 2}
-    - {fileID: 2100000, guid: 5fb1db5ba9884aafa80d07270b7428ae, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: 152b88eb03484e088c60378a7e6d8c72, type: 2}
-    - {fileID: 2100000, guid: 152b88eb03484e088c60378a7e6d8c72, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 5fb1db5ba9884aafa80d07270b7428ae, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: 1a56c0e5aaca496da9fd66c4bc9f0c12, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-    - {fileID: 2100000, guid: 5fb1db5ba9884aafa80d07270b7428ae, type: 2}
-    - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
-    - {fileID: 2100000, guid: 1a56c0e5aaca496da9fd66c4bc9f0c12, type: 2}
-    - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
+    hull: []
+    palettes: {fileID: 11400000, guid: c388e731d9e142649493e70ca2b15031, type: 2}
     displayName: Shoal Valis
   unlocks: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
   flame: {fileID: 2100000, guid: 2eb3caeab93746ce83e028188297baec, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.99607843, g: 0.5254902, b: 0.101960786, a: 1}
+  localePalettes:
+  - locale: {fileID: 5133432934505610864, guid: 935b6bfe642839647a70b11027d391dd, type: 3}
+    palette: shoal-rust
+  - locale: {fileID: 3833049007285589542, guid: dd295c666e4830b4787548eadd27d24c, type: 3}
+    palette: shoal
   stationDress:
     palettes:
     - name: Shoal

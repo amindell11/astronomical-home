@@ -47,6 +47,7 @@ namespace Ships.Presentation
         public void Wear(in ShipLivery livery)
         {
             if (livery.Hull.Count > 0) PaintHull(livery.Hull);
+            if (livery.Palette != null) PaintRegions(livery.Palette);
             if (livery.Restyle != null)
                 foreach (var surface in silhouette) livery.Restyle.Apply(surface);
             foreach (var part in liveryParts)
@@ -68,6 +69,22 @@ namespace Ships.Presentation
                 var materials = surface.sharedMaterials;
                 for (var i = 0; i < materials.Length; i++)
                     materials[i] = hull[next++];
+                surface.sharedMaterials = materials;
+            }
+        }
+
+        private void PaintRegions(IReadOnlyList<Material> palette)
+        {
+            var regions = new Dictionary<string, Material>();
+            foreach (var region in palette)
+                regions.Add(region.name, region);
+
+            foreach (var surface in silhouette)
+            {
+                var materials = surface.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                    if (regions.TryGetValue(materials[i].name, out var region))
+                        materials[i] = region;
                 surface.sharedMaterials = materials;
             }
         }

@@ -1,9 +1,11 @@
 using System;
+using Balance;
 using Movement;
 using UnityEngine;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Status;
 using Ships.Weapons;
 using Substrate;
 namespace Ships.Movement
@@ -12,9 +14,13 @@ namespace Ships.Movement
     [DefaultExecutionOrder(50)]
     public class MovementController : MonoBehaviour, IPilot
     {
+        [Tooltip("Multiplier on the speed cap while the ship is suppressed.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float suppressedSpeedScale = 0.6f;
+
         private Rigidbody  rb;
         private Keystone keystone;
         private WeaponsController weapons;
+        private StatusEffects status;
         internal ResolvedShipStats settings;
         private PilotCommand currentCommand;
         private float speedCap;
@@ -40,8 +46,10 @@ namespace Ships.Movement
         }
 
         /// <param name="weapons">Null on an unarmed ship.</param>
-        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone, WeaponsController weapons)
+        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone, WeaponsController weapons,
+            StatusEffects status)
         {
+            this.status = status ?? throw new ArgumentNullException(nameof(status));
             this.getKinematics = getKinematics;
             this.keystone = keystone;
             this.weapons = weapons;
@@ -80,10 +88,18 @@ namespace Ships.Movement
         {
             if (weapons && weapons.EnginesCut)
                 currentCommand = new PilotCommand { yawTorque = currentCommand.yawTorque, abilityTarget = currentCommand.abilityTarget };
+            if (!status.CanThrust)
+            {
+                currentCommand.thrust = 0f;
+                currentCommand.strafe = 0f;
+            }
+            if (!status.CanTurn) currentCommand.yawTorque = 0f;
+            if (!status.CanKeystone) currentCommand.boost = 0f;
 
             var kinematics = Kinematics;
             var effect = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated,
-                settings.maxSpeed, currentCommand.abilityTarget);
+                settings.maxSpeed, currentCommand.abilityTarget, currentCommand.yawTorque,
+                currentCommand.thrust != 0f || currentCommand.strafe != 0f);
             rb.mass = settings.mass * keystone.MassScale;
             currentCommand.boost = activated ? 1f : 0f;
             if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);
@@ -118,7 +134,7 @@ namespace Ships.Movement
         // A raised cap takes effect at once; a lowered one bleeds down at the rate drag alone sheds the base cap.
         private void ApplySpeedCap(float dt)
         {
-            var target = settings.maxSpeed * keystone.SpeedScale;
+            var target = settings.maxSpeed * keystone.SpeedScale * (status.Slowed ? suppressedSpeedScale : 1f);
             speedCap = target >= speedCap ? target : Mathf.Max(target, speedCap - settings.maxSpeed * settings.linearDrag * dt);
             rb.maxLinearVelocity = speedCap;
         }

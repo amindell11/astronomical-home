@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Projectiles;
 using Damage;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Mods;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -23,6 +25,7 @@ namespace Tests.PlayMode.Keystones
     {
         private const string VanguardPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string MissilePrefabPath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
+        private const string RipostePath = "Assets/Settings/Ships/Keystones/Mods/Riposte.asset";
         private const float TargetAlong = 4f;
         private const int MaxSteps = 60;
 
@@ -30,6 +33,7 @@ namespace Tests.PlayMode.Keystones
 
         private readonly List<GameObject> spawned = new();
         private Ship ship;
+        private Ship rival;
 
         private sealed class StubShooter : MonoBehaviour, IShooter
         {
@@ -44,6 +48,7 @@ namespace Tests.PlayMode.Keystones
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
             ShipTestFactory.DestroyShip(ship);
+            ShipTestFactory.DestroyShip(rival);
             base.TearDown();
         }
 
@@ -99,6 +104,40 @@ namespace Tests.PlayMode.Keystones
             Assert.That(applied, Is.Not.Empty, "the detonation reached the ship");
             Assert.That(health - ship.Damage.Health.CurrentValue, Is.EqualTo(direct).Within(0.01f),
                 "the direct hit lands in full, past the shield");
+        }
+
+        [UnityTest]
+        public IEnumerator Riposte_FiresABlockedShotBackDownItsLine_IntoTheShooter_WithItsDamage([Values] bool held)
+        {
+            yield return SpawnVanguard();
+            var guard = (GuardDash)ship.Keystone;
+            if (held) guard.Behaviours.Set(new BehaviourMod[] { TestAssets.Load<KeystoneMod>(RipostePath) });
+            rival = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), WorldAim * (TargetAlong + 20f), GamePlane.Rotation);
+            rival.Initialize(1, 0, Projectiles);
+            var struck = new List<AppliedDamage>();
+            rival.Damage.OnDamaged += struck.Add;
+
+            yield return Dash();
+            Hold();
+            const float amount = 15f;
+            var hull = WorldAim * (TargetAlong + 1f);
+            ship.Damage.TakeDamage(new DamageInfo(amount, DamageKind.Laser, rival.Id, 0.1f, -WorldAim * 60f, hull));
+            Assert.That(guard.Ripostes, Is.EqualTo(held ? 1 : 0), "only Riposte fires the blocked shot back");
+
+            for (var i = 0; i < MaxSteps && struck.Count == 0; i++)
+            {
+                Hold();
+                yield return new WaitForFixedUpdate();
+            }
+
+            if (!held)
+            {
+                Assert.That(struck, Is.Empty, "without Riposte the block is the end of the shot");
+                yield break;
+            }
+            Assert.That(struck, Has.Count.EqualTo(1), "the reflected shot flies back into its shooter");
+            Assert.That(struck[0].Info.AttackerId, Is.EqualTo(ship.Id), "as the Vanguard's own shot");
+            Assert.That(struck[0].Info.Amount, Is.EqualTo(amount).Within(1e-3f), "carrying the blocked damage");
         }
 
         [UnityTest]

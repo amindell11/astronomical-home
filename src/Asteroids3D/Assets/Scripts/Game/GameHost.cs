@@ -10,6 +10,7 @@ using Damage;
 using Game.Audio;
 using Game.CloseUps;
 using Game.Companion;
+using Game.Dev;
 using Game.Display;
 using Game.Moments;
 using Game.Moments.Encounters;
@@ -18,6 +19,7 @@ using Game.Player;
 using Game.Player.Recorders;
 using Game.Runs;
 using Game.Travel;
+using Game.Tutorial;
 using Loot;
 using Substrate;
 using Substrate.Presentation;
@@ -31,7 +33,9 @@ using Ships.Command;
 using Ships.Loadout;
 using Ships.Weapons;
 using UI;
+using UI.Comms;
 using UI.Hangar.Hardware;
+using UI.Prompts;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -152,6 +156,12 @@ namespace Game
         [Tooltip("How each sector's first wave shows its rival: time slows while the camera pans and zooms onto " +
                  "it. Presentation only.")]
         [SerializeField] internal CloseUpFeel closeUpFeel = new CloseUpFeel();
+
+        [Header("Guided first sector")]
+        [Tooltip("Teach the controls and the hunt in sector 1, holding the hunt until the player has done every " +
+                 "step, while the player's Tutorial prompts setting is on. Presentation only.")]
+        [SerializeField] internal bool teachFirstSector;
+        [SerializeField] internal TutorialFeel tutorialFeel = new TutorialFeel();
 
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
@@ -351,6 +361,8 @@ namespace Game
                 var draw = new System.Random();
                 runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
                 runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
+                if (runFactions != null)
+                    SectorRun.PutFirst(runFactions, LaunchArgs.FirstFaction(System.Environment.GetCommandLineArgs()));
                 if (voice) voice.Initialize(moments, runFactions);
                 while (true)
                 {
@@ -377,6 +389,10 @@ namespace Game
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
                     var spine = session.ActiveSector.Module<PhaseSpineModule>();
                     if (rigInstance) rigInstance.EnterSector(spine);
+                    var tutorial = Teaches(index, presentation, spine)
+                        ? new FirstSectorTutorial(rigInstance.Overlay, spine.Hunt, tutorialFeel.wavesCardSeconds)
+                        : null;
+                    if (tutorial != null) spine.Hunt.Hold();
                     var sectorStartTime = Time.time;
                     OpenSector(index);
                     var modStations = presentation && lullMods && rigInstance
@@ -424,6 +440,18 @@ namespace Game
                                 cachesClaimed++;
                                 moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
                             }
+                            if (tutorial != null)
+                            {
+                                tutorial.Tick();
+                                if (tutorial.IntroDue)
+                                {
+                                    yield return RunTutorialStations(findStations);
+                                    if (!pauseRequested) yield return RunTutorialPatrol(tutorial.Patrol);
+                                    tutorial.IntroDone();
+                                    spine.Hunt.Resume();
+                                    if (pauseRequested) continue;
+                                }
+                            }
                             if (closeUpRival)
                             {
                                 var rival = closeUpRival;
@@ -442,6 +470,7 @@ namespace Game
                         if (station) station.Arrived -= onStationArrived;
                     sectorMoments.Dispose();
                     closeCalls?.Dispose();
+                    tutorial?.End();
                     if (shutdownRequested) yield break;
                     CloseOpenSector();
 
@@ -512,6 +541,8 @@ namespace Game
         {
             sectorEndTime = Time.time;
             sectorEnded = true;
+            if (result.Success && activeSectorIndex == 0 && teachFirstSector && sessionProfile.presentation && rigInstance)
+                TutorialSetting.NoteFirstSectorCleared();
             if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
                 activeSectorIndex == sessionProfile.run.Sectors.Count - 1) return;
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
@@ -693,6 +724,7 @@ namespace Game
                 AssistSetting.Set(on);
                 if (rigInstance) rigInstance.SetAssist(on);
             }));
+            rows.Add(SettingsRow.Toggle("TUTORIAL PROMPTS", TutorialSetting.On, TutorialSetting.Set));
             rows.Add(SettingsRow.Slider("SCREEN SHAKE", CameraSettings.ShakeScale, v => CameraSettings.ShakeScale = v));
             rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
                 on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
@@ -768,7 +800,7 @@ namespace Game
         private IEnumerator RunLullPick(int sector)
         {
             var player = rigInstance.Player;
-            var offers = LootOffers.Draw(lullMods.mods, mod => mod.Fits(player), LullPickScreen.MaxOffers,
+            var offers = LootOffers.Draw(lullMods.mods, mod => rigInstance.Mods.Offers(mod, player), LullPickScreen.MaxOffers,
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
@@ -1018,7 +1050,11 @@ namespace Game
             return (spine && spine.IsRival(victim)) || rigInstance.Spawns.IsElite(victim);
         }
 
-        private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
+        private void OnShipUnlocked(ShipUnlocked unlocked)
+        {
+            if (rigInstance.Overlay) rigInstance.Overlay.ShowShipUnlocked(unlocked.Chassis);
+            moments.Raise(new ShipEarned(unlocked));
+        }
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
@@ -1034,7 +1070,8 @@ namespace Game
             // Its own world, away from the sector and the preview stage.
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var launched = false;
-            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
+            Action<CommLine> greet = voice ? onto => voice.SpeakNow(new HangarOpened(), onto) : null;
+            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, TutorialSetting.On, greet, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 
@@ -1083,12 +1120,105 @@ namespace Game
             if (moment is RivalIntroduced introduced) closeUpRival = introduced.Rival;
         }
 
+        private bool Teaches(int sectorIndex, bool presentation, PhaseSpineModule spine) =>
+            sectorIndex == 0 && teachFirstSector && presentation && TutorialSetting.On && rigInstance &&
+            rigInstance.Overlay && spine && spine.Hunt;
+
+        private IEnumerator RunTutorialStations(FindStation[] finds)
+        {
+            var labels = new List<(string text, Color tint, Vector3 at)>();
+            var kinds = new List<StationKind>();
+            foreach (var find in finds)
+            {
+                if (!find) continue;
+                foreach (var station in find.Stations)
+                {
+                    if (station.Spent) continue;
+                    labels.Add((find.Kind.ToString().ToUpperInvariant(), FindColours.Of(find.Kind), station.Position));
+                    if (!kinds.Contains(find.Kind)) kinds.Add(find.Kind);
+                }
+            }
+            if (labels.Count == 0) yield break;
+
+            var min = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
+            var max = min;
+            foreach (var label in labels)
+            {
+                var at = GamePlane.WorldPointToPlane(label.at);
+                min = Vector2.Min(min, at);
+                max = Vector2.Max(max, at);
+            }
+            // Fit the stations inside the clear band of the screen, then shift the camera so the band sits on them.
+            var aspect = observer.Cam.aspect;
+            var band = tutorialFeel.stationsBand;
+            var half = (max - min) / 2f + Vector2.one * tutorialFeel.stationsMargin;
+            var size = Mathf.Max(half.y / band.height, half.x / (band.width * aspect));
+            var center = (min + max) / 2f - new Vector2((band.center.x - .5f) * 2f * size * aspect,
+                (band.center.y - .5f) * 2f * size);
+            yield return RunTutorialShot(FirstSectorTutorial.StationsText(kinds), tutorialFeel.stationsZoom, () => center,
+                size, labels);
+        }
+
+        private IEnumerator RunTutorialPatrol(Ship patrol)
+        {
+            var feel = tutorialFeel.introPan;
+            var lift = new Vector2(0f, (.5f - tutorialFeel.patrolScreenHeight) * 2f * feel.closeSize);
+            Func<Vector2?> target = () => patrol && patrol.gameObject.activeInHierarchy
+                ? GamePlane.WorldPointToPlane(patrol.transform.position) + lift
+                : (Vector2?)null;
+            yield return RunTutorialShot(FirstSectorTutorial.IntroText, feel, patrol ? target : null, feel.closeSize,
+                Array.Empty<(string, Color, Vector3)>());
+        }
+
+        // Fire skips only after the delay and a release, so held fire never skips.
+        // Its own action, because the frozen ship's flight input is disabled.
+        private IEnumerator RunTutorialShot(string text, CloseUpFeel feel, Func<Vector2?> target, float size,
+            IReadOnlyList<(string text, Color tint, Vector3 at)> labels)
+        {
+            var fire = new InputAction("TutorialSkip", InputActionType.Button, "<Mouse>/leftButton");
+            fire.Enable();
+            var shownAt = Time.unscaledTime;
+            var released = false;
+            var skipped = false;
+            var showing = true;
+            bool Skippable() => Time.unscaledTime - shownAt >= tutorialFeel.introSkipDelaySeconds;
+            bool Cancelled()
+            {
+                if (Skippable() && !skipped)
+                {
+                    if (!fire.IsPressed()) released = true;
+                    else if (released) skipped = true;
+                }
+                return skipped || playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested;
+            }
+
+            rigInstance.Overlay.ShowTutorialCard(text, TutorialCard.Spot.High, () => !showing, Skippable);
+            foreach (var label in labels)
+                rigInstance.Overlay.ShowWorldLabel(label.text, label.tint, label.at, () => !showing);
+            rigInstance.SetInputEnabled(false);
+            try
+            {
+                if (target != null)
+                    yield return CloseUp.Run(feel, observer, rigInstance.Player.transform, target, size,
+                        clock.Slow(1f), Cancelled);
+                else
+                    for (var t = 0f; t < feel.holdSeconds && !Cancelled(); t += Time.unscaledDeltaTime)
+                        yield return null;
+            }
+            finally
+            {
+                showing = false;
+                fire.Dispose();
+                rigInstance.SetInputEnabled(true);
+            }
+        }
+
         private IEnumerator RunCloseUp(Ship rival)
         {
             rigInstance.SetInputEnabled(false);
             try
             {
-                yield return RivalCloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
+                yield return CloseUp.Run(closeUpFeel, observer, rigInstance.Player.transform, rival,
                     clock.Slow(1f), () => playerDied || sectorEnded || shutdownRequested || quitRun || pauseRequested);
             }
             finally

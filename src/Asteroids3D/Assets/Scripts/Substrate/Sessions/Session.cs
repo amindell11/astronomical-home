@@ -110,7 +110,8 @@ namespace Substrate.Sessions
         /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
         /// sector's declared start. The hero is the main character the sector lays out around — the
         /// player today, possibly an AI; the sector side still names it the player. A Random row shows
-        /// <paramref name="drawnLocale"/>, the locale its run drew; a named row shows its own. A
+        /// <paramref name="drawnLocale"/>, the locale its run drew; a named row shows its own; the sector reads
+        /// the shown locale as its row's. A
         /// <paramref name="dealtFaction"/> replaces the row's faction. Every argument is optional: a
         /// headless session loads its first sector with none.
         /// </summary>
@@ -132,6 +133,7 @@ namespace Substrate.Sessions
                         $"Row {index} is Random; a presented load shows the locale its run drew, and none was passed.");
                 locale.Show(shown);
                 ActiveLocale = shown;
+                entry = entry.WithLocale(shown, entry.random);
             }
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.

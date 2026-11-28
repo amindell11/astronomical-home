@@ -3,6 +3,8 @@ using System;
 using Combat.Targeting;
 using Damage;
 using Movement;
+using Ships.Damage;
+using Ships.Status;
 using UnityEngine;
 using Utils;
 using Substrate;
@@ -34,6 +36,8 @@ namespace Combat.Projectiles
 
         internal Transform target;
         private Transform lockedPoint;
+        private Func<Vector3> wire;
+        private float jamSeconds;
         private LockChannel lockedChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
@@ -53,6 +57,11 @@ namespace Combat.Projectiles
             lockedChannel.Concealed += Forget;
             Track();
         }
+
+        /// <summary>Steers at the point <paramref name="aimPoint"/> reads each step, in place of a lock.</summary>
+        public void Wire(Func<Vector3> aimPoint) => wire = aimPoint;
+
+        public void Jam(float seconds) => jamSeconds = seconds;
 
         private void Track()
         {
@@ -169,6 +178,11 @@ namespace Combat.Projectiles
 
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
+            if (wire != null)
+            {
+                var toAim = GamePlane.WorldDirToPlane(wire() - transform.position);
+                return toAim.sqrMagnitude < 0.01f ? kin.Forward : toAim.normalized;
+            }
             if (!target) return kin.Forward;
 
             var toTarget = GamePlane.WorldDirToPlane(target.position - transform.position);
@@ -223,6 +237,8 @@ namespace Combat.Projectiles
 
         protected override void OnHit(IDamageable other)
         {
+            if (jamSeconds > 0f && other is DamageController hull && hull.Ship)
+                hull.Ship.Status.Apply(StatusEffect.WeaponsJammed, jamSeconds);
             Explode(other);
             base.OnHit(other);
         }
@@ -245,7 +261,7 @@ namespace Combat.Projectiles
                 if (!DamageableColliders.TryGet(buffer[i], out var obj) || obj == directHitTarget || IsFriendly(obj)) continue;
 
                 obj.TakeDamage(new DamageInfo(splashDamage * DamageScale, DamageKind.Missile, attackerId,
-                    mass, velocity, buffer[i].ClosestPoint(transform.position)));
+                    mass, velocity, buffer[i].ClosestPoint(transform.position), attacker: AttackerShip));
             }
         }
 
@@ -264,6 +280,8 @@ namespace Combat.Projectiles
             }
             lockedChannel = null;
             lockedPoint = null;
+            wire = null;
+            jamSeconds = 0f;
             target = null;
             hasLos = false;
             aliveTime = 0f;

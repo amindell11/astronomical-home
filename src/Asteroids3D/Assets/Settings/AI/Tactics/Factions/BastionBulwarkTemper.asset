@@ -22,6 +22,14 @@ MonoBehaviour:
   nerveShield: 0
   standOffMargin: 5
   minimumHold: 2
+  holdsLine: 0
+  lineSpacing: 8
+  regroupsWithoutLeader: 0
+  ambushes: 0
+  ambushAhead: 15
+  ambushHold: 4
+  plays:
+  - {fileID: 11400000, guid: 1caa173816cad5b4cb06079a7b30035f, type: 2}
   wounded: 4
   woundedBy: 1
   woundedBelow: 40

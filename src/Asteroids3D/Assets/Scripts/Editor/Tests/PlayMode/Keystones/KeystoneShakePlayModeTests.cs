@@ -37,8 +37,8 @@ namespace Tests.PlayMode.Keystones
         {
             ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
             var kit = SpawnKit(ship.transform);
-            kit.Initialize(new KeystoneHost(ship.Rigidbody, 1f, ship.Lock));
-            ship.Movement.Initialize(ship.Stats, () => Still, kit, null);
+            kit.Initialize(new KeystoneHost(ship, ship.Rigidbody, 1f, ship.Lock));
+            ship.Movement.Initialize(ship.Stats, () => Still, kit, null, ship.Status);
             ReadProfile(kit);
 
             var raises = 0;

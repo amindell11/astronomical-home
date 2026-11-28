@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Ships.Status;
 using System;
 using System.Reflection;
 using AI;
@@ -903,7 +904,7 @@ namespace Tests.EditMode
             var movement = ship.GetComponent<global::Ships.Movement.MovementController>();
             typeof(Ship).GetProperty(nameof(Ship.Movement)).SetValue(ship, movement);
             var pose = new Kinematics(pos, Vector2.zero, 0f, 0f, 0f);
-            movement.Initialize(null, () => pose, null, null);
+            movement.Initialize(null, () => pose, null, null, new StatusEffects());
         }
     }
 }
