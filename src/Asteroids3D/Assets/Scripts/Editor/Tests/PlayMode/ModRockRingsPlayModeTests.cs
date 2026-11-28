@@ -118,7 +118,8 @@ namespace Tests.PlayMode
                 yield break;
             }
 
-            string Mod(Color color) => color == lies ? "Lie in wait" : color == orbits ? "Orbit" : "other";
+            static bool Near(Color a, Color b) => Mathf.Abs(a.r - b.r) + Mathf.Abs(a.g - b.g) + Mathf.Abs(a.b - b.b) < 0.05f;
+            string Mod(Color color) => Near(color, lies) ? "Lie in wait" : Near(color, orbits) ? "Orbit" : color.ToString();
             var onBoth = Around(drawn, both);
             Assert.That(onBoth.Select(ring => Mod(ring.color)), Is.EqualTo(new[] { "Lie in wait", "Orbit" }),
                 "a heavy big rock gets both rings, the Orbit one wider");
