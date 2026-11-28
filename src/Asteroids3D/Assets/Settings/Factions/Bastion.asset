@@ -44,7 +44,7 @@ MonoBehaviour:
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.16862746, g: 0.8235294, b: 0.96862745, a: 1}
   localePalettes:
-  - locale: {fileID: 8722692895781993748, guid: efda15947979b3345b239b9741b2c488, type: 3}
+  - locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
     palette: bastion-red
   - locale: {fileID: 5133432934505610864, guid: 935b6bfe642839647a70b11027d391dd, type: 3}
     palette: clan-blue
