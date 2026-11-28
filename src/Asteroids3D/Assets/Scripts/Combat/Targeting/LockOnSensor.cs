@@ -33,7 +33,7 @@ namespace Combat.Targeting
         internal float MaxLockDistance => weapon.projectilePrefab.Reach;
 
         private readonly Collider[] fanHits = new Collider[64];
-        private TargetLock targetLock;
+        internal TargetLock targetLock;
         private int shipMask;
         private IShipRegistry registry;
         private ShipId selfShipId;
@@ -47,6 +47,7 @@ namespace Combat.Targeting
         public ITargetable CurrentTarget => targetLock?.CurrentTarget;
         public float LockProgress => targetLock?.LockProgress ?? 0f;
         public bool IsLocked => targetLock?.IsLocked ?? false;
+        public float LockedFor => targetLock?.LockedFor ?? 0f;
         public float GraceLeft => State == LockState.Locked && selfShip && selfShip.Commander && selfShip.Commander.IsPlayer
             ? Mathf.Max(0f, lockGrace - targetLock.LockedFor)
             : 0f;
