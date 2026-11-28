@@ -23,6 +23,8 @@ namespace UI.Screens
         private static readonly string[] PadButtons =
             { "<Gamepad>/buttonWest", "<Gamepad>/buttonNorth", "<Gamepad>/buttonEast" };
         private const float CardWidth = 333f;
+        // Each card starts opening this long after the one before it.
+        internal const float CardStagger = .3f;
         private const float CardHeight = 215f;
         private const float CardGap = 29f;
         private const float Inset = 16f;
@@ -117,7 +119,7 @@ namespace UI.Screens
             WindowKit.Captioned(body, "Landing", "ON", landing.ToUpperInvariant(), landingX, 156f,
                 CardWidth - Inset - landingX, 16, fonts.Label);
             ScreenKit.Button((RectTransform)window.transform, () => Choose(index), WindowKit.Lit(layers, ScreenKit.Hover));
-            window.Play();
+            window.Play(index * CardStagger);
         }
 
         private void BindKeys()

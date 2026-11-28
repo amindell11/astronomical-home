@@ -125,6 +125,30 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
+        public IEnumerator TheCards_OpenOneAfterAnother()
+        {
+            var offers = new List<WeaponMod>
+            {
+                Mod("a", WeaponModField.Damage, 0.25f),
+                Mod("b", WeaponModField.Damage, 0.25f),
+                Mod("c", WeaponModField.Damage, 0.25f),
+            };
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", _ => null, null);
+            float Open(int card) => screen.transform.Find($"Cards/Card{card}").GetComponent<ScreenWindow>().Open;
+
+            yield return new WaitForSecondsRealtime(LullPickScreen.CardStagger * .5f);
+            Assert.That(Open(1), Is.GreaterThan(0f), "the first card is opening");
+            Assert.AreEqual(0f, Open(2), "the second waits its turn");
+
+            yield return new WaitForSecondsRealtime(LullPickScreen.CardStagger);
+            Assert.That(Open(2), Is.GreaterThan(0f).And.LessThan(Open(1)), "the second follows the first");
+            Assert.AreEqual(0f, Open(3), "the third still waits");
+
+            yield return new WaitForSecondsRealtime(ScreenWindow.OpenSeconds + 2f * LullPickScreen.CardStagger);
+            Assert.AreEqual(1f, Open(3), "all three end open");
+        }
+
+        [UnityTest]
         public IEnumerator Choose_Skip_ReadsAsSkip()
         {
             screen = LullPickScreen.Create(root.transform, new List<WeaponMod> { Mod("a", WeaponModField.Damage, 0.25f) },
