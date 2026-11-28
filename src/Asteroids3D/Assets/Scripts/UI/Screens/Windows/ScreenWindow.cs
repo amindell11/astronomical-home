@@ -94,7 +94,7 @@ namespace UI.Screens.Windows
             return window;
         }
 
-        /// <summary>Opens from closed over <see cref="OpenSeconds"/> of real time, after <paramref name="delay"/> seconds closed.</summary>
+        /// <summary>Opens from closed over <see cref="OpenSeconds"/> of real time.</summary>
         public void Play(float delay = 0f)
         {
             playedAt = Time.unscaledTime + delay;
