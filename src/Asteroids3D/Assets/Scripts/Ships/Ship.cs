@@ -26,7 +26,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter, IJumpDrive
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter, IJumpDrive, IRockMods
     {
         [Header("Chassis")]
         [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
@@ -94,6 +94,10 @@ namespace Ships
         public LieInWait LieInWait => lieInWait;
 
         public DuckAndLoad DuckAndLoad => duckAndLoad;
+
+        public bool CountsForLieInWait(Collider rock) => lieInWait.Held && lieInWait.IsHeavy(rock.attachedRigidbody, Rigidbody.mass);
+
+        public bool CountsForOrbit(Collider rock) => Keystone && Keystone.CountsForOrbit(rock);
 
         /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
         public Keystone Keystone { get; private set; }

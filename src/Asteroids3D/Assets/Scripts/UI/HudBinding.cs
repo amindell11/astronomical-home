@@ -3,6 +3,7 @@ using Game.Player.Recorders;
 using Loot;
 using Ships.Command;
 using Ships.Damage;
+using Ships.Mods;
 using UnityEngine;
 
 namespace UI
@@ -29,6 +30,8 @@ namespace UI
         /// <summary>The run's held lull mods, for the badge row beside the weapon readout.</summary>
         public readonly IHeldMods Mods;
 
+        public readonly IRockMods Rocks;
+
         /// <summary>The player's boost and fire input, or null when no player commander flies the ship.</summary>
         public readonly IFlightInput Input;
 
@@ -36,13 +39,14 @@ namespace UI
         public readonly Sprite KeystoneIcon;
 
         public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons, IRunTally tally,
-            IHeldMods mods, IFlightInput input, string keystoneName, Sprite keystoneIcon)
+            IHeldMods mods, IRockMods rocks, IFlightInput input, string keystoneName, Sprite keystoneIcon)
         {
             Status = status;
             Damage = damage;
             Weapons = weapons;
             Tally = tally;
             Mods = mods;
+            Rocks = rocks;
             Input = input;
             KeystoneName = keystoneName;
             KeystoneIcon = keystoneIcon;
