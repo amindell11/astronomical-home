@@ -8,6 +8,7 @@ namespace Ships
     /// <summary>
     /// Places a chassis's RCS sockets from its hull mesh: corners from the bow and stern flank
     /// extremes, roll nozzles from the mid flanks.
+    /// Places only a new chassis whose sockets sit at the base's zero.
     /// </summary>
     public static class RcsPlacement
     {
@@ -16,6 +17,12 @@ namespace Ships
             var root = PrefabUtility.LoadPrefabContents(chassisPrefabPath);
             try
             {
+                var rcs = root.transform.Find("ShipBaseRig/Thruster/Rcs");
+                if (rcs)
+                    foreach (Transform socket in rcs)
+                        if (socket.localPosition != Vector3.zero)
+                            throw new InvalidOperationException($"{chassisPrefabPath} already places its RCS sockets; move them in the prefab.");
+
                 var hull = root.transform.Find("ShipBaseRig/Hull");
                 var vertices = new List<Vector3>();
                 if (hull)

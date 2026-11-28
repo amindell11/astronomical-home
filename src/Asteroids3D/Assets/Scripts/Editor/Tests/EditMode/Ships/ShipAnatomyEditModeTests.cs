@@ -30,10 +30,17 @@ namespace Tests.EditMode.Ships
         private const string HullSlot = Rig + "/Hull";
         private const string Exhaust = Rig + "/Thruster/EngineExhaust";
         private const string TwinExhaust = Rig + "/Thruster/EngineExhaustTwin";
+        private const string Rcs = Rig + "/Thruster/Rcs/";
         private const string Centre = "Hardpoints/Centre";
         private const string Left = "Hardpoints/Left";
         private const string Right = "Hardpoints/Right";
-        private static readonly string[] Sockets = { Centre, Left, Right, Exhaust };
+        private static readonly string[] Sockets =
+        {
+            Centre, Left, Right, Exhaust,
+            Rcs + "BowLeft", Rcs + "BowRight", Rcs + "SternLeft", Rcs + "SternRight",
+            Rcs + "BowForwardLeft", Rcs + "BowForwardRight",
+            Rcs + "RollLeftTop", Rcs + "RollLeftBottom", Rcs + "RollRightTop", Rcs + "RollRightBottom",
+        };
 
         private static readonly (string path, System.Type type, string propertyPrefix)[] Slots =
         {
@@ -177,6 +184,45 @@ namespace Tests.EditMode.Ships
 
         private static Vector3 LocalPosition(GameObject root, string path) =>
             root.transform.InverseTransformPoint(root.transform.Find(path).position);
+
+        [TestCaseSource(nameof(MigratedChassis))]
+        public void Chassis_RcsNozzlesMirrorAcrossTheCentreline(string path)
+        {
+            var root = Load(path);
+            foreach (var (leftName, rightName) in new[]
+            {
+                ("BowLeft", "BowRight"),
+                ("SternLeft", "SternRight"),
+                ("BowForwardLeft", "BowForwardRight"),
+                ("RollLeftTop", "RollRightTop"),
+                ("RollLeftBottom", "RollRightBottom"),
+            })
+            {
+                var left = LocalPosition(root, Rcs + leftName);
+                var right = LocalPosition(root, Rcs + rightName);
+                var pair = $"{leftName}/{rightName}: the owner places them mirrored.";
+                Assert.That(left.x, Is.LessThan(0f), pair);
+                Assert.That(right.x, Is.GreaterThan(0f), pair);
+                Assert.That(right.x, Is.EqualTo(-left.x).Within(1e-3f), pair);
+                Assert.That(right.y, Is.EqualTo(left.y).Within(1e-3f), pair);
+            }
+
+            foreach (var (topName, bottomName) in new[]
+            {
+                ("RollLeftTop", "RollLeftBottom"),
+                ("RollRightTop", "RollRightBottom"),
+            })
+            {
+                var top = LocalPosition(root, Rcs + topName);
+                var bottom = LocalPosition(root, Rcs + bottomName);
+                var pair = $"{topName}/{bottomName}";
+                Assert.That(top.x, Is.EqualTo(bottom.x).Within(1e-4f), pair);
+                Assert.That(top.y, Is.EqualTo(bottom.y).Within(1e-4f), pair);
+            }
+
+            Assert.That(LocalPosition(root, Rcs + "BowLeft").y, Is.GreaterThan(LocalPosition(root, Rcs + "SternLeft").y),
+                "the bow pair sits forward of the stern pair; the prow faces +Y");
+        }
 
         [TestCaseSource(nameof(MigratedChassis))]
         public void Chassis_HullSlotHoldsItsOwnRoleMeshes(string path)
