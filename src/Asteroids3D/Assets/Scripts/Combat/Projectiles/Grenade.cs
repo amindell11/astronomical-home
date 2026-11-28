@@ -63,6 +63,12 @@ namespace Combat.Projectiles
 
         public float LaunchSpeed => launchSpeed;
 
+        /// <summary>The ship a limpet charge rides, null until it sticks.</summary>
+        public Ships.Ship Carrier { get; private set; }
+
+        /// <summary>0 when a limpet charge sticks, 1 as its fuse runs out.</summary>
+        public float FuseProgress => carrier ? Mathf.Clamp01(sinceStuck / limpetFuse) : 0f;
+
         /// <summary>True while the braking thrust is pushing on the charge.</summary>
         public bool Burning { get; private set; }
 
@@ -173,7 +179,7 @@ namespace Combat.Projectiles
             if (carrier) return;
             if (limpetFuse > 0f && other is DamageController hull && hull.Ship)
             {
-                Stick(hull.transform);
+                Stick(hull);
                 return;
             }
             if (!Armed) return;
@@ -181,10 +187,11 @@ namespace Combat.Projectiles
             Detonate();
         }
 
-        private void Stick(Transform ship)
+        private void Stick(DamageController hull)
         {
-            carrier = ship;
-            carriedAt = ship.InverseTransformPoint(transform.position);
+            carrier = hull.transform;
+            Carrier = hull.Ship;
+            carriedAt = carrier.InverseTransformPoint(transform.position);
             Burning = false;
             rb.linearVelocity = Vector3.zero;
         }
@@ -230,6 +237,7 @@ namespace Combat.Projectiles
             blastPush = 1f;
             limpetFuse = 0f;
             carrier = null;
+            Carrier = null;
             sinceStuck = 0f;
         }
     }

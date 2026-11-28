@@ -251,6 +251,8 @@ namespace Tests.PlayMode.Weapons.Mods
             }
 
             Assert.IsTrue(charge.gameObject.activeSelf, "its fuse is still running");
+            Assert.AreSame(target, charge.Carrier, "it names the ship it rides, whose hull blinks");
+            Assert.That(charge.FuseProgress, Is.InRange(0.01f, 0.99f), "the fuse is part spent");
             Assert.Less(Vector3.Distance(charge.transform.position - target.transform.position, offset), 0.1f,
                 "the ship carries the charge");
 

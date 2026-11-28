@@ -1,10 +1,15 @@
 using System;
+using Ships.Visuals;
 using Substrate;
 using Substrate.Presentation;
 using UnityEngine;
 
 namespace Combat.Projectiles.Visual
 {
+    /// <summary>
+    /// Poses the mine through its flight and lights its braking exhaust. A limpet charge riding a
+    /// ship blinks that ship's hull, faster as its fuse runs out.
+    /// </summary>
     [RequireComponent(typeof(Grenade))]
     public sealed class ConcussionMineFlightVisual : MonoBehaviour, IPresentationPart
     {
@@ -12,8 +17,18 @@ namespace Combat.Projectiles.Visual
         [SerializeField] private Transform modelPivot;
         [SerializeField] private MeshRenderer brakeExhaust;
 
+        [Header("Limpet")]
+        [SerializeField] private Color limpetBlink = Color.red;
+        [Tooltip("Hull blinks per second when the charge sticks.")]
+        [SerializeField, Min(0.1f)] private float blinkRateAtStick = 3f;
+        [Tooltip("Hull blinks per second as the fuse runs out.")]
+        [SerializeField, Min(0.1f)] private float blinkRateAtFuse = 12f;
+
         private Grenade charge;
         private Quaternion brakingPose = Quaternion.identity;
+        private HullVisuals blinking;
+        private float blinkPhase;
+        private bool blinkLit;
 
         // Share of the pose's progress spent tumbling upright while the charge coasts.
         private const float UprightProgress = 0.64f;
@@ -26,7 +41,12 @@ namespace Combat.Projectiles.Visual
         }
 
         private void OnEnable() => charge.Launched += BeginFlight;
-        private void OnDisable() => charge.Launched -= BeginFlight;
+        private void OnDisable()
+        {
+            charge.Launched -= BeginFlight;
+            StopBlink();
+        }
+
         public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void BeginFlight()
@@ -37,10 +57,37 @@ namespace Combat.Projectiles.Visual
 
         private void LateUpdate()
         {
+            Blink();
             var speedFraction = Mathf.Clamp01(charge.rb.linearVelocity.magnitude / charge.LaunchSpeed);
             Pose(charge.CoastProgress < 1f
                 ? UprightProgress * charge.CoastProgress
                 : Mathf.Lerp(UprightProgress, 1f, 1f - speedFraction));
+        }
+
+        private void Blink()
+        {
+            var carrier = charge.Carrier;
+            if (!carrier || !carrier.VisualRig || !carrier.VisualRig.Hull)
+            {
+                StopBlink();
+                return;
+            }
+
+            blinking = carrier.VisualRig.Hull;
+            blinkPhase += Mathf.Lerp(blinkRateAtStick, blinkRateAtFuse, charge.FuseProgress) * Time.deltaTime;
+            var lit = Mathf.Repeat(blinkPhase, 1f) < 0.5f;
+            if (lit == blinkLit) return;
+            blinkLit = lit;
+            if (lit) blinking.HoldFlash(limpetBlink);
+            else blinking.ReleaseFlash();
+        }
+
+        private void StopBlink()
+        {
+            if (blinkLit && blinking) blinking.ReleaseFlash();
+            blinkLit = false;
+            blinking = null;
+            blinkPhase = 0f;
         }
 
         private void Pose(float progress)
