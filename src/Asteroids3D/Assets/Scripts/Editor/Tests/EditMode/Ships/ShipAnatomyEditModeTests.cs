@@ -207,17 +207,14 @@ namespace Tests.EditMode.Ships
                 Assert.That(right.y, Is.EqualTo(left.y).Within(1e-3f), pair);
             }
 
-            foreach (var (topName, bottomName) in new[]
+            foreach (var side in new[] { "Left", "Right" })
             {
-                ("RollLeftTop", "RollLeftBottom"),
-                ("RollRightTop", "RollRightBottom"),
-            })
-            {
-                var top = LocalPosition(root, Rcs + topName);
-                var bottom = LocalPosition(root, Rcs + bottomName);
-                var pair = $"{topName}/{bottomName}";
-                Assert.That(top.x, Is.EqualTo(bottom.x).Within(1e-4f), pair);
-                Assert.That(top.y, Is.EqualTo(bottom.y).Within(1e-4f), pair);
+                var top = LocalPosition(root, Rcs + "Roll" + side + "Top");
+                var bottom = LocalPosition(root, Rcs + "Roll" + side + "Bottom");
+                var pair = $"Roll{side}Top/Roll{side}Bottom: a roll fires a fore jet on one side and an aft jet on the other.";
+                Assert.That(top.y, Is.GreaterThan(bottom.y), pair);
+                Assert.That(top.y, Is.LessThan(LocalPosition(root, Rcs + "Bow" + side).y), $"Roll{side}Top sits aft of the bow corner.");
+                Assert.That(bottom.y, Is.GreaterThan(LocalPosition(root, Rcs + "Stern" + side).y), $"Roll{side}Bottom sits forward of the stern corner.");
             }
 
             Assert.That(LocalPosition(root, Rcs + "BowLeft").y, Is.GreaterThan(LocalPosition(root, Rcs + "SternLeft").y),
