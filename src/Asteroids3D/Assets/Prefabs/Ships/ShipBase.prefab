@@ -112,8 +112,6 @@ MonoBehaviour:
     stillSpeed: 1.5
     heavyMassRatio: 4
     contactGap: 2
-  cleanKill:
-    key: {fileID: 11400000, guid: 1ada1adba77e41b1a5f29e44241bfb1e, type: 2}
   duckAndLoad:
     key: {fileID: 11400000, guid: b5b0f81c5de24320bff1e9109ecd5021, type: 2}
     recoveryScale: 3

@@ -71,8 +71,6 @@ namespace Ships
 
         [Stat, SerializeField] private LieInWait lieInWait = new();
 
-        [SerializeField] private CleanKill cleanKill = new();
-
         [Stat, SerializeField] private DuckAndLoad duckAndLoad = new();
 
         public EngineModule Engine => engine;
@@ -94,8 +92,6 @@ namespace Ships
         public Turret Turret => turret;
 
         public LieInWait LieInWait => lieInWait;
-
-        public CleanKill CleanKill => cleanKill;
 
         public DuckAndLoad DuckAndLoad => duckAndLoad;
 
@@ -186,7 +182,6 @@ namespace Ships
             headstrong.Read(Behaviours);
             turret.Read(Behaviours);
             lieInWait.Read(Behaviours);
-            cleanKill.Read(Behaviours);
             duckAndLoad.Read(Behaviours);
         }
 
