@@ -13,7 +13,7 @@ namespace Combat.Projectiles
 
         private bool banks;
         private Collider bankedOff;
-        private bool passesOrdnance;
+        private bool intercepts;
         private SuppressingFire suppressing;
 
         protected override DamageKind Kind => DamageKind.Laser;
@@ -31,7 +31,9 @@ namespace Combat.Projectiles
         /// <summary>The next asteroid this bolt meets turns it, unharmed, instead of stopping it.</summary>
         public void BankOnce() => banks = true;
 
-        public void PassOrdnance() => passesOrdnance = true;
+        public void Intercept() => intercepts = true;
+
+        protected override bool Intercepts => intercepts;
 
         public void Suppress(SuppressingFire fire) => suppressing = fire;
 
@@ -44,8 +46,6 @@ namespace Combat.Projectiles
                 Bank(collider);
                 return;
             }
-            // The owner can still pop its own charge early.
-            if (passesOrdnance && other is ProjectileBase ordnance && ordnance.Shooter != Shooter) return;
             if (suppressing != null && other is DamageController hull && hull.Ship)
                 suppressing.Strike(hull.Ship.Status, Time.fixedTime);
             base.OnHit(other, collider);
@@ -72,7 +72,7 @@ namespace Combat.Projectiles
         {
             banks = false;
             bankedOff = null;
-            passesOrdnance = false;
+            intercepts = false;
             suppressing = null;
         }
     }

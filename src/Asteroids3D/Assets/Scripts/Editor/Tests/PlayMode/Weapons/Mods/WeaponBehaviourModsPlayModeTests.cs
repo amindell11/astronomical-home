@@ -18,7 +18,8 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Weapons.Mods
 {
     /// <summary>
-    /// Turbolaser bolts fly through an enemy missile unless Point defence is held. Steady ripper fire
+    /// Turbolaser bolts fly through an enemy missile unless Point defence is held, and missile splash
+    /// pops only its own shooter's charge. Steady ripper fire
     /// with Suppression slows a ship and locks its keystone. An EMP missile's hit jams its target.
     /// A Limpet charge rides the first ship it touches and goes off there.
     /// </summary>
@@ -114,6 +115,29 @@ namespace Tests.PlayMode.Weapons.Mods
 
             Assert.IsFalse(missile.gameObject.activeSelf, "the missile is shot down");
             Assert.IsFalse(bolt.gameObject.activeSelf, "the bolt spent itself on it");
+        }
+
+        [UnityTest]
+        public IEnumerator MissileSplash_PopsOnlyItsOwnShootersCharge([Values] bool own)
+        {
+            var grenades = Mount<Grenades>(GrenadesPath, Vector3.zero, GamePlane.Rotation);
+            var launcher = own
+                ? Object.Instantiate(TestAssets.Load<Missiles>(MissilesPath), grenades.transform.parent)
+                : Mount<Missiles>(MissilesPath, Vector3.zero, GamePlane.Rotation);
+            var charge = (Grenade)grenades.Fire(grenades.FireOrigin + grenades.FireDirection * 20f, Projectiles);
+            var missile = (Missile)launcher.Fire(charge.transform.position, Projectiles);
+            yield return new WaitForFixedUpdate();
+
+            if (missile.gameObject.activeSelf)
+            {
+                missile.transform.position = charge.transform.position;
+                Physics.SyncTransforms();
+                missile.TakeDamage(default);
+            }
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreEqual(!own, charge.gameObject.activeSelf,
+                own ? "its own shooter's blast sets the charge off" : "an enemy blast passes over the charge");
         }
 
         private IEnumerator HoldRippersOn(Rippers guns, Ship target, int steps)

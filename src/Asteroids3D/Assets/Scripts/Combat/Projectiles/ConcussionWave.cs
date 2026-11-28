@@ -32,6 +32,7 @@ namespace Combat.Projectiles
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
         private Ships.Ship attacker;
+        private IShooter source;
         private float damageScale = 1f;
         private float radiusScale = 1f;
         private float pushScale = 1f;
@@ -57,10 +58,11 @@ namespace Combat.Projectiles
 
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage, reach and push multipliers; a negative push pulls toward the centre.</summary>
         public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f, float pushScale = 1f,
-            Ships.Ship attacker = null)
+            Ships.Ship attacker = null, IShooter source = null)
         {
             this.attackerId = attackerId;
             this.attacker = attacker;
+            this.source = source;
             this.damageScale = Mathf.Max(0f, damageScale);
             this.radiusScale = Mathf.Max(0f, radiusScale);
             this.pushScale = pushScale;
@@ -107,7 +109,8 @@ namespace Combat.Projectiles
                 // A trigger on a hull layer is a broadphase volume (an asteroid's bounding sphere), not the hull.
                 if (buffer[i].isTrigger && (hullLayers & (1 << buffer[i].gameObject.layer)) != 0) continue;
 
-                if (!DamageableColliders.TryGet(buffer[i], out var target) || !swept.Add(target)) continue;
+                if (!DamageableColliders.TryGet(buffer[i], out var target) || ProjectileBase.IsOthersOrdnance(target, source) ||
+                    !swept.Add(target)) continue;
 
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var along = OutwardDirection(hitPoint, target.gameObject.transform.position) * Mathf.Sign(pushScale);
