@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AI;
+using Combat.Targeting;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
@@ -109,6 +110,30 @@ namespace Tests.PlayMode
             hasLineOfSight = lineOfSight,
         };
 
+        private sealed class LockTarget : ITargetable
+        {
+            public LockTarget(Transform targetPoint) => TargetPoint = targetPoint;
+            public Transform TargetPoint { get; }
+            public LockChannel Lock { get; } = new();
+        }
+
+        private (Missiles missiles, LockOnSensor sensor) FreshLock()
+        {
+            var missiles = InstantiateWeapon<Missiles>(MissilesPrefabPath);
+            var sensor = missiles.GetComponent<LockOnSensor>();
+            var targetGo = new GameObject("LockTarget");
+            spawned.Add(targetGo);
+
+            var targetLock = sensor.targetLock;
+            Assert.IsNotNull(targetLock, "test premise: the sensor has a lock");
+            Assert.IsTrue(targetLock.TryStartLock(new LockTarget(targetGo.transform)), "test premise: the lock starts");
+            for (var i = 0; i < 30 && targetLock.State != LockState.Locked; i++)
+                targetLock.Update(1f, true);
+            Assert.AreEqual(LockState.Locked, sensor.State, "test premise: the lock just completed");
+            Assert.AreEqual(0f, sensor.LockedFor, "test premise: a just-completed lock has not been held");
+            return (missiles, sensor);
+        }
+
         [Test]
         public void Missiles_DumbfireWindow_IsPointBlankAndNeedsLineOfSight()
         {
@@ -120,6 +145,46 @@ namespace Tests.PlayMode
                 "5 u with a clear line is inside the window.");
             Assert.IsFalse(missiles.HoldTrigger(OnTheNose(5f, lineOfSight: false)),
                 "A blocked line closes the window.");
+        }
+
+        [Test]
+        public void HoldTrigger_HoldsAFreshLock_UntilTheWindUpPasses()
+        {
+            var (missiles, sensor) = FreshLock();
+            var beyondFallback = OnTheNose(8f, lineOfSight: true);
+
+            Assert.IsFalse(missiles.HoldTrigger(beyondFallback),
+                "A lock that just completed has not wound up.");
+
+            sensor.targetLock.Update(0.3f, true);
+            Assert.GreaterOrEqual(sensor.LockedFor, 0.3f);
+            Assert.IsTrue(missiles.HoldTrigger(beyondFallback),
+                "Once the lock has been held for 0.3 s, the gunner launches.");
+        }
+
+        [Test]
+        public void HoldTrigger_NoLaunch_WhenTheLockDropsDuringTheWindUp()
+        {
+            var (missiles, sensor) = FreshLock();
+            var beyondFallback = OnTheNose(8f, lineOfSight: true);
+
+            Assert.IsFalse(missiles.HoldTrigger(beyondFallback),
+                "A lock that just completed has not wound up.");
+
+            sensor.targetLock.Update(0.15f, true);
+            Assert.Less(sensor.LockedFor, 0.3f, "test premise: the wind-up has not elapsed");
+            Assert.IsFalse(missiles.HoldTrigger(beyondFallback),
+                "A lock still inside the wind-up does not launch.");
+
+            sensor.ResetLock();
+            Assert.AreEqual(LockState.Idle, sensor.State, "test premise: the lock dropped");
+            Assert.AreEqual(0f, sensor.LockedFor);
+            Assert.IsFalse(missiles.HoldTrigger(beyondFallback),
+                "A lock that drops during the wind-up does not launch, and 8 u is outside the dumbfire window.");
+
+            sensor.targetLock.Update(0.3f, true);
+            Assert.IsFalse(missiles.HoldTrigger(beyondFallback),
+                "Time passing after the drop does not launch.");
         }
 
         [UnityTest]

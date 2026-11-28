@@ -29,6 +29,8 @@ namespace Combat.Weapons.Arsenal
         [Header("AI Firing")]
         [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
         [Stat, SerializeField, Min(0f)] private float holdRange = 13f;
+        [Tooltip("Seconds an AI gunner holds a completed lock before it launches, so its target can react.")]
+        [Stat, SerializeField, Min(0f)] private float aiLockWindUp = 0.3f;
 
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock). Keep it inside the distance the scripted pilots hold from their target: a pilot hovering on this edge launches unguided.")]
@@ -104,7 +106,7 @@ namespace Combat.Weapons.Arsenal
         private bool InFallbackEnvelope(in TargetingContext context) =>
             context.Within(fallbackRange, fallbackAngleTolerance);
 
-        // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
+        // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry, once wound up.
         public override bool HoldTrigger(TargetingContext context)
         {
             // Readiness drops the solution after each launch, so the gunner's press edge re-arms.
@@ -117,7 +119,7 @@ namespace Combat.Weapons.Arsenal
 
             return lockState switch
             {
-                LockState.Locked => true,
+                LockState.Locked => targetingComputer.LockedFor >= aiLockWindUp,
                 LockState.Idle or LockState.Locking => InFallbackEnvelope(in context),
                 _ => false,
             };
