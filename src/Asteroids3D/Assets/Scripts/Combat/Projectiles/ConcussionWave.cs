@@ -42,6 +42,7 @@ namespace Combat.Projectiles
         // This detonation's reach and centre damage under the shooter's weapon mods; a prefab asset reads them unscaled.
         public float MaxRadius => maxRadius * radiusScale;
         public float MaxDamage => maxDamage * damageScale;
+        public bool Pulls => pushScale < 0f;
 
         private void Awake()
         {
