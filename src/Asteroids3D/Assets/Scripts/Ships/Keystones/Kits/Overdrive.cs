@@ -66,7 +66,7 @@ namespace Ships.Keystones.Kits
         private readonly Collider[] nearby = new Collider[16];
         private float charge = 1f;
         private int skims;
-        private bool skimming;
+        private Collider skimmed;
         private float sinceSkim;
 
         public override string DisplayName => "Overdrive";
@@ -106,22 +106,22 @@ namespace Ships.Keystones.Kits
         {
             charge = 1f;
             skims = 0;
-            skimming = false;
+            skimmed = null;
             sinceSkim = 0f;
         }
 
-        // Coming within reach of a rock adds a stack; staying in reach holds them, leaving every rock lets them lapse.
+        // Each new nearest rock in reach adds a stack; staying in reach holds them, leaving every rock lets them lapse.
         private void Skim(in Kinematics kinematics, float dt, bool orbiting)
         {
             if (!orbiting)
             {
                 skims = 0;
-                skimming = false;
+                skimmed = null;
                 return;
             }
-            var near = TryNearestRock(kinematics.pos, skimReach, out _);
-            if (near && !skimming) skims = Mathf.Min(skims + 1, skimMaxStacks);
-            skimming = near;
+            var near = TryNearestRock(kinematics.pos, skimReach, out _, out var rock);
+            if (near && rock != skimmed) skims = Mathf.Min(skims + 1, skimMaxStacks);
+            skimmed = near ? rock : null;
             sinceSkim = near ? 0f : sinceSkim + dt;
             if (sinceSkim >= skimHold) skims = 0;
         }
@@ -161,7 +161,7 @@ namespace Ships.Keystones.Kits
         private KeystoneEffect Orbit(in Kinematics kinematics, float dt)
         {
             var speed = kinematics.Speed;
-            if (Turn == 0f || speed < 1e-3f || !TryNearestRock(kinematics.pos, orbitReach, out var centre)) return default;
+            if (Turn == 0f || speed < 1e-3f || !TryNearestRock(kinematics.pos, orbitReach, out var centre, out _)) return default;
             var toRock = centre - kinematics.pos;
             var distance = toRock.magnitude;
             if (distance < 1e-3f || Vector2.Dot(kinematics.Forward, toRock) < 0f) return default;
@@ -177,9 +177,10 @@ namespace Ships.Keystones.Kits
             return new KeystoneEffect(Vector2.zero, Vector2.zero, (bent - kinematics.vel) / dt);
         }
 
-        private bool TryNearestRock(Vector2 pos, float reach, out Vector2 centre)
+        private bool TryNearestRock(Vector2 pos, float reach, out Vector2 centre, out Collider rock)
         {
             centre = default;
+            rock = null;
             var found = false;
             var nearest = float.PositiveInfinity;
             var count = Physics.OverlapSphereNonAlloc(GamePlane.PlanePointToWorld(pos), Host.Radius + reach, nearby,
@@ -187,13 +188,14 @@ namespace Ships.Keystones.Kits
             for (var i = 0; i < count; i++)
             {
                 var bounds = nearby[i].bounds;
-                var rock = GamePlane.WorldPointToPlane(bounds.center);
+                var at = GamePlane.WorldPointToPlane(bounds.center);
                 var extents = GamePlane.WorldDirToPlane(bounds.extents);
                 if ((Mathf.Abs(extents.x) + Mathf.Abs(extents.y)) * 0.5f < orbitMinRadius) continue;
-                var distance = (rock - pos).sqrMagnitude;
+                var distance = (at - pos).sqrMagnitude;
                 if (distance >= nearest) continue;
                 nearest = distance;
-                centre = rock;
+                centre = at;
+                rock = nearby[i];
                 found = true;
             }
             return found;
