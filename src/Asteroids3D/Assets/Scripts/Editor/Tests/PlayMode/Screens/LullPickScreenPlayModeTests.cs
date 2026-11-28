@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using UI.Screens;
 using UI.Screens.Windows;
@@ -174,13 +175,13 @@ namespace Tests.PlayMode.Screens
         [UnityTest]
         public IEnumerator EveryPooledEffect_WrapsInsideItsCard()
         {
-            var pool = UnityEditor.AssetDatabase.LoadAssetAtPath<Loot.LullModPool>(
+            var pool = UnityEditor.AssetDatabase.LoadAssetAtPath<LullModPool>(
                 "Assets/Settings/Weapons/Mods/LullMods.asset");
             Assert.IsNotNull(pool, "the lull pool loads");
             foreach (var mod in pool.mods)
             {
                 if (screen) Object.Destroy(screen.gameObject);
-                screen = LullPickScreen.Create(root.transform, new List<Loot.LullMod> { mod }, _ => "Lasers", null);
+                screen = LullPickScreen.Create(root.transform, new List<LullMod> { mod }, _ => "Lasers", null);
                 yield return null;
 
                 var effect = screen.transform.Find("Cards/Card1/Body/Effect").GetComponent<Text>();
