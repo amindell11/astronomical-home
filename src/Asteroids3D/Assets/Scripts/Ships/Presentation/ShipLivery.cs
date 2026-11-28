@@ -18,7 +18,7 @@ namespace Ships.Presentation
         /// <summary>Null keeps the authored shaders.</summary>
         public readonly MaterialRestyle Restyle;
 
-        /// <summary>Region materials, each replacing every hull slot of its name; null keeps the authored paint.</summary>
+        /// <summary>Matched to hull slots by material name; null keeps the authored paint.</summary>
         public readonly IReadOnlyList<Material> Palette;
 
         public ShipLivery(IReadOnlyList<Material> hull, Material flame, Color shieldRing, MaterialRestyle restyle = null,

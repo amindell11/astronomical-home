@@ -122,7 +122,6 @@ namespace Substrate.Sectors.Factions
             ship.VisualRig.Wear(new ShipLivery(elite.hull, eliteFlame, shieldRing,
                 palette: PaletteOf(elite.palettes, locale)));
 
-        /// <summary>Throws naming the faction, locale, palette and rank ship when a listed palette is one a rank's palettes lack, or lacks a region that rank's chassis wears.</summary>
         public void CheckPalettes()
         {
             foreach (var entry in localePalettes)

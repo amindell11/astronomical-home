@@ -35,7 +35,6 @@ namespace Ships.Presentation
             throw new InvalidOperationException($"Palettes '{name}' have no palette '{palette}'.");
         }
 
-        /// <summary>The first region <paramref name="silhouette"/> wears, as any of these palettes names regions, that <paramref name="palette"/> does not paint; null when it paints them all.</summary>
         public string MissingRegion(string palette, IEnumerable<Renderer> silhouette)
         {
             var regions = palettes.SelectMany(entry => entry.regions).Select(region => region.name).ToHashSet();
