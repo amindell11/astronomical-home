@@ -101,6 +101,7 @@ namespace Ships.Movement
                 settings.maxSpeed, currentCommand.abilityTarget, currentCommand.yawTorque,
                 currentCommand.thrust != 0f || currentCommand.strafe != 0f);
             rb.mass = settings.mass * keystone.MassScale;
+            rb.excludeLayers = keystone.PassesRocks ? 1 << LayerIds.Asteroid : 0;
             currentCommand.boost = activated ? 1f : 0f;
             if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);
             ApplySpeedCap(Time.fixedDeltaTime);

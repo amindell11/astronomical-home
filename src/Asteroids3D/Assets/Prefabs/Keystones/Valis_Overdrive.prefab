@@ -54,7 +54,6 @@ MonoBehaviour:
   thrustScale: 1.5
   maneuverabilityScale: 1.5
   sightSaturation: 1
-  snapTurn: {fileID: 11400000, guid: 08adb8158b294259b1c9424792afa0c1, type: 2}
   orbit: {fileID: 11400000, guid: 38dbde744fa549a682b97988b90e2445, type: 2}
   orbitReach: 4
   orbitMinRadius: 2

@@ -159,7 +159,7 @@ namespace Tests.EditMode.Ships
             CollectionAssert.AreEquivalent(new[]
             {
                 "Bank shot", "Stopping power", "Deep strike", "Shrapnel rocks", "Wire guided", "Implosion",
-                "Battering ram", "Ambush", "Recall", "Snap turn", "Orbit", "Riposte", "Backstab",
+                "Battering ram", "Ambush", "Recall", "Orbit", "Riposte", "Backstab",
                 "Point defence", "Suppression", "EMP warhead", "Limpet",
                 "Headstrong", "Turret", "Lie in wait", "Clean kill", "Duck and load",
                 "Chain ram", "Double dash", "Shield bash", "Relentless", "Silent running", "Quiet ordnance",
