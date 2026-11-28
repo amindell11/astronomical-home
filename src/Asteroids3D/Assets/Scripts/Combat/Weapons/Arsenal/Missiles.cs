@@ -42,7 +42,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
         private Vector3 aimPoint;
-        private Missile lastWired;
+        private int wiresLive;
 
         public Rounds Rounds => rounds;
         protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
@@ -51,7 +51,7 @@ namespace Combat.Weapons.Arsenal
 
         public override ILockStateSource LockSource => targetingComputer;
         public bool WireGuided => Behaviours.Holds(wireGuided);
-        public bool WireLive => lastWired && lastWired.IsWired;
+        public bool WireLive => wiresLive > 0;
         public override bool IsOrdnance => true;
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
@@ -87,7 +87,7 @@ namespace Combat.Weapons.Arsenal
             if (WireGuided)
             {
                 proj.Wire(() => aimPoint);
-                lastWired = proj;
+                Track(proj);
                 return proj;
             }
 
@@ -100,6 +100,18 @@ namespace Combat.Weapons.Arsenal
             }
 
             return proj;
+        }
+
+        private void Track(Missile wired)
+        {
+            void Landed()
+            {
+                wired.ReturnedToPool -= Landed;
+                wiresLive--;
+            }
+
+            wired.ReturnedToPool += Landed;
+            wiresLive++;
         }
 
         // The lock cone, or the dumbfire window where an AI gunner launches without a lock.

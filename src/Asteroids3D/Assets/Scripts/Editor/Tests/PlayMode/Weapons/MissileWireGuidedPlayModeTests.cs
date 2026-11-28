@@ -101,6 +101,12 @@ namespace Tests.PlayMode.Weapons
 
             missile.ReturnToPoolImmediate();
             Assert.IsFalse(launcher.WireLive, "the wire dies with the missile");
+
+            // Stands in for another launcher taking the same pooled missile and wiring it.
+            missile.gameObject.SetActive(true);
+            missile.Wire(() => Vector3.zero);
+            Assert.IsFalse(launcher.WireLive, "a reused missile another launcher wires is not this launcher's");
+            missile.gameObject.SetActive(false);
         }
     }
 }
