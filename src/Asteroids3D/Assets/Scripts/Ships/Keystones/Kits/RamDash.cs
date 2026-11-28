@@ -179,7 +179,7 @@ namespace Ships.Keystones.Kits
                     in contact));
                 if (Behaviours.Holds(chainRam) && target is DamageController victim && victim.Health.CurrentValue <= 0f)
                 {
-                    ShortenCooldown(0f);
+                    RefundCooldown();
                     Pop(RefundWord, contact.Point);
                 }
             }

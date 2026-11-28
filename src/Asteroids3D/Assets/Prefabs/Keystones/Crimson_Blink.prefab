@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5568463764258899016}
   - component: {fileID: 278763608219706315}
   - component: {fileID: 3537102962893243539}
+  - component: {fileID: 6143957208826391527}
   m_Layer: 0
   m_Name: Crimson_Blink
   m_TagString: Untagged
@@ -130,3 +131,20 @@ MonoBehaviour:
   dark: {r: 0, g: 0, b: 0, a: 1}
   flash: {r: 0.89, g: 0.82, b: 1, a: 1}
   flashTime: 0.15
+--- !u!114 &6143957208826391527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5adbcfa6ad7049d5afb199800938b707, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  ringMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  color: {r: 1, g: 0.65, b: 0.25, a: 0.9}
+  radius: 1
+  lineWidth: 0.08

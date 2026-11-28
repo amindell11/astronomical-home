@@ -94,6 +94,7 @@ namespace Tests.PlayMode.Keystones
             Assert.That(Plane(crimson.Rigidbody.position).x - start.x, Is.GreaterThan(blink.Range - 1f),
                 "the press that blinked does not also recall");
             Assert.That(blink.Ready, Is.False, "the blink is on cooldown");
+            Assert.That(blink.MarkerLeft, Is.InRange(0.5f, 1f), "the marker fades over the recall window");
 
             var before = crimson.Rigidbody.linearVelocity;
             crimson.Movement.Drive(new PilotCommand { boost = 1f });
@@ -102,6 +103,7 @@ namespace Tests.PlayMode.Keystones
             Assert.That(Mathf.Abs(Plane(crimson.Rigidbody.position).x - start.x), Is.LessThan(0.5f), "back at the marker");
             Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, before), Is.LessThan(0.5f), "keeping its velocity");
             Assert.That(blink.Activations, Is.EqualTo(1), "a recall is not a second blink");
+            Assert.That(blink.TelledPresses, Is.EqualTo(2), "but the recall plays the blink's tell");
             Assert.That(blink.Marker, Is.Null, "the marker is spent");
         }
 

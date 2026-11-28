@@ -97,6 +97,9 @@ namespace Ships.Command
 
         /// <summary>Whether a keystone press now does something; a kit may take one on cooldown.</summary>
         bool KeystoneTakesPress => BoostAvailable;
+
+        /// <summary>Whether the keystone holds open a window for a follow-up press.</summary>
+        bool KeystoneFollowUpOpen => false;
         float BoostCooldownRemaining { get; }
         /// <summary>Fraction of the boost cooldown still to run (0 = ready).</summary>
         float BoostCooldownPct { get; }

@@ -19,6 +19,9 @@ namespace UI.Weapons
         [SerializeField] private Color overheat = new(.98f, .41f, .41f);
         [SerializeField] private ReadyFlashProfile readyFlash;
 
+        [Tooltip("Seconds between ready flashes while a weapon recovers faster than authored.")]
+        [SerializeField, Min(.05f)] private float boostedFlashEvery = .6f;
+
         private sealed class Resource
         {
             public IWeaponReadout Source;
@@ -234,6 +237,7 @@ namespace UI.Weapons
             }
             foreach (var flash in flashes)
             {
+                if (flash.Source.RecoveryBoosted && now - flash.StartedAt >= boostedFlashEvery) flash.StartedAt = now;
                 var weight = readyFlash.Intensity * Mathf.Clamp01(1f - (now - flash.StartedAt) / readyFlash.Seconds);
                 flash.Arc.enabled = weight > 0f;
                 var color = ink;

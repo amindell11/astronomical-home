@@ -33,8 +33,8 @@ namespace Ships.Keystones
         {
             if (on == held || !hull) return;
             held = on;
-            if (on) hull.HoldFlash(Color.white);
-            else hull.ReleaseFlash();
+            if (on) hull.HoldFlash(this, Color.white);
+            else hull.ReleaseFlash(this);
         }
     }
 }
